@@ -103,6 +103,26 @@ const sandboxSessionSchema = new Schema({
     source: String,
   }],
 
+  // AI analysis result from AI microservice
+  aiAnalysis: {
+    session_id: String,
+    analysis_timestamp: Date,
+    total_events: Number,
+    suspicious_events: Number,
+    threat_classification: Schema.Types.Mixed,
+    severity_score: Number,
+    severity_level: String,
+    anomalies: [{
+      type: String,
+      description: String,
+      severity: String,
+      deviation_score: Number,
+    }],
+    behavioral_summary: String,
+    recommendations: [String],
+    confidence: Number,
+  },
+
   // Rollback status
   rollbackStatus: {
     completed: Boolean,

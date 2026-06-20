@@ -240,10 +240,10 @@ export const ThreatIntelligencePage: React.FC = () => {
       <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-          <h1 className="text-3xl font-bold text-slate-900 font-mono tracking-tight">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-mono tracking-tight">
             Threat Intelligence
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Link-analysis graph · IOC correlation · Real-time threat mapping
           </p>
         </motion.div>
@@ -259,7 +259,7 @@ export const ThreatIntelligencePage: React.FC = () => {
             ) : graphNodes.length > 0 ? (
               <ThreatMapCanvas nodes={graphNodes} edges={graphEdges} />
             ) : (
-              <div className="flex flex-col items-center justify-center h-[500px] text-slate-500">
+              <div className="flex flex-col items-center justify-center h-[500px] text-slate-500 dark:text-slate-400">
                 <p className="text-lg font-mono">No threat data available</p>
                 <p className="text-sm mt-1">IOCs will appear here after sandbox analysis</p>
               </div>
@@ -269,18 +269,18 @@ export const ThreatIntelligencePage: React.FC = () => {
 
         {/* IOC Table */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-          <div className="rounded-xl border border-slate-200/50 bg-white border border-slate-200 backdrop-blur overflow-hidden">
-            <div className="p-4 border-b border-slate-200/50">
-              <h2 className="text-lg font-semibold text-slate-900 font-mono">Active IOCs</h2>
+          <div className="rounded-xl border border-slate-200/50 dark:border-slate-700/50 bg-white dark:bg-slate-800/80 backdrop-blur overflow-hidden">
+            <div className="p-4 border-b border-slate-200/50 dark:border-slate-700/50">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white font-mono">Active IOCs</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-50/80">
+                <thead className="bg-slate-50/80 dark:bg-slate-800/50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-mono text-slate-500 uppercase">Indicator</th>
-                    <th className="px-4 py-3 text-left text-xs font-mono text-slate-500 uppercase">Type</th>
-                    <th className="px-4 py-3 text-left text-xs font-mono text-slate-500 uppercase">Severity</th>
-                    <th className="px-4 py-3 text-left text-xs font-mono text-slate-500 uppercase">Score</th>
+                    <th className="px-4 py-3 text-left text-xs font-mono text-slate-500 dark:text-slate-400 uppercase">Indicator</th>
+                    <th className="px-4 py-3 text-left text-xs font-mono text-slate-500 dark:text-slate-400 uppercase">Type</th>
+                    <th className="px-4 py-3 text-left text-xs font-mono text-slate-500 dark:text-slate-400 uppercase">Severity</th>
+                    <th className="px-4 py-3 text-left text-xs font-mono text-slate-500 dark:text-slate-400 uppercase">Score</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-700/30">
@@ -290,19 +290,19 @@ export const ThreatIntelligencePage: React.FC = () => {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.03 }}
-                      className="hover:bg-slate-100/20"
+                      className="hover:bg-slate-100/20 dark:hover:bg-slate-700/20"
                     >
                       <td className="px-4 py-3 font-mono text-sm text-slate-400">{ioc.value}</td>
-                      <td className="px-4 py-3 text-sm text-slate-500 capitalize">{ioc.type.replace(/_/g, ' ')}</td>
+                      <td className="px-4 py-3 text-sm text-slate-500 dark:text-slate-400 capitalize">{ioc.type.replace(/_/g, ' ')}</td>
                       <td className="px-4 py-3">
                         <span className={`px-2 py-0.5 text-xs font-mono rounded border ${getSeverityColor(ioc.severity)}`}>{ioc.severity}</span>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="w-16 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                             <div className={`h-full rounded-full ${ioc.threatScore >= 70 ? 'bg-red-500' : ioc.threatScore >= 40 ? 'bg-yellow-500' : 'bg-cyan-500'}`} style={{ width: `${ioc.threatScore}%` }} />
                           </div>
-                          <span className="text-xs font-mono text-slate-500">{ioc.threatScore}</span>
+                          <span className="text-xs font-mono text-slate-500 dark:text-slate-400">{ioc.threatScore}</span>
                         </div>
                       </td>
                     </motion.tr>

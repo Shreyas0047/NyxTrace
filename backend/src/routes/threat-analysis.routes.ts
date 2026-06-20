@@ -11,8 +11,8 @@ const router = Router();
 
 router.use(authenticate);
 
-router.post('/analyze', asyncHandler(threatAnalysisController.analyzeSession));
-router.get('/report/:sessionId', asyncHandler(threatAnalysisController.getIntelligenceReport));
-router.get('/summary/:sessionId', asyncHandler(threatAnalysisController.getIntelligenceSummary));
+router.post('/analyze', asyncHandler(threatAnalysisController.analyzeSession.bind(threatAnalysisController)));
+router.get('/report/:sessionId', asyncHandler(threatAnalysisController.getIntelligenceReport.bind(threatAnalysisController)));
+router.get('/summary/:sessionId', asyncHandler(threatAnalysisController.getIntelligenceSummary.bind(threatAnalysisController)));
 
 export default router;

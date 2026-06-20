@@ -1,13 +1,7 @@
-﻿/**
- * Forensic Analytics Page
- * Interactive MITRE ATT&CK matrix with staggered reveals and evidence correlation
- */
-
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
 
-// MITRE ATT&CK Matrix Structure
 const MITRE_TACTICS = [
   { id: 'initial_access', name: 'Initial Access' },
   { id: 'execution', name: 'Execution' },
@@ -95,13 +89,11 @@ export const ForensicAnalyticsPage = () => {
   return (
     <div className="min-h-full">
       <div className="max-w-[1400px] mx-auto py-6 px-4">
-        {/* Header */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-          <h1 className="text-3xl font-bold text-slate-900 font-mono tracking-tight">Forensic Analytics</h1>
-          <p className="mt-1 text-sm text-slate-500">MITRE ATT&CK matrix · Behavioral patterns · Investigation correlation</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-mono tracking-tight">Forensic Analytics</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">MITRE ATT&CK matrix · Behavioral patterns · Investigation correlation</p>
         </motion.div>
 
-        {/* Summary Cards */}
         {dashboardData && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="grid grid-cols-4 gap-4 mb-6">
             {[
@@ -115,34 +107,31 @@ export const ForensicAnalyticsPage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 + i * 0.05 }}
-                className={`rounded-xl border border-slate-200/50 bg-gradient-to-br from-${card.color}-500/10 to-transparent p-4 backdrop-blur`}
+                className={`rounded-xl border border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-br from-${card.color}-500/10 to-transparent p-4 backdrop-blur`}
               >
                 <div className={`text-3xl font-bold font-mono text-${card.color}-400`}>{card.value}</div>
-                <div className="text-xs text-slate-500 mt-1">{card.label}</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">{card.label}</div>
               </motion.div>
             ))}
           </motion.div>
         )}
 
-        {/* MITRE ATT&CK Matrix */}
         <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}>
-          <div className="rounded-xl border border-slate-200/50 bg-white border border-slate-200 backdrop-blur p-4 overflow-x-auto">
-            <h2 className="text-lg font-semibold text-slate-900 font-mono mb-4">MITRE ATT&CK Coverage</h2>
+          <div className="rounded-xl border border-slate-200/50 dark:border-slate-700/50 bg-white dark:bg-slate-800/80 backdrop-blur p-4 overflow-x-auto">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white font-mono mb-4">MITRE ATT&CK Coverage</h2>
             <div className="grid grid-cols-11 gap-1 min-w-[1100px]">
-              {/* Tactic Headers */}
               {MITRE_TACTICS.map((tactic, i) => (
                 <motion.div
                   key={tactic.id}
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 + i * 0.04 }}
-                  className="text-center pb-2 border-b border-slate-200/50"
+                  className="text-center pb-2 border-b border-slate-200/50 dark:border-slate-700/50"
                 >
                   <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-wide">{tactic.name}</span>
                 </motion.div>
               ))}
 
-              {/* Technique Cells */}
               {Array.from({ length: 4 }).map((_, row) => (
                 MITRE_TACTICS.map((tactic, col) => {
                   const techniques = MITRE_TECHNIQUES[tactic.id] || [];
@@ -161,11 +150,11 @@ export const ForensicAnalyticsPage = () => {
                       onClick={() => setExpandedTechnique(expandedTechnique === tech.id ? null : tech.id)}
                       className={`h-10 rounded cursor-pointer flex items-center justify-center transition-all duration-300 ${
                         detected
-                          ? `bg-slate-100/80 ${glowClass}`
-                          : 'bg-slate-50/40 hover:bg-slate-100/40'
+                          ? `bg-slate-100/80 dark:bg-slate-700/80 ${glowClass}`
+                          : 'bg-slate-50/40 dark:bg-slate-800/40 hover:bg-slate-100/40 dark:hover:bg-slate-700/40'
                       }`}
                     >
-                      <span className={`text-[9px] font-mono text-center px-1 ${detected ? 'text-slate-900' : 'text-slate-500'}`}>
+                      <span className={`text-[9px] font-mono text-center px-1 ${detected ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
                         {tech.name}
                       </span>
                     </motion.div>
@@ -174,7 +163,6 @@ export const ForensicAnalyticsPage = () => {
               ))}
             </div>
 
-            {/* Expanded Technique Detail */}
             <AnimatePresence>
               {expandedTechnique && (() => {
                 const tech = detectedTechniques.find(t => t.technique_id === expandedTechnique);
@@ -184,17 +172,17 @@ export const ForensicAnalyticsPage = () => {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="mt-4 rounded-lg border border-cyan-500/30 bg-slate-50/60 p-4 overflow-hidden"
+                    className="mt-4 rounded-lg border border-cyan-500/30 bg-slate-50/60 dark:bg-slate-700/60 p-4 overflow-hidden"
                   >
                     <div className="flex items-center gap-3 mb-2">
                       <span className="font-mono text-cyan-400 text-sm">{tech.technique_id}</span>
-                      <span className="text-slate-900 font-medium">{tech.technique_name}</span>
+                      <span className="text-slate-900 dark:text-white font-medium">{tech.technique_name}</span>
                       <span className="px-2 py-0.5 text-xs bg-cyan-500/20 text-cyan-300 rounded">{tech.tactic}</span>
-                      <span className="text-xs text-slate-500">Confidence: {(tech.confidence * 100).toFixed(0)}%</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">Confidence: {(tech.confidence * 100).toFixed(0)}%</span>
                     </div>
                     <div className="space-y-1">
                       {tech.evidence_snippets.map((snippet, i) => (
-                        <div key={i} className="text-xs font-mono text-slate-500 bg-white/60 rounded px-3 py-1.5 border-l-2 border-cyan-500/40">
+                        <div key={i} className="text-xs font-mono text-slate-500 dark:text-slate-400 bg-white/60 dark:bg-slate-800/60 rounded px-3 py-1.5 border-l-2 border-cyan-500/40">
                           {snippet}
                         </div>
                       ))}
@@ -206,11 +194,10 @@ export const ForensicAnalyticsPage = () => {
           </div>
         </motion.div>
 
-        {/* Insights */}
         {dashboardData && dashboardData.insights.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mt-6">
-            <div className="rounded-xl border border-slate-200/50 bg-white border border-slate-200 backdrop-blur p-4">
-              <h2 className="text-lg font-semibold text-slate-900 font-mono mb-3">Correlation Insights</h2>
+            <div className="rounded-xl border border-slate-200/50 dark:border-slate-700/50 bg-white dark:bg-slate-800/80 backdrop-blur p-4">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white font-mono mb-3">Correlation Insights</h2>
               <div className="space-y-2">
                 {dashboardData.insights.slice(0, 5).map((insight, i) => (
                   <motion.div
@@ -221,11 +208,11 @@ export const ForensicAnalyticsPage = () => {
                     className={`p-3 rounded-lg border ${
                       insight.severity === 'critical' ? 'border-red-500/30 bg-red-500/5' :
                       insight.severity === 'high' ? 'border-orange-500/30 bg-orange-500/5' :
-                      'border-slate-200/30 bg-white border border-slate-200'
+                      'border-slate-200/30 dark:border-slate-700/30 bg-white dark:bg-slate-800/80'
                     }`}
                   >
-                    <p className="text-sm text-slate-400 font-medium">{insight.title}</p>
-                    <p className="text-xs text-slate-500 mt-1">{insight.description}</p>
+                    <p className="text-sm text-slate-400 dark:text-slate-300 font-medium">{insight.title}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{insight.description}</p>
                   </motion.div>
                 ))}
               </div>
@@ -238,4 +225,3 @@ export const ForensicAnalyticsPage = () => {
 };
 
 export default ForensicAnalyticsPage;
-

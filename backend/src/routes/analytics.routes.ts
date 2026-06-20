@@ -129,7 +129,7 @@ router.post(
   '/session/analyze',
   authenticate,
   authorize(['admin', 'forensic_analyst']),
-  asyncHandler(analyticsController.analyzeSession)
+  asyncHandler(analyticsController.analyzeSession.bind(analyticsController))
 );
 
 /**
@@ -141,7 +141,7 @@ router.post(
   '/sessions/compare',
   authenticate,
   authorize(['admin', 'forensic_analyst']),
-  asyncHandler(analyticsController.compareSessions)
+  asyncHandler(analyticsController.compareSessions.bind(analyticsController))
 );
 
 export default router;

@@ -115,6 +115,17 @@ class SessionPipeline:
             log.exception("Pipeline error for session %s", session.session_id)
         finally:
             self._monitoring.is_active = False
+            # Power off VM after session — do NOT restore snapshot here.
+            # The next session's _execute_stages (REVERT phase) will
+            # restore the clean snapshot, avoiding a double-revert that
+            # can corrupt Guest Additions state on force-poweroff.
+            try:
+                self._emit_log("INFO", "Powering off VM after session", session.session_id)
+                await asyncio.to_thread(self._vm.kill_all_vbox_processes)
+                self._emit_log("INFO", "VM powered off", session.session_id)
+            except Exception as e:
+                log.exception("VM poweroff after session %s", session.session_id)
+                self._emit_log("ERROR", f"VM poweroff failed: {e}", session.session_id)
 
     async def _execute_stages(self, session: RuntimeSession) -> None:
         """Execute each pipeline stage sequentially."""

@@ -64,24 +64,24 @@ export function truncate(str: string, length: number): string {
 
 export function getSeverityColor(severity: string): string {
   const colors: Record<string, string> = {
-    critical: 'text-red-600 bg-red-50 border-red-200',
-    high: 'text-orange-600 bg-orange-50 border-orange-200',
-    medium: 'text-amber-600 bg-amber-50 border-amber-200',
-    low: 'text-green-600 bg-green-50 border-green-200',
-    info: 'text-blue-600 bg-blue-50 border-blue-200',
+    critical: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800',
+    high: 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-800',
+    medium: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800',
+    low: 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800',
+    info: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800',
   };
   return colors[severity.toLowerCase()] || colors.info;
 }
 
 export function getStatusColor(status: string): string {
   const colors: Record<string, string> = {
-    pending: 'text-slate-600 bg-slate-50 border-slate-200',
-    active: 'text-blue-600 bg-blue-50 border-blue-200',
-    analyzing: 'text-purple-600 bg-purple-50 border-purple-200',
-    escalated: 'text-orange-600 bg-orange-50 border-orange-200',
-    resolved: 'text-green-600 bg-green-50 border-green-200',
-    closed: 'text-slate-500 bg-slate-100 border-slate-300',
-    archived: 'text-gray-500 bg-gray-100 border-gray-300',
+    pending: 'text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/30 border-slate-200 dark:border-slate-700',
+    active: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800',
+    analyzing: 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/30 border-purple-200 dark:border-purple-800',
+    escalated: 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-800',
+    resolved: 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800',
+    closed: 'text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600',
+    archived: 'text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600',
   };
   return colors[status.toLowerCase()] || colors.pending;
 }

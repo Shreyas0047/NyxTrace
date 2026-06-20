@@ -1,12 +1,6 @@
 @import "tailwindcss";
 
-/* ════════════════════════════════════════════════════════════════
-   FORENSICS AI — AESTHETIC FOUNDATION
-   Principal Design Engineer: $10k Tier Professional System
-   ════════════════════════════════════════════════════════════════ */
-
 @theme {
-  /* Warm dark slate scale — replaces Tailwind's cool blue-slate */
   --color-slate-50: #f5f3ef;
   --color-slate-100: #e8e5df;
   --color-slate-200: #c8c2b8;
@@ -20,40 +14,32 @@
   --color-slate-950: #050405;
 }
 
-/* ─── ROOT TOKENS ─── */
 :root {
-  /* Typography Stack */
   --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
   --font-body: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
 
-  /* Surface Hierarchy — Warm Editorial Dark
-     Not pure black, not blue-slate. Inspired by Linear/Arc. */
-  --surface-base: #0d0c0e;        /* Page background */
-  --surface-raised: #161519;      /* Cards, panels */
-  --surface-overlay: rgba(22, 21, 25, 0.85);
-  --surface-sunken: #08080a;      /* Sidebar, deeper containers */
+  --surface-base: #000000;
+  --surface-raised: #0a0a0a;
+  --surface-overlay: rgba(0, 0, 0, 0.85);
+  --surface-sunken: #080808;
 
-  /* Border Hierarchy — Subtle, never harsh */
   --border-subtle: rgba(255, 255, 255, 0.04);
   --border-default: rgba(255, 255, 255, 0.07);
   --border-strong: rgba(255, 255, 255, 0.1);
 
-  /* Text Hierarchy — Warm whites, not stark */
-  --text-primary: #ebe8e3;        /* Cream — primary content */
-  --text-secondary: #a09b93;      /* Warm gray — secondary */
-  --text-tertiary: #6c6862;       /* Muted — metadata */
+  --text-primary: #ebe8e3;
+  --text-secondary: #a09b93;
+  --text-tertiary: #6c6862;
   --text-disabled: #3a3833;
 
-  /* Accents — Editorial restraint */
-  --accent-amber: #f59e0b;        /* Brighter for dark contrast */
+  --accent-amber: #f59e0b;
   --accent-amber-soft: rgba(245, 158, 11, 0.1);
   --accent-emerald: #34d399;
   --accent-rose: #fb7185;
   --accent-violet: #a78bfa;
   --accent-cobalt: #60a5fa;
 
-  /* Spacing Rhythm — Strict 4/8/12/16 grid */
   --grid-1: 4px;
   --grid-2: 8px;
   --grid-3: 12px;
@@ -64,25 +50,25 @@
   --grid-10: 40px;
   --grid-12: 48px;
 
-  /* Radius Scale */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-xl: 18px;
 
-  /* Shadow Hierarchy — Deep, refined */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.25);
   --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3);
   --shadow-glow-amber: 0 0 0 1px rgba(245, 158, 11, 0.2), 0 4px 16px rgba(245, 158, 11, 0.1);
 
-  /* Motion */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --duration-fast: 160ms;
   --duration-normal: 240ms;
   --duration-slow: 360ms;
+
+  /* Dot-grid pattern */
+  --dot-grid: radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px);
 }
 
 html, body, #root {
@@ -103,21 +89,17 @@ body {
   letter-spacing: -0.005em;
 }
 
-/* Subtle warm ambient gradient (replaces flat bg) */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background-image:
-    radial-gradient(at 15% 20%, rgba(245, 158, 11, 0.025) 0px, transparent 50%),
-    radial-gradient(at 85% 80%, rgba(167, 139, 250, 0.018) 0px, transparent 50%);
+  background-image: var(--dot-grid);
+  background-size: 32px 32px;
+  opacity: 0.6;
 }
 
-/* ════════════════════════════════════════════════════════════════
-   TYPOGRAPHY UTILITIES
-   ════════════════════════════════════════════════════════════════ */
 .font-display { font-family: var(--font-display); letter-spacing: -0.02em; }
 .font-body { font-family: var(--font-body); }
 .font-mono { font-family: var(--font-mono); font-feature-settings: 'zero', 'ss01'; }
@@ -130,7 +112,6 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.2;
 }
 
-/* Editorial overline */
 .overline {
   font-family: var(--font-mono);
   font-size: 10px;
@@ -138,11 +119,8 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--text-tertiary);
-}/* ════════════════════════════════════════════════════════════════
-   COMPONENT PRIMITIVES — Cohesive Design Language
-   ════════════════════════════════════════════════════════════════ */
+}
 
-/* Surface card — every card uses this */
 .surface {
   background: var(--surface-raised);
   border: 1px solid var(--border-subtle);
@@ -165,7 +143,6 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: var(--radius-lg);
 }
 
-/* Subtle hover lift */
 .surface-interactive {
   transition: transform var(--duration-fast) var(--ease-out),
               box-shadow var(--duration-fast) var(--ease-out),
@@ -178,38 +155,6 @@ h1, h2, h3, h4, h5, h6 {
   background: rgba(255, 255, 255, 0.015);
 }
 
-/* ════════════════════════════════════════════════════════════════
-   ATMOSPHERIC LAYERS — Grain + Mesh
-   ════════════════════════════════════════════════════════════════ */
-.grain-overlay {
-  position: relative;
-}
-.grain-overlay::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.025;
-  mix-blend-mode: multiply;
-  border-radius: inherit;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
-/* Mesh gradient orb (decorative) */
-.mesh-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.4;
-  pointer-events: none;
-}
-.mesh-orb-amber { background: radial-gradient(circle, #fbbf24, transparent 70%); }
-.mesh-orb-violet { background: radial-gradient(circle, #a78bfa, transparent 70%); }
-.mesh-orb-emerald { background: radial-gradient(circle, #34d399, transparent 70%); }
-
-/* ════════════════════════════════════════════════════════════════
-   FORMS & INPUTS — Unified treatment
-   ════════════════════════════════════════════════════════════════ */
 input, select, textarea {
   font-family: var(--font-body);
   color: var(--text-primary);
@@ -222,35 +167,23 @@ input:focus, select:focus, textarea:focus {
   outline: none;
 }
 
-/* ════════════════════════════════════════════════════════════════
-   SAFETY OVERRIDES — Ensure readability on warm dark
-   ════════════════════════════════════════════════════════════════ */
 .text-slate-400 { color: var(--text-secondary); }
 .text-slate-500 { color: var(--text-secondary); }
 .text-slate-600 { color: var(--text-tertiary); }
 .text-slate-900 { color: var(--text-primary); }
 .text-slate-950 { color: var(--text-primary); }
 
-/* ════════════════════════════════════════════════════════════════
-   FOCUS STATES — WCAG compliant
-   ════════════════════════════════════════════════════════════════ */
 *:focus-visible {
   outline: 2px solid var(--accent-amber);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
 
-/* ════════════════════════════════════════════════════════════════
-   SCROLLBARS — Refined
-   ════════════════════════════════════════════════════════════════ */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.08); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.15); }
 
-/* ════════════════════════════════════════════════════════════════
-   MICRO-INTERACTIONS
-   ════════════════════════════════════════════════════════════════ */
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }

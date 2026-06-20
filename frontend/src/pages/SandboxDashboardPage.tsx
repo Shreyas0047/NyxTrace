@@ -42,8 +42,8 @@ import { DashboardCard, DashboardStat } from '../components/enterprise/Dashboard
 import { useSandboxStore } from '../stores/sandboxStore';
 import { useTelemetryStore } from '../stores/telemetryStore';
 import { useLogsStore } from '../stores/logsStore';
-import { useStatusStore } from '../stores/statusStore';
 import { useRealtimeStore } from '../stores/realtimeStore';
+import { useStatusStore } from '../stores/statusStore';
 import { socketService, SocketEvent } from '../services/socket';
 import api from '../services/api';
 import { cn } from '../design-system';
@@ -119,6 +119,7 @@ export function SandboxDashboardPage() {
   const [activeTab, setActiveTab] = useState<TabType>('sessions');
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
   const [, setTick] = useState(0);
+  const [persistedMonitoring, setPersistedMonitoring] = useState<any>(null);
 
   const logsEndRef = useRef<HTMLDivElement>(null);
   const telemetryEndRef = useRef<HTMLDivElement>(null);
@@ -154,6 +155,18 @@ export function SandboxDashboardPage() {
 
     return () => clearInterval(interval);
   }, [isSocketConnected, activeSession?.session_id, activeSession?.state, fetchHealth, fetchMonitoringStatus, fetchExecutionStatus]);
+
+  // Fetch persisted monitoring data for completed sessions
+  useEffect(() => {
+    if (activeTab === 'monitoring' && !monitoringStatus && sessions.length > 0) {
+      const lastCompleted = sessions.find(s => s.status === 'completed');
+      if (lastCompleted) {
+        api.getSessionMonitoring(lastCompleted.sessionId).then((res) => {
+          if (res.success) setPersistedMonitoring(res.data);
+        }).catch(() => {});
+      }
+    }
+  }, [activeTab, monitoringStatus, sessions]);
 
   // Listen for real-time sandbox session updates via Socket.IO
   useEffect(() => {
@@ -747,7 +760,7 @@ export function SandboxDashboardPage() {
         </PageGrid>
       )}
 
-      {activeTab === 'monitoring' && !monitoringStatus && (
+      {activeTab === 'monitoring' && !monitoringStatus && !persistedMonitoring && (
         <Card>
           <div className="flex flex-col items-center justify-center py-16">
             <Activity className="w-12 h-12 text-slate-400 mb-3" />
@@ -757,87 +770,137 @@ export function SandboxDashboardPage() {
         </Card>
       )}
 
-      {activeTab === 'monitoring' && monitoringStatus && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <div className="p-4 border-b border-slate-100 dark:border-slate-700/50">
-              <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                <Activity className="w-4 h-4 text-cyan-600" />
-                Event Categories
-              </h3>
-            </div>
-            <div className="p-4 space-y-3">
-              {Object.entries(monitoringStatus?.events_by_category || {}).length === 0 ? (
-                <p className="text-sm text-slate-400 text-center py-4">No events captured yet</p>
-              ) : (
-                Object.entries(monitoringStatus?.events_by_category || {}).map(([category, count]) => (
-                  <div key={category} className="flex items-center justify-between">
-                    <span className="text-sm text-slate-600 dark:text-slate-400 capitalize">{category.replace(/_/g, ' ')}</span>
-                    <span className="text-sm font-medium text-slate-900 dark:text-white">{count as number}</span>
-                  </div>
-                ))
-              )}
-            </div>
-          </Card>
-
-          <Card>
-            <div className="p-4 border-b border-slate-100 dark:border-slate-700/50">
-              <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-amber-600" />
-                Events by Severity
-              </h3>
-            </div>
-            <div className="p-4 space-y-3">
-              {Object.entries(monitoringStatus?.events_by_severity || {}).length === 0 ? (
-                <p className="text-sm text-slate-400 text-center py-4">No severity data yet</p>
-              ) : (
-                Object.entries(monitoringStatus?.events_by_severity || {}).map(([severity, count]) => (
-                  <div key={severity} className="flex items-center justify-between">
-                    <span className={cn(
-                      'text-sm capitalize px-2 py-0.5 rounded',
-                      severity === 'critical' && 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-                      severity === 'high' && 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
-                      severity === 'medium' && 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-                      severity === 'low' && 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-                      severity === 'info' && 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-                    )}>{severity}</span>
-                    <span className="text-sm font-medium text-slate-900 dark:text-white">{count as number}</span>
-                  </div>
-                ))
-              )}
-            </div>
-          </Card>
-
-          {monitoringStatus?.suspicious_activities && monitoringStatus.suspicious_activities.length > 0 && (
-            <Card className="lg:col-span-2">
-              <div className="p-4 border-b border-slate-100 dark:border-slate-700/50">
-                <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-red-600" />
-                  Suspicious Activities Detected
-                </h3>
-              </div>
-              <div className="divide-y divide-slate-100 dark:divide-slate-700/50">
-                {(monitoringStatus.suspicious_activities as Array<{indicator?: string; description?: string; severity?: string}>).map((activity, idx) => (
-                  <div key={idx} className="p-4 flex items-start gap-4">
-                    <div className={cn(
-                      'w-2 h-2 rounded-full mt-2',
-                      activity.severity === 'critical' && 'bg-red-500',
-                      activity.severity === 'high' && 'bg-orange-500',
-                      activity.severity === 'medium' && 'bg-amber-500',
-                      activity.severity === 'low' && 'bg-emerald-500',
-                    )} />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-slate-900 dark:text-white">{activity.indicator || 'Unknown'}</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{activity.description || ''}</p>
-                    </div>
-                    {activity.severity && (
-                      <SeverityBadge severity={activity.severity as 'critical' | 'high' | 'medium' | 'low'} size="sm" />
-                    )}
-                  </div>
-                ))}
+      {activeTab === 'monitoring' && (monitoringStatus || persistedMonitoring) && (
+        <div className="space-y-6">
+          {/* Session summary strip */}
+          {persistedMonitoring && (
+            <Card>
+              <div className="p-4">
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Session Summary</p>
+                <p className="text-sm text-slate-700 dark:text-slate-300">
+                  {persistedMonitoring.totalEvents} events · {persistedMonitoring.process} process · {persistedMonitoring.file} file · {persistedMonitoring.registry} registry · {persistedMonitoring.network} network
+                </p>
               </div>
             </Card>
           )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <div className="p-4 border-b border-slate-100 dark:border-slate-700/50">
+                <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-cyan-600" />
+                  Event Categories
+                </h3>
+              </div>
+              <div className="p-4 space-y-3">
+                {(() => {
+                  const cats = monitoringStatus?.events_by_category
+                    ? Object.entries(monitoringStatus.events_by_category)
+                    : persistedMonitoring
+                      ? Object.entries(persistedMonitoring).filter(([k]) => ['process', 'file', 'registry', 'network', 'credential'].includes(k) && typeof persistedMonitoring[k] === 'number' && persistedMonitoring[k] > 0)
+                      : [];
+                  return cats.length === 0 ? (
+                    <p className="text-sm text-slate-400 text-center py-4">No events captured yet</p>
+                  ) : (
+                    cats.map(([category, count]) => (
+                      <div key={category} className="flex items-center justify-between">
+                        <span className="text-sm text-slate-600 dark:text-slate-400 capitalize">{category.replace(/_/g, ' ')}</span>
+                        <span className="text-sm font-medium text-slate-900 dark:text-white">{count as number}</span>
+                      </div>
+                    ))
+                  );
+                })()}
+              </div>
+            </Card>
+
+            <Card>
+              <div className="p-4 border-b border-slate-100 dark:border-slate-700/50">
+                <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-600" />
+                  Events by Severity
+                </h3>
+              </div>
+              <div className="p-4 space-y-3">
+                {(() => {
+                  const sevs = monitoringStatus?.events_by_severity
+                    ? Object.entries(monitoringStatus.events_by_severity)
+                    : persistedMonitoring?.severityCounts
+                      ? Object.entries(persistedMonitoring.severityCounts).filter(([, c]) => (c as number) > 0)
+                      : [];
+                  return sevs.length === 0 ? (
+                    <p className="text-sm text-slate-400 text-center py-4">No severity data yet</p>
+                  ) : (
+                    sevs.map(([severity, count]) => (
+                      <div key={severity} className="flex items-center justify-between">
+                        <span className={cn(
+                          'text-sm capitalize px-2 py-0.5 rounded',
+                          severity === 'critical' && 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+                          severity === 'high' && 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+                          severity === 'medium' && 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+                          severity === 'low' && 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+                          severity === 'info' && 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+                        )}>{severity}</span>
+                        <span className="text-sm font-medium text-slate-900 dark:text-white">{count as number}</span>
+                      </div>
+                    ))
+                  );
+                })()}
+              </div>
+            </Card>
+
+            {monitoringStatus?.suspicious_activities && monitoringStatus.suspicious_activities.length > 0 && (
+              <Card className="lg:col-span-2">
+                <div className="p-4 border-b border-slate-100 dark:border-slate-700/50">
+                  <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-red-600" />
+                    Suspicious Activities Detected
+                  </h3>
+                </div>
+                <div className="divide-y divide-slate-100 dark:divide-slate-700/50">
+                  {(monitoringStatus.suspicious_activities as Array<{indicator?: string; description?: string; severity?: string}>).map((activity, idx) => (
+                    <div key={idx} className="p-4 flex items-start gap-4">
+                      <div className={cn(
+                        'w-2 h-2 rounded-full mt-2',
+                        activity.severity === 'critical' && 'bg-red-500',
+                        activity.severity === 'high' && 'bg-orange-500',
+                        activity.severity === 'medium' && 'bg-amber-500',
+                        activity.severity === 'low' && 'bg-emerald-500',
+                      )} />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-slate-900 dark:text-white">{activity.indicator || 'Unknown'}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{activity.description || ''}</p>
+                      </div>
+                      {activity.severity && (
+                        <SeverityBadge severity={activity.severity as 'critical' | 'high' | 'medium' | 'low'} size="sm" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+
+            {persistedMonitoring?.suspiciousActivities && persistedMonitoring.suspiciousActivities.length > 0 && (
+              <Card className="lg:col-span-2">
+                <div className="p-4 border-b border-slate-100 dark:border-slate-700/50">
+                  <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-red-600" />
+                    Suspicious Activities (Persisted)
+                  </h3>
+                </div>
+                <div className="divide-y divide-slate-100 dark:divide-slate-700/50">
+                  {persistedMonitoring.suspiciousActivities.map((activity: any, idx: number) => (
+                    <div key={idx} className="p-4 flex items-start gap-4">
+                      <div className="w-2 h-2 rounded-full mt-2 bg-amber-500" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-slate-900 dark:text-white">{activity.eventType || 'Event'}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{activity.severity || 'info'} severity</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+          </div>
         </div>
       )}
 

@@ -1,27 +1,12 @@
-/**
- * Enterprise Header
- * Professional SOC-style header with breadcrumbs and global actions
- */
-
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Bell,
-  Search,
-  User,
-  LogOut,
-  Settings,
-  ChevronDown,
-  ChevronRight,
-  AlertTriangle,
-  CheckCircle,
-  Info,
-  Command,
-  X,
+  Bell, Search, User, LogOut, Settings,
+  ChevronDown, ChevronRight,
+  AlertTriangle, CheckCircle, Info, X,
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
-import { useTheme } from '../../providers/ThemeProvider';
 import { cn } from '../../design-system';
 import ConnectionStatus from './ConnectionStatus';
 
@@ -39,7 +24,6 @@ interface HeaderProps {
 export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
-  const { isDark } = useTheme();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -59,11 +43,8 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
         setShowSearch(true);
         setTimeout(() => searchInputRef.current?.focus(), 100);
       }
-      if (e.key === 'Escape') {
-        setShowSearch(false);
-      }
+      if (e.key === 'Escape') setShowSearch(false);
     };
-
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
@@ -83,85 +64,58 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
 
   return (
     <>
-      {/* Command Palette / Search Modal */}
       <AnimatePresence>
         {showSearch && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-start justify-center pt-[15vh]"
+            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-start justify-center pt-[15vh]"
             onClick={() => setShowSearch(false)}
           >
             <motion.div
               initial={{ opacity: 0, y: -20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
-              className={cn(
-                'w-full max-w-2xl rounded-2xl border shadow-2xl overflow-hidden',
-                isDark
-                  ? 'bg-slate-900 border-slate-700'
-                  : 'bg-white border-slate-200'
-              )}
+              className="w-full max-w-2xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden bg-black/90 backdrop-blur-xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center gap-3 px-4 py-4 border-b border-slate-200 dark:border-slate-700">
-                <Search className="w-5 h-5 text-slate-400" />
+              <div className="flex items-center gap-3 px-4 py-4 border-b border-white/5">
+                <Search className="w-5 h-5 text-slate-500" />
                 <input
                   ref={searchInputRef}
                   type="text"
                   placeholder="Search investigations, evidence, alerts, reports..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className={cn(
-                    'flex-1 bg-transparent text-sm outline-none',
-                    isDark ? 'text-slate-100 placeholder:text-slate-500' : 'text-slate-900 placeholder:text-slate-400'
-                  )}
+                  className="flex-1 bg-transparent text-sm text-slate-200 placeholder:text-slate-600 outline-none"
                 />
-                <button
-                  onClick={() => setShowSearch(false)}
-                  className={cn(
-                    'p-1 rounded-lg',
-                    isDark ? 'hover:bg-slate-800' : 'hover:bg-slate-100'
-                  )}
-                >
-                  <X className="w-4 h-4 text-slate-400" />
+                <button onClick={() => setShowSearch(false)} className="p-1 rounded-lg hover:bg-white/5">
+                  <X className="w-4 h-4 text-slate-500" />
                 </button>
               </div>
-              <div className={cn('p-2', isDark ? 'bg-slate-800/50' : 'bg-slate-50')}>
+              <div className="p-2 bg-white/[0.02]">
                 <div className="flex items-center gap-2 px-2 py-1">
-                  <Command className="w-3 h-3 text-slate-400" />
-                  <span className="text-xs text-slate-500">Quick actions</span>
+                  <span className="text-xs text-slate-600">Quick actions</span>
                 </div>
               </div>
               <div className="max-h-80 overflow-y-auto">
                 {[
-                  { title: 'New Investigation', description: 'Create a new case', icon: Search, action: () => { setShowSearch(false); navigate('/investigations?new=true'); }},
-                  { title: 'Upload Evidence', description: 'Add files to repository', icon: Bell, action: () => { setShowSearch(false); navigate('/evidence?upload=true'); }},
-                  { title: 'View Alerts', description: 'Check active alerts', icon: AlertTriangle, action: () => { setShowSearch(false); navigate('/alerts'); }},
+                  { title: 'New Investigation', description: 'Create a new case', action: () => { setShowSearch(false); navigate('/investigations?new=true'); }},
+                  { title: 'Upload Evidence', description: 'Add files to repository', action: () => { setShowSearch(false); navigate('/evidence?upload=true'); }},
+                  { title: 'View Alerts', description: 'Check active alerts', action: () => { setShowSearch(false); navigate('/alerts'); }},
                 ].map((item, index) => (
                   <button
                     key={index}
                     onClick={item.action}
-                    className={cn(
-                      'w-full flex items-center gap-3 px-4 py-3 text-left',
-                      'hover:bg-slate-50 dark:hover:bg-slate-800',
-                      'transition-colors duration-150'
-                    )}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/[0.02] transition-colors"
                   >
-                    <div className={cn(
-                      'p-2 rounded-lg',
-                      isDark ? 'bg-slate-800' : 'bg-slate-100'
-                    )}>
-                      <item.icon className="w-4 h-4 text-slate-500" />
+                    <div className="p-2 rounded-lg bg-white/5">
+                      <Search className="w-4 h-4 text-slate-500" />
                     </div>
                     <div>
-                      <p className={cn('text-sm font-medium', isDark ? 'text-slate-200' : 'text-slate-700')}>
-                        {item.title}
-                      </p>
-                      <p className={cn('text-xs', isDark ? 'text-slate-500' : 'text-slate-400')}>
-                        {item.description}
-                      </p>
+                      <p className="text-sm font-medium text-slate-200">{item.title}</p>
+                      <p className="text-xs text-slate-500">{item.description}</p>
                     </div>
                   </button>
                 ))}
@@ -171,107 +125,77 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
         )}
       </AnimatePresence>
 
-      <header className={cn(
-        'h-16 flex items-center justify-between px-6 sticky top-0 z-40 border-b',
-        isDark
-          ? 'bg-[#0f172a]/90 backdrop-blur-xl border-slate-800/50'
-          : 'bg-white/90 backdrop-blur-xl border-slate-200/60'
-      )}>
-        {/* Left side - Breadcrumbs */}
+      <header
+        className="h-14 flex items-center justify-between px-5 sticky top-0 z-40 border-b"
+        style={{
+          background: 'var(--surface-overlay)',
+          borderColor: 'var(--border-subtle)',
+          backdropFilter: 'blur(20px)',
+        }}
+      >
         <div className="flex items-center gap-2">
-          {/* Breadcrumb Navigation */}
           <nav className="flex items-center gap-1.5 text-sm">
-            {breadcrumbs.map((item, index) => (
+            {breadcrumbs.slice(1).map((item, index) => (
               <div key={index} className="flex items-center gap-1.5">
-                {index > 0 && (
-                  <ChevronRight className="w-4 h-4 text-slate-400" />
-                )}
+                {index > 0 && <ChevronRight className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} />}
                 {item.path ? (
                   <Link
                     to={item.path}
-                    className={cn(
-                      'flex items-center gap-1.5 px-2 py-1 rounded-lg text-sm font-medium',
-                      'transition-colors duration-150',
-                      isDark
-                        ? 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
-                    )}
+                    className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-sm font-medium transition-colors"
+                    style={{ color: 'var(--text-tertiary)' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.background = 'transparent'; }}
                   >
-                    {item.icon && <item.icon className="w-4 h-4" />}
+                    {item.icon && <item.icon className="w-3.5 h-3.5" />}
                     {item.label}
                   </Link>
                 ) : (
-                  <span className={cn(
-                    'flex items-center gap-1.5 px-2 py-1',
-                    isDark ? 'text-slate-300' : 'text-slate-700'
-                  )}>
-                    {item.icon && <item.icon className="w-4 h-4" />}
+                  <span className="flex items-center gap-1.5 px-2 py-1" style={{ color: 'var(--text-primary)' }}>
+                    {item.icon && <item.icon className="w-3.5 h-3.5" />}
                     {item.label}
                   </span>
                 )}
               </div>
             ))}
+            {currentPage && (
+              <span style={{ color: 'var(--text-tertiary)' }} className="mx-1">/</span>
+            )}
+            {currentPage && (
+              <span className="font-display text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                {currentPage}
+              </span>
+            )}
           </nav>
-
-          {/* Page Title Divider */}
-          {currentPage && (
-            <span className="text-slate-300 dark:text-slate-700">|</span>
-          )}
-
-          {/* Current Page */}
-          {currentPage && (
-            <h1 className={cn(
-              'text-lg font-semibold',
-              isDark ? 'text-slate-100' : 'text-slate-800'
-            )}>
-              {currentPage}
-            </h1>
-          )}
         </div>
 
-        {/* Right side */}
-        <div className="flex items-center gap-3">
-          {/* Search Button */}
+        <div className="flex items-center gap-2">
+          {/* Search — icon only */}
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setShowSearch(true)}
-            className={cn(
-              'flex items-center gap-3 px-3 py-2 rounded-xl text-sm',
-              'transition-all duration-200',
-              isDark
-                ? 'bg-slate-800 hover:bg-slate-700 text-slate-400'
-                : 'bg-slate-100 hover:bg-slate-200 text-slate-500'
-            )}
+            className="flex items-center justify-center w-9 h-9 rounded-xl transition-colors"
+            style={{ color: 'var(--text-tertiary)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)'; }}
           >
             <Search className="w-4 h-4" />
-            <span className="hidden lg:inline">Search...</span>
-            <kbd className={cn(
-              'hidden lg:inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs',
-              isDark ? 'bg-slate-700 text-slate-500' : 'bg-white text-slate-400 border'
-            )}>
-              <Command className="w-2.5 h-2.5" />K
-            </kbd>
           </motion.button>
 
-          {/* Connection Status */}
           <ConnectionStatus />
 
-          {/* Notifications */}
           <div className="relative">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setShowNotifications(!showNotifications)}
-              className={cn(
-                'relative p-2 rounded-xl transition-colors',
-                isDark
-                  ? 'hover:bg-slate-800 text-slate-400'
-                  : 'hover:bg-slate-100 text-slate-500'
-              )}
+              className="relative flex items-center justify-center w-9 h-9 rounded-xl transition-colors"
+              style={{ color: 'var(--text-tertiary)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)'; }}
             >
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white dark:ring-slate-900" />
+              <Bell className="w-4 h-4" />
+              <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-red-500 rounded-full" />
             </motion.button>
 
             <AnimatePresence>
@@ -281,54 +205,33 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
                   transition={{ duration: 0.15 }}
-                  className={cn(
-                    'absolute right-0 mt-2 w-80 rounded-2xl border shadow-xl overflow-hidden',
-                    isDark
-                      ? 'bg-slate-900 border-slate-700'
-                      : 'bg-white border-slate-200'
-                  )}
+                  className="absolute right-0 mt-2 w-80 rounded-2xl border shadow-xl overflow-hidden"
+                  style={{ background: 'var(--surface-overlay)', borderColor: 'var(--border-default)', backdropFilter: 'blur(20px)' }}
                 >
-                  <div className={cn(
-                    'px-4 py-3 border-b',
-                    isDark ? 'border-slate-700' : 'border-slate-100'
-                  )}>
-                    <h3 className={cn('font-semibold', isDark ? 'text-slate-100' : 'text-slate-800')}>
-                      Notifications
-                    </h3>
+                  <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
+                    <h3 style={{ color: 'var(--text-primary)' }} className="font-semibold text-sm">Notifications</h3>
                   </div>
                   <div className="max-h-80 overflow-y-auto">
                     {notifications.map((notification) => (
                       <div
                         key={notification.id}
-                        className={cn(
-                          'px-4 py-3 cursor-pointer border-b',
-                          isDark
-                            ? 'hover:bg-slate-800/50 border-slate-800'
-                            : 'hover:bg-slate-50 border-slate-50'
-                        )}
+                        className="px-4 py-3 cursor-pointer border-b transition-colors"
+                        style={{ borderColor: 'var(--border-subtle)' }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                       >
                         <div className="flex items-start gap-3">
                           <div className="mt-0.5">{getNotificationIcon(notification.type)}</div>
                           <div className="flex-1">
-                            <p className={cn('text-sm', isDark ? 'text-slate-200' : 'text-slate-700')}>
-                              {notification.message}
-                            </p>
-                            <p className={cn('text-xs mt-1', isDark ? 'text-slate-500' : 'text-slate-400')}>
-                              {notification.time}
-                            </p>
+                            <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{notification.message}</p>
+                            <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>{notification.time}</p>
                           </div>
                         </div>
                       </div>
                     ))}
                   </div>
-                  <div className={cn(
-                    'px-4 py-3 border-t',
-                    isDark ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-100'
-                  )}>
-                    <button className={cn(
-                      'text-sm font-medium',
-                      isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
-                    )}>
+                  <div className="px-4 py-3 border-t" style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'var(--border-subtle)' }}>
+                    <button className="text-sm font-medium" style={{ color: 'var(--accent-cobalt)' }}>
                       View all notifications
                     </button>
                   </div>
@@ -337,45 +240,30 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
             </AnimatePresence>
           </div>
 
-          {/* User Menu */}
           <div className="relative">
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className={cn(
-                'flex items-center gap-3 px-3 py-1.5 rounded-xl',
-                'transition-colors',
-                isDark
-                  ? 'hover:bg-slate-800'
-                  : 'hover:bg-slate-100'
-              )}
+              className="flex items-center gap-2 px-2 py-1 rounded-xl transition-colors"
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
             >
-              <div className={cn(
-                'w-8 h-8 rounded-lg flex items-center justify-center',
-                'bg-gradient-to-br from-amber-400 to-amber-600'
-              )}>
-                <User className="w-4 h-4 text-white" />
+              <div
+                className="w-7 h-7 rounded-lg flex items-center justify-center"
+                style={{ background: 'linear-gradient(135deg, #f59e0b, #b45309)' }}
+              >
+                <User className="w-3.5 h-3.5 text-white" />
               </div>
               <div className="text-left hidden md:block">
-                <p className={cn(
-                  'text-sm font-medium',
-                  isDark ? 'text-slate-200' : 'text-slate-700'
-                )}>
+                <p className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
                   {user?.name || 'User'}
                 </p>
-                <p className={cn(
-                  'text-xs capitalize',
-                  isDark ? 'text-slate-500' : 'text-slate-400'
-                )}>
-                  {user?.role?.replace('_', ' ') || 'Analyst'}
-                </p>
               </div>
-              <ChevronDown className={cn(
-                'w-4 h-4 transition-transform',
-                isDark ? 'text-slate-500' : 'text-slate-400',
-                showUserMenu && 'rotate-180'
-              )} />
+              <ChevronDown
+                className="w-3 h-3 transition-transform"
+                style={{ color: 'var(--text-tertiary)' }}
+              />
             </motion.button>
 
             <AnimatePresence>
@@ -385,50 +273,37 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
                   transition={{ duration: 0.15 }}
-                  className={cn(
-                    'absolute right-0 mt-2 w-48 rounded-xl border shadow-xl overflow-hidden',
-                    isDark
-                      ? 'bg-slate-900 border-slate-700'
-                      : 'bg-white border-slate-200'
-                  )}
+                  className="absolute right-0 mt-2 w-48 rounded-xl border shadow-xl overflow-hidden"
+                  style={{ background: 'var(--surface-overlay)', borderColor: 'var(--border-default)', backdropFilter: 'blur(20px)' }}
                 >
                   <div className="py-1">
                     <button
                       onClick={() => { setShowUserMenu(false); navigate('/profile'); }}
-                      className={cn(
-                        'w-full flex items-center gap-3 px-4 py-2 text-sm',
-                        'transition-colors',
-                        isDark
-                          ? 'text-slate-200 hover:bg-slate-800'
-                          : 'text-slate-700 hover:bg-slate-50'
-                      )}
+                      className="w-full flex items-center gap-3 px-4 py-2 text-sm transition-colors"
+                      style={{ color: 'var(--text-primary)' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                     >
                       <User className="w-4 h-4" />
                       Profile
                     </button>
                     <button
                       onClick={() => { setShowUserMenu(false); navigate('/settings'); }}
-                      className={cn(
-                        'w-full flex items-center gap-3 px-4 py-2 text-sm',
-                        'transition-colors',
-                        isDark
-                          ? 'text-slate-200 hover:bg-slate-800'
-                          : 'text-slate-700 hover:bg-slate-50'
-                      )}
+                      className="w-full flex items-center gap-3 px-4 py-2 text-sm transition-colors"
+                      style={{ color: 'var(--text-primary)' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                     >
                       <Settings className="w-4 h-4" />
                       Settings
                     </button>
-                    <div className={cn('my-1 border-t', isDark ? 'border-slate-700' : 'border-slate-100')} />
+                    <div style={{ borderColor: 'var(--border-subtle)' }} className="my-1 border-t" />
                     <button
                       onClick={handleLogout}
-                      className={cn(
-                        'w-full flex items-center gap-3 px-4 py-2 text-sm',
-                        'transition-colors',
-                        isDark
-                          ? 'text-red-400 hover:bg-red-900/20'
-                          : 'text-red-600 hover:bg-red-50'
-                      )}
+                      className="w-full flex items-center gap-3 px-4 py-2 text-sm transition-colors"
+                      style={{ color: 'var(--accent-rose)' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(251, 113, 133, 0.08)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                     >
                       <LogOut className="w-4 h-4" />
                       Logout

@@ -426,6 +426,27 @@ class ApiService {
     return response.data;
   }
 
+  async getSessionMonitoring(sessionId: string): Promise<ApiResponse<{
+    sessionId: string;
+    totalEvents: number;
+    process: number;
+    file: number;
+    registry: number;
+    network: number;
+    credential: number;
+    severityCounts: Record<string, number>;
+    suspiciousActivities: any[];
+    isActive: boolean;
+  }>> {
+    const response = await this.client.get(`/sandbox/sessions/${sessionId}/monitoring`);
+    return response.data;
+  }
+
+  async getSessionAIAnalysis(sessionId: string): Promise<ApiResponse<{ aiAnalysis: any }>> {
+    const response = await this.client.get(`/sandbox/sessions/${sessionId}/ai-analysis`);
+    return response.data;
+  }
+
   // Sandbox Sessions (Legacy)
   async getSandboxSessions(params: PaginationParams): Promise<ApiResponse<SandboxSession[]>> {
     const response = await this.client.get('/sandbox/sessions', { params });

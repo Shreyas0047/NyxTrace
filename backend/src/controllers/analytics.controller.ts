@@ -12,6 +12,7 @@ import { SandboxSession } from '../models';
 import { TelemetryEvent } from '../models/telemetry-event.model';
 import { sandboxRuntimeService } from '../services';
 import { sandboxSyncService } from '../services';
+import { aiAnalysisService } from '../services/ai-analysis.service';
 
 type NormalizedTelemetry = {
   eventType: string;
@@ -456,10 +457,37 @@ export class AnalyticsController {
         return;
       }
 
+      let analysisResult: Record<string, any>;
+
+      try {
+        const aiResult = await aiAnalysisService.analyzeTelemetry({
+          sessionId,
+          events: events.map(e => ({
+            timestamp: e.timestamp.toISOString(),
+            type: e.eventType,
+            source: e.category,
+            details: e.metadata,
+          })),
+        });
+
+        if (aiResult && aiResult.confidence > 0) {
+          analysisResult = this.mapAIResult(sessionId, events, aiResult as any);
+
+          await SandboxSession.updateOne(
+            { sessionId },
+            { $set: { aiAnalysis: aiResult } }
+          );
+        } else {
+          analysisResult = this.analyzeTelemetry(sessionId, events);
+        }
+      } catch {
+        analysisResult = this.analyzeTelemetry(sessionId, events);
+      }
+
       const response: ApiResponse = {
         success: true,
         message: 'Session analyzed successfully',
-        data: this.analyzeTelemetry(sessionId, events),
+        data: analysisResult,
       };
 
       res.json(response);
@@ -470,6 +498,79 @@ export class AnalyticsController {
         error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
+  }
+
+  private mapAIResult(sessionId: string, events: NormalizedTelemetry[], ai: any): Record<string, any> {
+    const counts = events.reduce<Record<string, number>>((acc, event) => {
+      acc[event.category] = (acc[event.category] || 0) + 1;
+      return acc;
+    }, {});
+
+    const threatTypes = ai.threat_classification || {};
+    const predictedThreat = Object.keys(threatTypes).sort((a, b) => (threatTypes[b] || 0) - (threatTypes[a] || 0))[0] || 'benign_or_inconclusive';
+
+    const mitreTechniques = (ai.mitre_mapping || []).map((m: any) => ({
+      id: m.technique_id,
+      name: m.technique_name,
+      tactic: m.tactic,
+      description: `${m.technique_name} (${m.technique_id})`,
+      evidence: m.evidence_snippets || [],
+      confidence: m.confidence || ai.confidence || 0.5,
+    }));
+
+    const attackStages = (ai.attack_chain || []).map((link: any) => ({
+      stageName: link.phase?.replace(/_/g, ' ') || 'Unknown',
+      events: link.event_count || 0,
+      mitreTechniques: link.techniques || [],
+    }));
+
+    const heuristics = [
+      { name: 'Suspicious process execution', triggered: (counts.process || 0) > 0 },
+      { name: 'File system modification', triggered: (counts.file || 0) >= 5 },
+      { name: 'Registry persistence activity', triggered: (counts.registry || 0) > 0 },
+      { name: 'Outbound network behavior', triggered: (counts.network || 0) > 0 },
+      { name: 'Credential access indicators', triggered: (counts.credential || 0) > 0 },
+    ].map(h => ({
+      name: h.name,
+      triggered: h.triggered,
+      severity: h.triggered ? 'medium' : 'low',
+      confidence: h.triggered ? Math.min(0.9, ai.confidence || 0.5) : 0,
+      description: h.triggered ? `${h.name} detected in telemetry` : `No ${h.name.toLowerCase()} observed`,
+    }));
+
+    const anomalies: any[] = (ai.anomalies || []).map((a: any) => ({
+      type: a.type || 'behavioral',
+      description: a.description || '',
+      severity: a.severity || 'medium',
+      deviation_score: a.deviation_score || 0,
+    }));
+
+    const severityScore = Number(((ai.severity_score || 0) / 10).toFixed(1));
+
+    return {
+      sessionId,
+      analysisTimestamp: new Date().toISOString(),
+      totalEvents: ai.total_events || events.length,
+      suspiciousEvents: ai.suspicious_events || 0,
+      threatClassification: threatTypes,
+      predictedThreat,
+      confidence: ai.confidence || 0,
+      reasons: [
+        `AI microservice analyzed ${ai.total_events || events.length} events`,
+        `${ai.suspicious_events || 0} suspicious events detected`,
+        `Primary threat: ${predictedThreat.replace(/_/g, ' ')}`,
+        `Severity: ${ai.severity_level || 'unknown'} (${ai.severity_score || 0}/100)`,
+      ],
+      severityScore,
+      severityLevel: ai.severity_level || 'low',
+      anomalies,
+      behavioralSummary: ai.behavioral_summary || ai.reconstruction_summary || 'Analysis completed',
+      recommendations: ai.recommendations || [],
+      mitreTechniques,
+      attackChain: { stages: attackStages.length > 0 ? attackStages : [{ stageName: 'Execution', events: events.length, mitreTechniques: mitreTechniques.map((m: any) => m.id) }] },
+      behavioralHeuristics: heuristics,
+      analystExplanation: ai.reconstruction_summary || ai.behavioral_summary || `Threat classification: ${predictedThreat.replace(/_/g, ' ')}. Confidence: ${((ai.confidence || 0) * 100).toFixed(0)}%.`,
+    };
   }
 
   /**

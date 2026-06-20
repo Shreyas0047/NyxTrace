@@ -6,6 +6,8 @@ import MainLayout from '../layouts/MainLayout';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import ForgotPasswordPage from '../pages/ForgotPasswordPage';
+import ManifestoPage from '../pages/ManifestoPage';
+import DiscoverPage from '../pages/DiscoverPage';
 import EnhancedDashboardPage from '../pages/EnhancedDashboardPage';
 import InvestigationsPage from '../pages/InvestigationsPage';
 import AlertsPage from '../pages/AlertsPage';
@@ -135,6 +137,14 @@ export const router = createBrowserRouter([
         <ForgotPasswordPage />
       </PublicRoute>
     ),
+  },
+  {
+    path: '/manifesto',
+    element: <ManifestoPage />,
+  },
+  {
+    path: '/discover',
+    element: <DiscoverPage />,
   },
   {
     path: '/',

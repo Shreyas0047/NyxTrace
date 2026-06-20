@@ -217,7 +217,7 @@ export function SettingsPage() {
                       id="headlessMode"
                       checked={localSettings.vm.headlessMode}
                       onChange={(e) => handleChange('vm', 'headlessMode', e.target.checked)}
-                      className="w-4 h-4 rounded border-slate-300"
+                      className="w-4 h-4 rounded border-slate-300 dark:border-slate-600"
                     />
                     <label htmlFor="headlessMode" className="text-sm font-medium text-slate-700 dark:text-slate-300">Headless Mode</label>
                   </div>
@@ -237,7 +237,7 @@ export function SettingsPage() {
                     id="monitoringEnabled"
                     checked={localSettings.monitoring.enabled}
                     onChange={(e) => handleChange('monitoring', 'enabled', e.target.checked)}
-                    className="w-4 h-4 rounded border-slate-300"
+                    className="w-4 h-4 rounded border-slate-300 dark:border-slate-600"
                   />
                   <label htmlFor="monitoringEnabled" className="text-sm font-medium text-slate-700 dark:text-slate-300">Enable Monitoring</label>
                 </div>
@@ -275,7 +275,7 @@ export function SettingsPage() {
                           checked={localSettings.monitoring[key as keyof typeof localSettings.monitoring] as boolean}
                           onChange={(e) => handleChange('monitoring', key as keyof typeof localSettings.monitoring, e.target.checked)}
                           disabled={!localSettings.monitoring.enabled}
-                          className="w-4 h-4 rounded border-slate-300"
+                          className="w-4 h-4 rounded border-slate-300 dark:border-slate-600"
                         />
                         <label htmlFor={key} className="text-sm text-slate-600 dark:text-slate-400">{label}</label>
                       </div>
@@ -323,7 +323,7 @@ export function SettingsPage() {
                       id="autoRollback"
                       checked={localSettings.execution.autoRollback}
                       onChange={(e) => handleChange('execution', 'autoRollback', e.target.checked)}
-                      className="w-4 h-4 rounded border-slate-300"
+                      className="w-4 h-4 rounded border-slate-300 dark:border-slate-600"
                     />
                     <label htmlFor="autoRollback" className="text-sm font-medium text-slate-700 dark:text-slate-300">Auto Rollback on Failure</label>
                   </div>
@@ -379,7 +379,7 @@ export function SettingsPage() {
                       id="alertsEnabled"
                       checked={localSettings.notifications.alertsEnabled}
                       onChange={(e) => handleChange('notifications', 'alertsEnabled', e.target.checked)}
-                      className="w-4 h-4 rounded border-slate-300"
+                      className="w-4 h-4 rounded border-slate-300 dark:border-slate-600"
                     />
                     <label htmlFor="alertsEnabled" className="text-sm font-medium text-slate-700 dark:text-slate-300">Enable Alerts</label>
                   </div>
@@ -389,7 +389,7 @@ export function SettingsPage() {
                       id="alertOnCompletion"
                       checked={localSettings.notifications.alertOnCompletion}
                       onChange={(e) => handleChange('notifications', 'alertOnCompletion', e.target.checked)}
-                      className="w-4 h-4 rounded border-slate-300"
+                      className="w-4 h-4 rounded border-slate-300 dark:border-slate-600"
                     />
                     <label htmlFor="alertOnCompletion" className="text-sm text-slate-600 dark:text-slate-400">Alert on simulation completion</label>
                   </div>
@@ -399,7 +399,7 @@ export function SettingsPage() {
                       id="alertOnError"
                       checked={localSettings.notifications.alertOnError}
                       onChange={(e) => handleChange('notifications', 'alertOnError', e.target.checked)}
-                      className="w-4 h-4 rounded border-slate-300"
+                      className="w-4 h-4 rounded border-slate-300 dark:border-slate-600"
                     />
                     <label htmlFor="alertOnError" className="text-sm text-slate-600 dark:text-slate-400">Alert on error</label>
                   </div>

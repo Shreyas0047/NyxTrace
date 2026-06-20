@@ -201,7 +201,7 @@ export async function sendOTP(email: string, roleInput: string): Promise<{ succe
 
   if (config.otpDevMode) {
     logger.info(`[DEV MODE] OTP for ${normalizedEmail}: ${otp}`);
-    return { success: true, message: 'OTP sent (dev mode — check server logs)' };
+    return { success: true, message: 'OTP sent (dev mode — check server logs)', data: { devOtp: otp } };
   }
 
   const transporter = createTransporter();
@@ -382,7 +382,7 @@ export async function sendPasswordResetOTP(email: string): Promise<{ success: bo
 
   if (config.otpDevMode) {
     logger.info(`[DEV MODE] Password reset OTP for ${normalizedEmail}: ${otp}`);
-    return { success: true, message: 'If an account exists, an OTP has been sent to your email' };
+    return { success: true, message: 'If an account exists, an OTP has been sent to your email', data: { devOtp: otp } };
   }
 
   const transporter = createTransporter();

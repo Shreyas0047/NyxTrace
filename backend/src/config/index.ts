@@ -133,8 +133,8 @@ export const config: AppConfig = {
 
   security: {
     corsOrigin: getEnv('CORS_ORIGIN', 'http://localhost:5173'),
-    rateLimitWindowMs: getEnvNumber('RATE_LIMIT_WINDOW_MS', 900000),
-    rateLimitMaxRequests: getEnvNumber('RATE_LIMIT_MAX_REQUESTS', 100),
+    rateLimitWindowMs: getEnvNumber('RATE_LIMIT_WINDOW_MS', 60000),
+    rateLimitMaxRequests: getEnvNumber('RATE_LIMIT_MAX_REQUESTS', 500),
   },
 
   upload: {

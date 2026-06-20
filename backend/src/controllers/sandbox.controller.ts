@@ -7,11 +7,13 @@ import { Response } from 'express';
 import path from 'path';
 import fs from 'fs';
 import logger from '../config/logger';
-import { sandboxSyncService, sandboxRuntimeService } from '../services';
+import { sandboxSyncService, sandboxRuntimeService, aiAnalysisService } from '../services';
 import { AuthenticatedRequest } from '../middleware';
 import { ApiResponse, SandboxSessionStatus } from '../types';
 import { websocketService } from '../services/websocket.service';
 import { blockchainVerificationService } from '../blockchain';
+import { SandboxSession } from '../models';
+import { TelemetryEvent } from '../models/telemetry-event.model';
 
 /**
  * Simulator display-name mapping.
@@ -180,13 +182,38 @@ export class SandboxController {
               logger.warn(`Failed to forward events for session ${completedSession.session_id}:`, eventsErr);
             }
 
-            // Auto-register the sandbox-report.json on the blockchain after analysis completes.
             // Workflow: Evidence → SHA256 → Blockchain (only after analysis completes)
             if (status === SandboxSessionStatus.COMPLETED) {
               try {
                 await registerSandboxReportOnBlockchain(completedSession.session_id, req.user?.id || 'system');
               } catch (blockchainErr) {
                 logger.warn(`Failed to auto-register sandbox report on blockchain for ${completedSession.session_id}:`, blockchainErr);
+              }
+
+              // Auto-run AI microservice analysis on session events
+              try {
+                const eventsData = await sandboxRuntimeService.getSessionEvents(completedSession.session_id);
+                if (eventsData.events && eventsData.events.length > 0) {
+                  const analysisResult = await aiAnalysisService.analyzeTelemetry({
+                    sessionId: completedSession.session_id,
+                    events: eventsData.events.map((e: any) => ({
+                      timestamp: e.timestamp || new Date().toISOString(),
+                      type: e.type || e.eventType || e.event_type || e.category || 'unknown',
+                      source: e.source || e.processName || e.process_name || 'sandbox',
+                      details: e.details || e.data || e.metadata || {},
+                    })),
+                  });
+
+                  await SandboxSession.updateOne(
+                    { sessionId: completedSession.session_id },
+                    { $set: { aiAnalysis: analysisResult } }
+                  );
+
+                  websocketService.emitAIAnalysisComplete(completedSession.session_id, analysisResult);
+                  logger.info(`[AI] Auto-analysis completed for session ${completedSession.session_id}`);
+                }
+              } catch (aiErr) {
+                logger.warn(`[AI] Analysis failed for session ${completedSession.session_id}:`, aiErr);
               }
             }
           } catch (err) {
@@ -408,6 +435,78 @@ export class SandboxController {
     };
 
     res.json(response);
+  }
+
+  /**
+   * GET /api/v1/sandbox/sessions/:sessionId/monitoring
+   * Get persisted monitoring summary for a completed session
+   */
+  async getSessionMonitoring(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const events = await TelemetryEvent.find({ sessionId: req.params.sessionId }).lean();
+
+      const counts: Record<string, number> = { process: 0, file: 0, registry: 0, network: 0, credential: 0 };
+      const severityCounts: Record<string, number> = { critical: 0, high: 0, medium: 0, low: 0, info: 0 };
+      const suspicious: any[] = [];
+
+      for (const e of events) {
+        const text = `${e.eventType || ''} ${JSON.stringify(e.metadata || {})}`.toLowerCase();
+        const cat =
+          text.includes('registry') ? 'registry' :
+          text.includes('network') || text.includes('connect') || text.includes('dns') ? 'network' :
+          text.includes('credential') || text.includes('password') || text.includes('lsass') ? 'credential' :
+          text.includes('file') || text.includes('write') || text.includes('delete') || text.includes('encrypt') ? 'file' :
+          'process';
+        counts[cat] = (counts[cat] || 0) + 1;
+        const sev = (e as any).severity || 'info';
+        severityCounts[sev] = (severityCounts[sev] || 0) + 1;
+        if (sev === 'critical' || sev === 'high') suspicious.push(e);
+      }
+
+      res.json({
+        success: true,
+        data: {
+          sessionId: req.params.sessionId,
+          totalEvents: events.length,
+          ...counts,
+          severityCounts,
+          suspiciousActivities: suspicious.slice(0, 50),
+          isActive: false,
+        },
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to get session monitoring data',
+      });
+    }
+  }
+
+  /**
+   * GET /api/v1/sandbox/sessions/:sessionId/ai-analysis
+   * Get persisted AI analysis result for a completed session
+   */
+  async getSessionAIAnalysis(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const session = await SandboxSession.findOne({ sessionId: req.params.sessionId })
+        .select('sessionId aiAnalysis')
+        .lean();
+
+      if (!session) {
+        res.status(404).json({ success: false, message: 'Session not found' });
+        return;
+      }
+
+      res.json({
+        success: true,
+        data: { aiAnalysis: (session as any).aiAnalysis || null },
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to get AI analysis',
+      });
+    }
   }
 
   /**

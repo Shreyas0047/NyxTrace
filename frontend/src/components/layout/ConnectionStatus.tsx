@@ -17,8 +17,12 @@ export function ConnectionStatus() {
       try {
         const res = await api.get('/operations/health');
         if (!cancelled) setApiHealthy(res.success);
-      } catch {
-        if (!cancelled) setApiHealthy(false);
+      } catch (err: any) {
+        // Backend may return 503 when downstream services are down,
+        // but the JSON body still has success:true — backend itself is reachable.
+        if (!cancelled) {
+          setApiHealthy(err?.response?.data?.success === true);
+        }
       }
     };
     checkHealth();

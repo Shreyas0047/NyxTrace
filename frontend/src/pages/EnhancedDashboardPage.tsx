@@ -51,7 +51,23 @@ const KPITile = memo(({ label, value, icon: Icon, trend, accent = 'amber', onCli
     <motion.button
       variants={fadeUp}
       onClick={onClick}
-      className="surface surface-interactive group text-left p-5 w-full"
+      className="group text-left p-5 w-full rounded-xl transition-all duration-200"
+      style={{
+        background: 'var(--surface-overlay)',
+        backdropFilter: 'blur(16px) saturate(1.1)',
+        border: '1px solid var(--border-subtle)',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+        e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.4)';
+        e.currentTarget.style.background = 'rgba(0,0,0,0.75)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = 'var(--border-subtle)';
+        e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.3)';
+        e.currentTarget.style.background = 'var(--surface-overlay)';
+      }}
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-2">
@@ -98,7 +114,13 @@ interface SectionProps {
 }
 
 const Section = memo(({ title, meta, action, children, className }: SectionProps) => (
-  <motion.section variants={fadeUp} className={cn('surface p-5', className)}>
+  <motion.section variants={fadeUp} className={cn('p-5 rounded-xl', className)}
+    style={{
+      background: 'var(--surface-raised)',
+      border: '1px solid var(--border-subtle)',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+    }}
+  >
     <header className="flex items-center justify-between mb-4">
       <div>
         <h2
@@ -318,9 +340,8 @@ export function EnhancedDashboardPage() {
                     transition={{ delay: 0.2 + i * 0.04, duration: 0.24 }}
                     onClick={() => navigate(`/investigations/${inv.id}`)}
                     className="w-full flex items-center gap-3 py-3 px-1 -mx-1 rounded-md transition-colors text-left group"
-                    style={{ background: 'transparent' }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.02)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                   >
                     <div className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
@@ -398,7 +419,13 @@ export function EnhancedDashboardPage() {
         </div>
 
         {/* ─── System Status ─── */}
-        <motion.div variants={fadeUp} className="surface p-5">
+        <motion.div variants={fadeUp} className="p-5 rounded-xl"
+          style={{
+            background: 'var(--surface-raised)',
+            border: '1px solid var(--border-subtle)',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+          }}
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">

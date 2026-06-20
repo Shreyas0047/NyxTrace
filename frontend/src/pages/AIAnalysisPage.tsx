@@ -55,6 +55,7 @@ import { UrlAnalysisView } from '../components/threat-intelligence/UrlAnalysisVi
 import { ThreatSummaryBar } from '../components/threat-intelligence/ThreatSummaryBar';
 import { AnalysisResultCard } from '../components/threat-intelligence/AnalysisResultCard';
 import { useThreatIntelStore } from '../stores/threatIntelStore';
+import api from '../services/api';
 
 type TabType = 'overview' | 'threat' | 'mitre' | 'chain' | 'heuristics' | 'anomalies' | 'compare';
 type AnalysisMode = 'sandbox' | 'document' | 'url' | 'workspace';
@@ -154,6 +155,8 @@ export function AIAnalysisPage() {
   const [showCompareModal, setShowCompareModal] = useState(false);
   const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('sandbox');
   const [selectedComparisonSessions, setSelectedComparisonSessions] = useState<string[]>([]);
+  const [storedAIAnalysis, setStoredAIAnalysis] = useState<any>(null);
+  const [isLoadingStoredAnalysis, setIsLoadingStoredAnalysis] = useState(false);
   const refreshIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -202,6 +205,29 @@ export function AIAnalysisPage() {
     };
   }, [isLiveAnalyzing, updateLiveEvents]);
 
+  useEffect(() => {
+    if (!selectedSessionForAnalysis) {
+      setStoredAIAnalysis(null);
+      return;
+    }
+    const session = sessions.find(s => s.sessionId === selectedSessionForAnalysis);
+    if (session?.state !== 'completed' && session?.state !== 'failed') {
+      setStoredAIAnalysis(null);
+      return;
+    }
+    setIsLoadingStoredAnalysis(true);
+    api.getSessionAIAnalysis(selectedSessionForAnalysis)
+      .then(res => {
+        if (res.data?.analysis) {
+          setStoredAIAnalysis(res.data.analysis);
+        } else {
+          setStoredAIAnalysis(null);
+        }
+      })
+      .catch(() => setStoredAIAnalysis(null))
+      .finally(() => setIsLoadingStoredAnalysis(false));
+  }, [selectedSessionForAnalysis, sessions]);
+
   const handleAnalyzeSession = useCallback(async () => {
     if (selectedSessionForAnalysis) {
       await analyzeSession(selectedSessionForAnalysis);
@@ -241,7 +267,7 @@ export function AIAnalysisPage() {
     });
   }, []);
 
-  const sessionAnalysis = currentSessionAnalysis as any;
+  const sessionAnalysis = (currentSessionAnalysis || storedAIAnalysis) as any;
 
   const {
     analysisHistory,
@@ -255,12 +281,13 @@ export function AIAnalysisPage() {
     if (currentReport?.threatClassification) {
       return currentReport.threatClassification;
     }
-    if (currentSessionAnalysis) {
+    const source = currentSessionAnalysis || storedAIAnalysis;
+    if (source) {
       return {
-        threatType: sessionAnalysis?.predictedThreat || (currentSessionAnalysis.threatClassification ? Object.keys(currentSessionAnalysis.threatClassification)[0] : 'Unknown'),
-        confidence: currentSessionAnalysis.confidence || 0,
-        severityLevel: currentSessionAnalysis.severityLevel || 'medium',
-        severityScore: currentSessionAnalysis.severityScore || 0,
+        threatType: sessionAnalysis?.predictedThreat || (source.threatClassification ? Object.keys(source.threatClassification)[0] : 'Unknown'),
+        confidence: source.confidence || 0,
+        severityLevel: source.severityLevel || 'medium',
+        severityScore: source.severityScore || 0,
         reasons: sessionAnalysis?.reasons || [],
       };
     }
@@ -271,7 +298,7 @@ export function AIAnalysisPage() {
 
   const behavioralHeuristics: BehavioralHeuristic[] = currentReport?.behavioralHeuristics || sessionAnalysis?.behavioralHeuristics || [];
 
-  const anomalyData: AnomalyData[] = (currentReport?.anomalies || currentSessionAnalysis?.anomalies || []).map((anomaly: any) => ({
+  const anomalyData: AnomalyData[] = (currentReport?.anomalies || currentSessionAnalysis?.anomalies || storedAIAnalysis?.anomalies || []).map((anomaly: any) => ({
     type: anomaly.type || anomaly.category || 'Unknown',
     description: anomaly.description || '',
     severity: anomaly.severity || 'medium',
@@ -295,9 +322,9 @@ export function AIAnalysisPage() {
   const evidenceGraphNodes = (currentReport as any)?.evidenceGraph?.nodes || [];
   const evidenceGraphEdges = (currentReport as any)?.evidenceGraph?.edges || [];
 
-  const executiveSummary = currentReport?.executiveSummary || currentSessionAnalysis?.behavioralSummary || '';
+  const executiveSummary = currentReport?.executiveSummary || currentSessionAnalysis?.behavioralSummary || storedAIAnalysis?.behavioralSummary || '';
 
-  const analystExplanation = currentReport?.analystExplanation || sessionAnalysis?.analystExplanation || currentSessionAnalysis?.behavioralSummary || '';
+  const analystExplanation = currentReport?.analystExplanation || sessionAnalysis?.analystExplanation || currentSessionAnalysis?.behavioralSummary || storedAIAnalysis?.behavioralSummary || '';
 
 
   return (
@@ -376,7 +403,7 @@ export function AIAnalysisPage() {
           </select>
           <button
             onClick={handleAnalyzeSession}
-            disabled={!selectedSessionForAnalysis || isLoadingReport}
+            disabled={!selectedSessionForAnalysis || isLoadingReport || !!storedAIAnalysis}
             className="flex items-center gap-2 px-3 py-2 text-sm bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 disabled:opacity-50"
           >
             {isLoadingReport ? <Loader2 className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />}
@@ -392,6 +419,37 @@ export function AIAnalysisPage() {
           Compare Sessions
         </button>
       </div>
+
+      {isLoadingStoredAnalysis && (
+        <div className="flex items-center gap-3 px-4 py-3 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-700/50 rounded-lg text-sm text-indigo-700 dark:text-indigo-300">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          Loading stored AI analysis...
+        </div>
+      )}
+
+      {storedAIAnalysis && !isLoadingStoredAnalysis && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-3 px-4 py-3 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700/50 rounded-lg text-sm"
+        >
+          <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+          <div className="text-emerald-800 dark:text-emerald-200">
+            <span className="font-semibold">AI analysis available</span> from session completion pipeline.
+            {storedAIAnalysis.confidence ? (
+              <span className="ml-2 text-emerald-600 dark:text-emerald-400">
+                Confidence: {(storedAIAnalysis.confidence * 100).toFixed(0)}%
+              </span>
+            ) : null}
+          </div>
+          <button
+            onClick={() => setStoredAIAnalysis(null)}
+            className="ml-auto text-xs px-2 py-1 rounded bg-emerald-200/50 dark:bg-emerald-800/50 hover:bg-emerald-200 dark:hover:bg-emerald-700/50 text-emerald-700 dark:text-emerald-300"
+          >
+            Re-analyze
+          </button>
+        </motion.div>
+      )}
 
       {isLiveAnalyzing && activeSession && (
         <motion.div

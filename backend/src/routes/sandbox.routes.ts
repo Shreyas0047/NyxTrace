@@ -42,6 +42,18 @@ router.get(
   asyncHandler(sandboxController.findById)
 );
 
+router.get(
+  '/sessions/:sessionId/monitoring',
+  authorize(UserRole.FORENSIC_ANALYST, UserRole.SECURITY_REVIEWER, UserRole.SANDBOX_OPERATOR, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  asyncHandler(sandboxController.getSessionMonitoring)
+);
+
+router.get(
+  '/sessions/:sessionId/ai-analysis',
+  authorize(UserRole.FORENSIC_ANALYST, UserRole.SECURITY_REVIEWER, UserRole.SANDBOX_OPERATOR, UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  asyncHandler(sandboxController.getSessionAIAnalysis)
+);
+
 router.post(
   '/sessions/:sessionId/stop',
   authorize(UserRole.SANDBOX_OPERATOR, UserRole.ADMIN, UserRole.SUPER_ADMIN),

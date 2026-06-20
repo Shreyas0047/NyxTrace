@@ -1,10 +1,8 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Shield, Lock, Mail, Eye, EyeOff } from 'lucide-react';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../stores/authStore';
+import { PublicLayout } from '../components/PublicLayout';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -12,139 +10,142 @@ export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [step, setStep] = useState<'login' | 'success'>('login');
+  const [initialReverse, setInitialReverse] = useState(false);
+  const [reverseActive, setReverseActive] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
     try {
       const result = await login({ email: email.trim().toLowerCase(), password });
-      if (!result) {
-        return;
-      }
-      navigate('/dashboard');
+      if (!result) return;
+
+      setReverseActive(true);
+      setTimeout(() => setInitialReverse(true), 50);
+      setTimeout(() => setStep('success'), 2000);
     } catch (err) {
       console.error('[LoginPage] Login failed:', err);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[var(--surface-base)] flex items-center justify-center p-4 relative overflow-hidden grain-overlay">
-      {/* Dynamic Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="mesh-orb mesh-orb-amber w-[600px] h-[600px] -top-[300px] -right-[200px]" />
-        <div className="mesh-orb mesh-orb-violet w-[500px] h-[500px] -bottom-[250px] -left-[150px]" />
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-md relative z-10"
-      >
-        <div className="text-center mb-10">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="inline-flex items-center justify-center w-20 h-20 rounded-[24px] bg-gradient-to-br from-[var(--accent-amber)] to-[var(--accent-rose)] shadow-2xl shadow-amber-500/20 mb-6 group"
-          >
-            <Shield className="w-10 h-10 text-[var(--surface-base)] transition-transform duration-500 group-hover:scale-110" />
-          </motion.div>
-          <h1 className="text-4xl font-bold tracking-tight font-display text-[var(--text-primary)]">
-            NyxTrace
-          </h1>
-          <p className="overline mt-3">Enterprise Cyber Investigation Platform</p>
-        </div>
-
-        <div className="surface-elevated p-10 relative overflow-hidden group">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[var(--accent-amber)] to-transparent opacity-50" />
-          
-          <h2 className="text-2xl font-semibold font-display text-[var(--text-primary)] mb-8">Welcome Back</h2>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-1">
-              <label className="text-xs font-mono uppercase tracking-widest text-[var(--text-tertiary)] ml-1">Email Identity</label>
-              <Input
-                type="email"
-                placeholder="operator@forensics.ai"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                leftIcon={<Mail className="w-5 h-5 text-[var(--text-tertiary)]" />}
-                className="bg-[var(--surface-sunken)] border-[var(--border-default)] text-[var(--text-primary)] h-12 rounded-xl focus:border-[var(--accent-amber)] transition-all"
-                required
-              />
-            </div>
-
-            <div className="space-y-1 relative">
-              <label className="text-xs font-mono uppercase tracking-widest text-[var(--text-tertiary)] ml-1">Access Key</label>
-              <div className="relative">
-                <Input
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  leftIcon={<Lock className="w-5 h-5 text-[var(--text-tertiary)]" />}
-                  className="bg-[var(--surface-sunken)] border-[var(--border-default)] text-[var(--text-primary)] h-12 rounded-xl focus:border-[var(--accent-amber)] transition-all"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-            </div>
-
-            <div className="flex justify-end">
-              <Link
-                to="/forgot-password"
-                className="text-xs font-mono text-[var(--text-tertiary)] hover:text-[var(--accent-amber)] transition-colors uppercase tracking-wider"
-              >
-                Reset Access
-              </Link>
-            </div>
-
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="p-4 bg-red-500/5 border border-red-500/20 rounded-xl text-sm text-red-400 flex items-center gap-3"
-              >
-                <div className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-                {error}
-              </motion.div>
-            )}
-
-            <Button
-              type="submit"
-              className="w-full h-12 bg-[var(--text-primary)] text-[var(--surface-base)] hover:bg-[var(--accent-amber)] hover:text-[var(--surface-base)] font-bold rounded-xl transition-all duration-300 shadow-lg shadow-black/20"
-              loading={isLoading}
+    <PublicLayout reverse={initialReverse} className={reverseActive ? 'with-reverse' : ''}>
+      <div className="w-full max-w-sm mt-[150px]">
+        <AnimatePresence mode="wait">
+          {step === 'login' ? (
+            <motion.div
+              key="login-step"
+              initial={{ opacity: 0, x: -100 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -100 }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
+              className="space-y-6 text-center"
             >
-              Authorize Session
-            </Button>
-          </form>
-        </div>
+              <div className="space-y-1">
+                <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-white">Welcome Back</h1>
+                <p className="text-[1.8rem] text-white/70 font-light">Sign in to your account</p>
+              </div>
 
-        <div className="mt-10 flex flex-col items-center gap-4">
-          <p className="text-sm text-[var(--text-secondary)]">
-            New operative?{' '}
-            <Link to="/register" className="text-[var(--accent-amber)] hover:underline underline-offset-4 transition-all">
-              Request Credentials
-            </Link>
-          </p>
-          
-          <div className="flex items-center gap-3 text-[var(--text-disabled)]">
-            <div className="h-px w-8 bg-[var(--border-subtle)]" />
-            <span className="text-[10px] font-mono tracking-[0.2em] uppercase">Security Level: EAL7+</span>
-            <div className="h-px w-8 bg-[var(--border-subtle)]" />
-          </div>
-        </div>
-      </motion.div>
-    </div>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="relative">
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full backdrop-blur-[1px] text-white border border-white/10 rounded-full py-3 px-4 focus:outline-none focus:border-white/30 text-center"
+                    required
+                  />
+                </div>
+
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full backdrop-blur-[1px] text-white border border-white/10 rounded-full py-3 px-4 pr-12 focus:outline-none focus:border-white/30 text-center"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors text-sm"
+                  >
+                    {showPassword ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+
+                {error && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-400 text-sm">
+                    {error}
+                  </motion.div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full rounded-full bg-white text-black font-medium py-3 hover:bg-white/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isLoading ? (
+                    <span className="inline-block w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                  ) : (
+                    'Sign In'
+                  )}
+                </button>
+              </form>
+
+              <div>
+                <Link
+                  to="/forgot-password"
+                  className="text-white/40 hover:text-white/60 transition-colors text-sm underline underline-offset-4"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="success-step"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: 'easeOut', delay: 0.3 }}
+              className="space-y-6 text-center"
+            >
+              <div className="space-y-1">
+                <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-white">You're in!</h1>
+                <p className="text-[1.25rem] text-white/50 font-light">Welcome back</p>
+              </div>
+
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.5 }}
+                className="py-10"
+              >
+                <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-white to-white/70 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-black" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              </motion.div>
+
+              <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1 }}
+                onClick={() => navigate('/dashboard')}
+                className="w-full rounded-full bg-white text-black font-medium py-3 hover:bg-white/90 transition-colors"
+              >
+                Continue to Dashboard
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </PublicLayout>
   );
 }
 
 export default LoginPage;
-

@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# NyxTrace Linux Orchestrator
+# Launches backend → AI service → sandbox agent → frontend in dependency order
+# with health-check polling.
+#
+# Usage:
+#   chmod +x start-all.sh
+#   ./start-all.sh
+#
+# To skip a service, set SKIP_{BACKEND,AI,SANDBOX,FRONTEND}=1:
+#   SKIP_SANDBOX=1 ./start-all.sh
+
+ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
+LOG_DIR="$ROOT_DIR/logs"
+mkdir -p "$LOG_DIR"
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+
+log()   { echo -e "${GREEN}[$(date +%H:%M:%S)]${NC} $*"; }
+warn()  { echo -e "${YELLOW}[$(date +%H:%M:%S)] WARN${NC} $*"; }
+err()   { echo -e "${RED}[$(date +%H:%M:%S)] ERROR${NC} $*"; }
+
+_pid=""
+
+cleanup() {
+  log "Shutting down all services..."
+  for pid in $(jobs -p); do
+    kill "$pid" 2>/dev/null || true
+  done
+  wait 2>/dev/null || true
+  log "All services stopped."
+}
+trap cleanup EXIT INT TERM
+
+health_ok() {
+  local url="$1" label="$2" max_wait="${3:-30}"
+  log "Waiting for $label to be ready..."
+  for i in $(seq 1 "$max_wait"); do
+    if curl -sf "$url" >/dev/null 2>&1; then
+      log "$label is ready."
+      return 0
+    fi
+    sleep 1
+  done
+  err "$label did not become ready within ${max_wait}s"
+  return 1
+}
+
+# ─── Backend ─────────────────────────────────────────────────────────────
+if [ -z "${SKIP_BACKEND:-}" ]; then
+  log "Starting Backend (Express.js)..."
+  cd "$ROOT_DIR/backend"
+  npm run dev > "$LOG_DIR/backend.log" 2>&1 &
+  _pid=$!
+  health_ok "http://localhost:3000/api/v1/operations/live" "Backend" 60 || true
+  cd "$ROOT_DIR"
+else
+  warn "Skipping Backend"
+fi
+
+# ─── AI Service ──────────────────────────────────────────────────────────
+if [ -z "${SKIP_AI:-}" ]; then
+  log "Starting AI Service (FastAPI)..."
+  cd "$ROOT_DIR/ai-service"
+  if [ ! -d .venv ]; then
+    python3 -m venv .venv
+  fi
+  source .venv/bin/activate
+  pip install -q -r requirements.txt 2>/dev/null
+  uvicorn app.main:app --reload --host 127.0.0.1 --port 8000 > "$LOG_DIR/ai-service.log" 2>&1 &
+  health_ok "http://localhost:8000/health" "AI Service" 30 || true
+  cd "$ROOT_DIR"
+else
+  warn "Skipping AI Service"
+fi
+
+# ─── Sandbox Agent ──────────────────────────────────────────────────────
+if [ -z "${SKIP_SANDBOX:-}" ]; then
+  log "Starting Sandbox Agent (FastAPI)..."
+  cd "$ROOT_DIR/sandbox-agent-v2"
+  if [ ! -d .venv ]; then
+    python3 -m venv .venv
+    source .venv/bin/activate
+    pip install -q -r requirements.txt 2>/dev/null
+  fi
+  source .venv/bin/activate
+  python3 main.py > "$LOG_DIR/sandbox-agent.log" 2>&1 &
+  health_ok "http://127.0.0.1:8765/health" "Sandbox Agent" 30 || true
+  cd "$ROOT_DIR"
+else
+  warn "Skipping Sandbox Agent"
+fi
+
+# ─── Frontend ────────────────────────────────────────────────────────────
+if [ -z "${SKIP_FRONTEND:-}" ]; then
+  log "Starting Frontend (Vite)..."
+  cd "$ROOT_DIR/frontend"
+  npm run dev > "$LOG_DIR/frontend.log" 2>&1 &
+  cd "$ROOT_DIR"
+  log "Frontend starting at http://localhost:5173"
+else
+  warn "Skipping Frontend"
+fi
+
+log "═══════════════════════════════════════════════════════════════"
+log "  All services launched. Press Ctrl+C to stop everything."
+log "  Logs: $LOG_DIR/"
+log "  Frontend:  http://localhost:5173"
+log "  Backend:   http://localhost:3000/api/v1"
+log "  AI:        http://localhost:8000"
+log "  Sandbox:   http://127.0.0.1:8765"
+log "═══════════════════════════════════════════════════════════════"
+
+wait

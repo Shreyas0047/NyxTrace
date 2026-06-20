@@ -119,14 +119,25 @@ class VMManager:
 
     def kill_all_vbox_processes(self) -> None:
         """Aggressively kill all VirtualBox VM processes."""
-        for img in ("VBoxHeadless.exe", "VirtualBoxVM.exe"):
-            try:
-                subprocess.run(
-                    ["taskkill", "/f", "/im", img],
-                    capture_output=True, timeout=10, creationflags=_NO_WINDOW,
-                )
-            except Exception:
-                pass
+        import sys as _sys
+        if _sys.platform == "win32":
+            for img in ("VBoxHeadless.exe", "VirtualBoxVM.exe"):
+                try:
+                    subprocess.run(
+                        ["taskkill", "/f", "/im", img],
+                        capture_output=True, timeout=10, creationflags=_NO_WINDOW,
+                    )
+                except Exception:
+                    pass
+        else:
+            for img in ("VBoxHeadless", "VirtualBoxVM"):
+                try:
+                    subprocess.run(
+                        ["pkill", "-9", img],
+                        capture_output=True, timeout=10,
+                    )
+                except Exception:
+                    pass
         time.sleep(1)
 
     # =========================================================================

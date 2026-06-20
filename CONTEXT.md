@@ -209,17 +209,23 @@ Source of truth: `sandbox-agent-v2/agent/app.py` (`SIMULATORS` list) and `sandbo
 
 Use the orchestrator at the repo root:
 
+### Linux / macOS
+```bash
+./start-all.sh
+```
+
+### Windows
 ```powershell
 .\start-all.ps1
 ```
 
-It launches backend → AI service → sandbox agent → frontend with health-check polling.
+Both launch backend → AI service → sandbox agent → frontend with health-check polling.
 
 To run components individually:
 
 ### Backend
 
-```powershell
+```bash
 cd backend
 npm install
 npm run dev
@@ -227,7 +233,7 @@ npm run dev
 
 ### Frontend
 
-```powershell
+```bash
 cd frontend
 npm install
 npm run dev
@@ -235,18 +241,18 @@ npm run dev
 
 ### Sandbox Agent
 
-```powershell
+```bash
 cd sandbox-agent-v2
-py -3.11 -m pip install -r requirements.txt
-py -3.11 main.py
+pip install -r requirements.txt
+python3 main.py
 ```
 
 ### AI Service
 
-```powershell
+```bash
 cd ai-service
-py -3.11 -m venv .venv
-.\.venv\Scripts\Activate.ps1
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```

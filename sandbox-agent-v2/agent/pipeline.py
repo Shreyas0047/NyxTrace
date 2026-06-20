@@ -154,7 +154,7 @@ class SessionPipeline:
         # an "install from the Microsoft Store" message. Override via the
         # SANDBOX_GUEST_PYTHON env var if you install Python somewhere else.
         import os as _os
-        guest_python = _os.environ.get("SANDBOX_GUEST_PYTHON", r"C:\Python311\python.exe")
+        guest_python = _os.environ.get("SANDBOX_GUEST_PYTHON", r"C:\Users\guestuser\AppData\Local\Programs\Python\Python313\python.exe")
         result = await asyncio.to_thread(
             self._vm.guest_exec,
             r"C:\Windows\System32\cmd.exe",

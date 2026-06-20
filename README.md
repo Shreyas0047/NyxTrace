@@ -129,10 +129,9 @@ NyxTrace is an educational cybersecurity platform for safe malware behavior simu
 | **Python** | 3.11+ | AI service + sandbox agent (3.13 also works) |
 | **MongoDB** | Atlas or self-hosted | Backend persistence |
 | **VirtualBox** | 6.1+ | Optional — only for sandbox execution |
-| **Windows 11** | host | Required for the sandbox flow (VBoxManage paths assume Windows) |
 | **Git** | any recent | Cloning + version control |
 
-Backend, frontend, and AI service work on any OS. The sandbox agent and `start-all.ps1` orchestrator are Windows-specific because they depend on `VBoxManage.exe` and PowerShell.
+Backend, frontend, and AI service work on any OS. The sandbox agent and orchestrator scripts support both Linux and Windows.
 
 ---
 
@@ -140,6 +139,23 @@ Backend, frontend, and AI service work on any OS. The sandbox agent and `start-a
 
 For the impatient — gets you running with minimal config, no sandbox VM, no AI service.
 
+### Linux / macOS
+```bash
+# 1. Clone and configure
+git clone <repo-url> nyxtrace
+cd nyxtrace
+cp backend/.env.example backend/.env
+nano backend/.env          # fill in MONGODB_URI, JWT_SECRET, JWT_REFRESH_SECRET
+
+# 2. Install & start MongoDB (Docker)
+docker run -d -p 27017:27017 --name mongodb mongo:7
+
+# 3. Start everything
+npm install                # installs concurrently
+./start-all.sh
+```
+
+### Windows
 ```powershell
 # 1. Clone and configure
 git clone <repo-url> nyxtrace

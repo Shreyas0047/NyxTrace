@@ -589,11 +589,12 @@ export class SandboxController {
 
     let pythonPath: string | null = null;
 
+    const isWin = process.platform === 'win32';
     const pythonCandidates = [
       process.env.PYTHON_PATH,
-      'python',
       'python3',
-      'py',
+      'python',
+      ...(isWin ? ['py'] : []),
     ].filter(Boolean) as string[];
 
     for (const candidate of pythonCandidates) {
@@ -605,10 +606,11 @@ export class SandboxController {
         }
       } else {
         try {
-          const { stdout } = await execPromise(`where ${candidate}`, { windowsHide: true });
-          const paths = stdout.trim().split('\r\n').filter(p => p.toLowerCase().endsWith('.exe'));
-          if (paths.length > 0) {
-            pythonPath = paths[0];
+          const whichCmd = isWin ? 'where' : 'command -v';
+          const { stdout } = await execPromise(`${whichCmd} ${candidate}`);
+          const path = stdout.trim().split('\n')[0];
+          if (path) {
+            pythonPath = path;
             break;
           }
         } catch {
@@ -636,18 +638,24 @@ export class SandboxController {
       }
 
       try {
-        const { stdout: netstatOut } = await execPromise('netstat -ano | findstr :8765', { windowsHide: true });
-        const lines = netstatOut.trim().split('\n').filter(l => l.includes('LISTENING'));
-        for (const line of lines) {
-          const parts = line.trim().split(/\s+/);
-          const pid = parts[parts.length - 1];
-          if (pid && pid !== '0') {
-            try {
-              await execPromise(`taskkill /F /PID ${pid}`, { windowsHide: true });
-            } catch { /* process may already be dead */ }
+        if (isWin) {
+          const { stdout: netstatOut } = await execPromise('netstat -ano | findstr :8765');
+          const lines = netstatOut.trim().split('\n').filter(l => l.includes('LISTENING'));
+          for (const line of lines) {
+            const parts = line.trim().split(/\s+/);
+            const pid = parts[parts.length - 1];
+            if (pid && pid !== '0') {
+              try {
+                await execPromise(`taskkill /F /PID ${pid}`);
+              } catch { /* process may already be dead */ }
+            }
           }
+        } else {
+          try {
+            await execPromise('lsof -ti :8765 | xargs -r kill -9');
+          } catch { /* port not in use */ }
         }
-      } catch { /* tasklist failed — port may not be in use */ }
+      } catch { /* port detection failed — may not be in use */ }
 
       // Open log file as file descriptor so child can write to it independently of parent
       const logFd = fs.openSync(logFile, 'a');
@@ -659,7 +667,7 @@ export class SandboxController {
         stdio: ['ignore', logFd, logFd],
         cwd: join(projectRoot, 'sandbox-agent-v2'),
         env: { ...process.env, PYTHONPATH: join(projectRoot, 'sandbox-agent-v2') },
-        windowsHide: true,
+        ...(isWin ? { windowsHide: true } : {}),
       });
 
       // Close parent's fd; child has its own copy now

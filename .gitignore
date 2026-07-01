@@ -42,3 +42,12 @@ exports/
 # OS
 Thumbs.db
 .DS_Store
+
+# git workflows
+.github/workflows
+
+#edit configs
+.editorconfig
+
+.prettierrc
+2026-06-20-13-41-25.056-VBoxHeadless-115948.log

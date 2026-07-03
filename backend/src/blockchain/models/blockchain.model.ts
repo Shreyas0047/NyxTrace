@@ -73,8 +73,7 @@ const tamperAlertSchema = new Schema({
 
 const blockchainVerificationSchema = new Schema({
   evidenceId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Evidence',
+    type: String,
     required: true,
     index: true,
   },
@@ -147,8 +146,7 @@ const blockchainVerificationSchema = new Schema({
 
 const evidenceIntegritySchema = new Schema({
   evidenceId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Evidence',
+    type: String,
     required: true,
     unique: true,
   },
@@ -205,8 +203,7 @@ const evidenceIntegritySchema = new Schema({
 
 const blockchainAuditSchema = new Schema({
   evidenceId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Evidence',
+    type: String,
     index: true,
   },
 

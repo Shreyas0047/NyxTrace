@@ -4,7 +4,7 @@
  */
 
 import logger from '../config/logger';
-import { BlockchainVerification, EvidenceIntegrity, BlockchainAudit } from './models/blockchain.model';
+import { BlockchainVerification, EvidenceIntegrity, BlockchainAudit, EvidencePackageHash } from './models/blockchain.model';
 import { blockchainService } from './blockchain.service';
 import { smartContractService } from './smart-contract.service';
 import { transactionService } from './transaction.service';
@@ -282,15 +282,109 @@ export class BlockchainSyncService {
    * Register package on blockchain
    */
   private async registerPackageOnChain(item: SyncQueueItem): Promise<void> {
-    // Similar implementation for package registration
-    logger.info(`[Sync] Registering package ${item.packageId} on blockchain`);
+    const pkg = await EvidencePackageHash.findOne({ packageId: item.packageId });
+    if (!pkg) {
+      throw new Error(`Package not found: ${item.packageId}`);
+    }
+
+    try {
+      const evidenceItems = pkg.evidenceHashes.map((eh: any) => ({
+        evidenceId: eh.evidenceId,
+        evidenceHash: eh.hash,
+      }));
+
+      if (evidenceItems.length === 0) {
+        await EvidencePackageHash.updateOne(
+          { packageId: item.packageId },
+          { $set: { blockchainRegistered: true } }
+        );
+        item.status = SyncStatus.COMPLETED;
+        return;
+      }
+
+      const result = await smartContractService.batchRegisterEvidence(
+        evidenceItems,
+        pkg.investigationId?.toString() || 'unknown'
+      );
+
+      if (result.success) {
+        item.transactionHash = result.transactionHash;
+
+        const confirmation = result.transactionHash
+          ? await blockchainService.verifyTransaction(result.transactionHash)
+          : { confirmed: false, blockNumber: 0 };
+
+        await EvidencePackageHash.updateOne(
+          { packageId: item.packageId },
+          {
+            $set: {
+              blockchainRegistered: true,
+              transactionHash: result.transactionHash,
+              blockNumber: confirmation.confirmed ? confirmation.blockNumber : undefined,
+            },
+          }
+        );
+
+        if (confirmation.confirmed) {
+          item.blockNumber = confirmation.blockNumber;
+          this.syncState.blockchainConfirmed++;
+        }
+
+        this.syncState.totalSynced++;
+      }
+    } catch (error) {
+      logger.warn(`[Sync] Package blockchain registration failed, using local-only: ${error}`);
+      item.status = SyncStatus.COMPLETED;
+    }
   }
 
   /**
    * Verify package on blockchain
    */
   private async verifyPackageOnChain(item: SyncQueueItem): Promise<void> {
-    logger.info(`[Sync] Verifying package ${item.packageId} on blockchain`);
+    const pkg = await EvidencePackageHash.findOne({ packageId: item.packageId });
+    if (!pkg) {
+      throw new Error(`Package not found: ${item.packageId}`);
+    }
+
+    try {
+      let allVerified = true;
+
+      for (const eh of pkg.evidenceHashes || []) {
+        const exists = await smartContractService.checkEvidenceExists(eh.evidenceId);
+        if (!exists) {
+          allVerified = false;
+          continue;
+        }
+
+        const chainHash = await smartContractService.getEvidenceHash(eh.evidenceId);
+        if (chainHash) {
+          const normalizedChain = chainHash.replace(/^0x/, '').toLowerCase();
+          const normalizedDb = eh.hash.replace(/^0x/, '').toLowerCase();
+          if (normalizedChain !== normalizedDb) {
+            allVerified = false;
+          }
+        }
+      }
+
+      await EvidencePackageHash.updateOne(
+        { packageId: item.packageId },
+        {
+          $set: {
+            lastVerifiedAt: new Date(),
+            lastVerificationStatus: allVerified ? 'verified' : 'modified',
+            verificationCount: (pkg.verificationCount || 0) + 1,
+          },
+        }
+      );
+
+      if (allVerified) {
+        this.syncState.totalSynced++;
+        this.syncState.blockchainConfirmed++;
+      }
+    } catch (error) {
+      logger.warn(`[Sync] Package blockchain verification failed: ${error}`);
+    }
   }
 
   /**

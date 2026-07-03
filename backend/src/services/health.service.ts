@@ -184,11 +184,33 @@ class HealthMonitor {
    * Check blockchain health
    */
   private async checkBlockchainHealth(): Promise<ServiceHealthStatus> {
-    // Check blockchain RPC connectivity
-    return {
-      status: 'healthy',
-      lastCheck: new Date().toISOString(),
-    };
+    const start = Date.now();
+    try {
+      const { blockchainService } = await import('../blockchain/blockchain.service');
+      const provider = blockchainService.getProvider();
+      if (provider) {
+        const network = await provider.getNetwork();
+        const latency = Date.now() - start;
+        return {
+          status: latency < 1000 ? 'healthy' : 'degraded',
+          latency,
+          lastCheck: new Date().toISOString(),
+          message: `Connected to chain ID ${network.chainId}`,
+        };
+      }
+      return {
+        status: 'degraded',
+        lastCheck: new Date().toISOString(),
+        message: 'Blockchain not initialized',
+      };
+    } catch (error) {
+      return {
+        status: 'down',
+        latency: Date.now() - start,
+        lastCheck: new Date().toISOString(),
+        message: (error as Error).message,
+      };
+    }
   }
 
   /**

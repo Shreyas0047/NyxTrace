@@ -40,6 +40,13 @@ export class BlockchainService {
   }
 
   /**
+   * Get the underlying ethers provider
+   */
+  getProvider(): any {
+    return this.provider;
+  }
+
+  /**
    * Check if blockchain is available
    */
   isAvailable(): boolean {

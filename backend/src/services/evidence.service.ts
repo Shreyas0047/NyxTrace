@@ -59,6 +59,8 @@ export class EvidenceService {
 
     // Create evidence record
     const evidence = await Evidence.create({
+      evidenceId: fileId,
+      fileName: data.file.originalname,
       investigationId: data.investigationId,
       name: data.file.originalname,
       description: data.description,

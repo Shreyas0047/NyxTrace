@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { Evidence, PaginationParams } from '../types';
 import api from '../services/api';
+import { useBlockchainStore } from './blockchainStore';
 
 interface EvidenceState {
   evidence: Evidence[];
@@ -107,6 +108,20 @@ export const useEvidenceStore = create<EvidenceState>((set, get) => ({
           e.id === id ? { ...e, verified: true, verifiedAt: new Date().toISOString() } : e
         );
         set({ evidence, isLoading: false });
+
+        const ev = get().evidence.find((e) => e.id === id);
+        if (ev?.evidenceId && ev?.filePath) {
+          useBlockchainStore.getState().verifyEvidence(ev.evidenceId, ev.filePath)
+            .then(() => {
+              const updated = get().evidence.map((e) =>
+                e.id === id ? { ...e, blockchainVerified: true } : e
+              );
+              set({ evidence: updated });
+            })
+            .catch(() => {
+              // Blockchain verification failed silently — evidence is still locally verified
+            });
+        }
       }
     } catch (error) {
       set({ isLoading: false, error: 'Failed to verify evidence' });

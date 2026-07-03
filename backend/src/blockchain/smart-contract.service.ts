@@ -31,7 +31,7 @@ export const FORENSICS_EVIDENCE_ABI = [
   "event EvidenceRegistered(string indexed evidenceId, bytes32 indexed evidenceHash, address indexed investigator, uint256 timestamp, string investigationId)",
   "event EvidenceVerified(string indexed evidenceId, address indexed verifier, bool indexed result, uint8 status, uint256 timestamp)",
   "event VerificationFailed(string indexed evidenceId, address indexed verifier, bytes32 expectedHash, bytes32 actualHash, uint256 timestamp)",
-  "event EvidenceStatusUpdated(string indexed evidenceId, uint8 indexed oldStatus, uint8 indexed newStatus, address indexed updater, uint256 timestamp)"
+  "event EvidenceStatusUpdated(string indexed evidenceId, uint8 indexed oldStatus, uint8 indexed newStatus, address updater, uint256 timestamp)"
 ];
 
 export const FORENSICS_AUDIT_ABI = [
@@ -109,6 +109,7 @@ export interface EvidenceInfo {
 
 export class SmartContractService {
   private provider: ethers.JsonRpcProvider | null = null;
+  private signer: ethers.Wallet | null = null;
   private evidenceContract: ethers.Contract | null = null;
   private auditContract: ethers.Contract | null = null;
   private initialized: boolean = false;
@@ -132,6 +133,15 @@ export class SmartContractService {
       const network = await this.provider.getNetwork();
       logger.info(`[SmartContract] Connected to network: ${network.name}`);
 
+      // Create signer if private key is available (required for write operations)
+      const { walletConfig } = await import('./config');
+      if (walletConfig.privateKey) {
+        this.signer = new ethers.Wallet(walletConfig.privateKey, this.provider);
+        logger.info(`[SmartContract] Signer initialized: ${this.signer.address}`);
+      } else {
+        logger.warn('[SmartContract] No private key configured — running in read-only mode');
+      }
+
       // Initialize contracts if addresses are configured
       if (blockchainConfig.contractAddress) {
         this.initializeContracts();
@@ -150,18 +160,20 @@ export class SmartContractService {
   private initializeContracts(): void {
     if (!this.provider) return;
 
-    // Evidence contract
+    const runner = this.signer || this.provider;
+
+    // Evidence contract (read/write if signer available)
     this.evidenceContract = new ethers.Contract(
       blockchainConfig.contractAddress,
       FORENSICS_EVIDENCE_ABI,
-      this.provider
+      runner
     );
 
     // Audit contract (use same address for combined contract or separate)
     this.auditContract = new ethers.Contract(
       blockchainConfig.contractAddress,
       FORENSICS_AUDIT_ABI,
-      this.provider
+      runner
     );
 
     logger.info('[SmartContract] Contracts initialized');
@@ -321,6 +333,21 @@ export class SmartContractService {
       return await this.evidenceContract.checkEvidenceExists(evidenceId);
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * Get evidence hash from blockchain
+   */
+  async getEvidenceHash(evidenceId: string): Promise<string | null> {
+    if (!this.evidenceContract) {
+      return null;
+    }
+
+    try {
+      return await this.evidenceContract.getEvidenceHash(evidenceId);
+    } catch {
+      return null;
     }
   }
 

@@ -28,6 +28,7 @@ export interface EvidenceVerificationConfig {
 export interface WalletConfig {
   type: 'educational' | 'testnet';
   address: string;
+  privateKey: string;
   minConfirmations: number;
 }
 
@@ -38,7 +39,7 @@ export const blockchainConfig: BlockchainConfig = {
   contractAddress: process.env.BLOCKCHAIN_CONTRACT_ADDRESS || '',
   chainId: process.env.BLOCKCHAIN_CHAIN_ID ? parseInt(process.env.BLOCKCHAIN_CHAIN_ID) : 11155111,
   explorerUrl: process.env.BLOCKCHAIN_EXPLORER_URL || 'https://sepolia.etherscan.io',
-  confirmations: 12,
+  confirmations: parseInt(process.env.BLOCKCHAIN_CONFIRMATIONS || '1'),
   gasSettings: {
     maxFeePerGas: '2000000000', // 2 gwei
     maxPriorityFeePerGas: '1000000000', // 1 gwei
@@ -56,6 +57,7 @@ export const verificationConfig: EvidenceVerificationConfig = {
 export const walletConfig: WalletConfig = {
   type: 'testnet',
   address: process.env.BLOCKCHAIN_WALLET_ADDRESS || '',
+  privateKey: process.env.BLOCKCHAIN_PRIVATE_KEY || '',
   minConfirmations: 6,
 };
 

@@ -121,6 +121,7 @@ export interface Evidence {
   collectedBy: User;
   verified: boolean;
   verifiedAt?: string;
+  blockchainVerified?: boolean;
   tags: string[];
   chainOfCustody: CustodyEntry[];
   analysisSummary?: string;

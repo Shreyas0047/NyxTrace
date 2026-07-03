@@ -4,8 +4,6 @@ import { PublicLayout } from '../components/PublicLayout';
 const team = [
   { name: 'Shreyas Gowda' },
   { name: 'Shreeshail Ramesh Kapse' },
-  { name: 'Gokul' },
-  { name: 'Sangama' },
 ];
 
 const ethics = [

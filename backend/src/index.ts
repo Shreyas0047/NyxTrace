@@ -16,6 +16,9 @@ import { errorHandler, notFoundHandler, sanitizeRequest, validateRequestIntegrit
 import fs from 'fs';
 import { evidenceService, analysisService } from './services';
 import { websocketService } from './services/websocket.service';
+import { blockchainService } from './blockchain/blockchain.service';
+import { smartContractService } from './blockchain/smart-contract.service';
+import { distributedVerificationService } from './blockchain/verification-worker.service';
 
 // Initialize Express app
 const app: Express = express();
@@ -120,6 +123,11 @@ async function startServer(): Promise<void> {
 
     // Connect to database
     await connectToDatabase();
+
+    // Initialize blockchain services
+    await blockchainService.initialize().catch(() => {});
+    await smartContractService.initialize().catch(() => {});
+    distributedVerificationService.startWorker().catch(() => {});
 
     // Start listening
     const { port, nodeEnv } = config.server;

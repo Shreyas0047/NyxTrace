@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { cn } from '../design-system';
@@ -155,6 +155,9 @@ function MiniNavbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [headerShapeClass, setHeaderShapeClass] = useState('rounded-full');
   const shapeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const location = useLocation();
+  const isLoginPage = location.pathname === '/login';
+  const isRegisterPage = location.pathname === '/register';
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -183,15 +186,15 @@ function MiniNavbar() {
   ];
 
   const loginButtonElement = (
-    <Link to="/login" className="px-4 py-2 sm:px-3 text-xs sm:text-sm border border-[#333] bg-[rgba(31,31,31,0.62)] text-gray-300 rounded-full hover:border-white/50 hover:text-white transition-colors duration-200 w-full sm:w-auto inline-block text-center">
+    <Link to="/login" className={`px-4 py-2 sm:px-3 text-xs sm:text-sm border rounded-full transition-all duration-200 w-full sm:w-auto inline-block text-center ${isLoginPage ? 'border-white/60 bg-white/15 text-white font-semibold shadow-[0_0_12px_rgba(255,255,255,0.15)]' : 'border-[#333] bg-[rgba(31,31,31,0.62)] text-gray-300 hover:border-white/50 hover:text-white'}`}>
       LogIn
     </Link>
   );
 
   const signupButtonElement = (
     <Link to="/register" className="relative group w-full sm:w-auto inline-block">
-      <div className="absolute inset-0 -m-2 rounded-full hidden sm:block bg-gray-100 opacity-40 filter blur-lg pointer-events-none transition-all duration-300 ease-out group-hover:opacity-60 group-hover:blur-xl group-hover:-m-3" />
-      <span className="relative z-10 block px-4 py-2 sm:px-3 text-xs sm:text-sm font-semibold text-black bg-gradient-to-br from-gray-100 to-gray-300 rounded-full hover:from-gray-200 hover:to-gray-400 transition-all duration-200 w-full sm:w-auto text-center">
+      <div className={`absolute inset-0 -m-2 rounded-full hidden sm:block opacity-40 filter blur-lg pointer-events-none transition-all duration-300 ease-out group-hover:opacity-60 group-hover:blur-xl group-hover:-m-3 ${isRegisterPage ? 'bg-white opacity-60 blur-xl -m-3' : 'bg-gray-100'}`} />
+      <span className={`relative z-10 block px-4 py-2 sm:px-3 text-xs sm:text-sm font-semibold rounded-full transition-all duration-200 w-full sm:w-auto text-center ${isRegisterPage ? 'text-black bg-gradient-to-br from-white to-gray-200 shadow-[0_0_14px_rgba(255,255,255,0.25)]' : 'text-black bg-gradient-to-br from-gray-100 to-gray-300 hover:from-gray-200 hover:to-gray-400'}`}>
         Signup
       </span>
     </Link>

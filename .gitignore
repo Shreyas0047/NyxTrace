@@ -25,6 +25,7 @@ dist/
 # Local runtime data
 .env
 .env.*
+!*.env.example
 *.local
 logs/
 backend/logs/
@@ -44,6 +45,10 @@ uploads/
 # OS
 Thumbs.db
 .DS_Store
+
+# Runtime log files
+*.log
+VBoxHeadless*.log
 
 # Hardhat / Blockchain
 blockchain/artifacts/

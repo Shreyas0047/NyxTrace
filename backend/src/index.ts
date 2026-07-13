@@ -183,6 +183,15 @@ async function startServer(): Promise<void> {
       }, 10000);
     };
 
+    process.on('unhandledRejection', (reason) => {
+      logger.error('Unhandled promise rejection:', reason);
+    });
+
+    process.on('uncaughtException', (error) => {
+      logger.error('Uncaught exception:', error);
+      process.exit(1);
+    });
+
     process.on('SIGTERM', () => shutdown('SIGTERM'));
     process.on('SIGINT', () => shutdown('SIGINT'));
 

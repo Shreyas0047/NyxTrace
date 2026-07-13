@@ -1,0 +1,20 @@
+# Default owners for the entire repository
+*       @anomalyco
+
+# Backend API
+/backend/        @anomalyco
+
+# Frontend SPA
+/frontend/       @anomalyco
+
+# Smart contracts
+/blockchain/     @anomalyco
+
+# AI microservice
+/ai-service/     @anomalyco
+
+# Sandbox agent
+/sandbox-agent-v2/  @anomalyco
+
+# CI/CD
+/.github/        @anomalyco

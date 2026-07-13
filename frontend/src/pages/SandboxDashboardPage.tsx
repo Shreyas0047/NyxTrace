@@ -118,8 +118,9 @@ export function SandboxDashboardPage() {
   const [selectedSimulator, setSelectedSimulator] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('sessions');
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
-  const [, setTick] = useState(0);
+  const [tick, setTick] = useState(0);
   const [persistedMonitoring, setPersistedMonitoring] = useState<any>(null);
+  const prevSessionIdRef = useRef<string | null>(null);
 
   const logsEndRef = useRef<HTMLDivElement>(null);
   const telemetryEndRef = useRef<HTMLDivElement>(null);
@@ -163,7 +164,7 @@ export function SandboxDashboardPage() {
       if (lastCompleted) {
         api.getSessionMonitoring(lastCompleted.sessionId).then((res) => {
           if (res.success) setPersistedMonitoring(res.data);
-        }).catch(() => {});
+        }).catch((err) => console.error('Failed to fetch persisted monitoring:', err));
       }
     }
   }, [activeTab, monitoringStatus, sessions]);
@@ -191,8 +192,14 @@ export function SandboxDashboardPage() {
   }, [activeSession?.simulator_id, activeSession?.created_at]);
 
   useEffect(() => {
-    if (activeSession && activeSession.state !== 'completed' && activeSession.state !== 'failed') {
+    const sessionId = activeSession?.session_id || activeSession?.sessionId || null;
+    const isActive = activeSession && !['completed', 'failed', 'timeout', 'rolled_back'].includes(activeSession.state);
+    if (isActive && sessionId && sessionId !== prevSessionIdRef.current) {
+      prevSessionIdRef.current = sessionId;
       setSessionStartTime(new Date());
+    }
+    if (!isActive) {
+      prevSessionIdRef.current = null;
     }
   }, [activeSession]);
 
@@ -201,7 +208,7 @@ export function SandboxDashboardPage() {
     if (!sessionStartTime || !activeSession || ['completed', 'failed', 'timeout', 'rolled_back'].includes(activeSession.state)) return;
     const timer = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(timer);
-  }, [sessionStartTime, activeSession]);
+  }, [sessionStartTime]);
 
   // When runtime comes online, fetch simulators if list is empty
   useEffect(() => {

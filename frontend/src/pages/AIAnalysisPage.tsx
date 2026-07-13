@@ -224,7 +224,7 @@ export function AIAnalysisPage() {
           setStoredAIAnalysis(null);
         }
       })
-      .catch(() => setStoredAIAnalysis(null))
+      .catch((err) => { console.error('Failed to fetch stored AI analysis:', err); setStoredAIAnalysis(null); })
       .finally(() => setIsLoadingStoredAnalysis(false));
   }, [selectedSessionForAnalysis, sessions]);
 

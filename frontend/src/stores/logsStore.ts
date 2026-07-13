@@ -205,7 +205,8 @@ export const useLogsStore = create<LogsState>((set, get) => ({
           }
         };
       }
-    }).catch(() => {
+    }).catch((err) => {
+      console.error('Logs WebSocket connection failed:', err);
       set({ isConnected: false });
     });
   },

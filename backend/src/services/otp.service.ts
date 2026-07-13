@@ -171,7 +171,7 @@ function cleanupExpiredRecords(): void {
   }
 }
 
-export async function sendOTP(email: string, roleInput: string): Promise<{ success: boolean; message: string; data?: { devOtp?: string } }> {
+export async function sendOTP(email: string, roleInput: string): Promise<{ success: boolean; message: string }> {
   cleanupExpiredRecords();
 
   const normalizedEmail = normalizeEmail(email);
@@ -198,11 +198,6 @@ export async function sendOTP(email: string, roleInput: string): Promise<{ succe
     expiresAt: Date.now() + OTP_TTL_MS,
     attempts: 0,
   });
-
-  if (config.otpDevMode) {
-    logger.info(`[DEV MODE] OTP for ${normalizedEmail}: ${otp}`);
-    return { success: true, message: 'OTP sent (dev mode — check server logs)', data: { devOtp: otp } };
-  }
 
   const transporter = createTransporter();
 
@@ -357,7 +352,7 @@ function resetOtpEmailHtml(otp: string): string {
   `;
 }
 
-export async function sendPasswordResetOTP(email: string): Promise<{ success: boolean; message: string; data?: { devOtp?: string } }> {
+export async function sendPasswordResetOTP(email: string): Promise<{ success: boolean; message: string }> {
   cleanupExpiredRecords();
 
   const normalizedEmail = normalizeEmail(email);
@@ -379,11 +374,6 @@ export async function sendPasswordResetOTP(email: string): Promise<{ success: bo
     expiresAt: Date.now() + OTP_TTL_MS,
     attempts: 0,
   });
-
-  if (config.otpDevMode) {
-    logger.info(`[DEV MODE] Password reset OTP for ${normalizedEmail}: ${otp}`);
-    return { success: true, message: 'If an account exists, an OTP has been sent to your email', data: { devOtp: otp } };
-  }
 
   const transporter = createTransporter();
 

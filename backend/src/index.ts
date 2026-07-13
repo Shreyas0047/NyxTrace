@@ -18,6 +18,7 @@ import { evidenceService, analysisService } from './services';
 import { websocketService } from './services/websocket.service';
 import { blockchainService } from './blockchain/blockchain.service';
 import { smartContractService } from './blockchain/smart-contract.service';
+import { blockchainSyncService } from './blockchain/synchronization.service';
 import { distributedVerificationService } from './blockchain/verification-worker.service';
 
 // Initialize Express app
@@ -128,6 +129,7 @@ async function startServer(): Promise<void> {
     await blockchainService.initialize().catch(() => {});
     await smartContractService.initialize().catch(() => {});
     distributedVerificationService.startWorker().catch(() => {});
+    await blockchainSyncService.init();
 
     // Start listening
     const { port, nodeEnv } = config.server;

@@ -1,36 +1,22 @@
-/**
- * Blockchain Synchronization Service
- * Manages evidence registration and verification synchronization with blockchain
- */
-
 import logger from '../config/logger';
-import { BlockchainVerification, EvidenceIntegrity, BlockchainAudit, EvidencePackageHash } from './models/blockchain.model';
+import {
+  BlockchainVerification,
+  EvidenceIntegrity,
+  BlockchainAudit,
+  EvidencePackageHash,
+  BlockchainSyncQueue,
+} from './models/blockchain.model';
 import { blockchainService } from './blockchain.service';
 import { smartContractService } from './smart-contract.service';
 import { transactionService } from './transaction.service';
-import { BlockchainEventType, VerificationStatus } from './types';
-import { v4 as uuidv4 } from 'uuid';
-
-export enum SyncStatus {
-  PENDING = 'pending',
-  IN_PROGRESS = 'in_progress',
-  COMPLETED = 'completed',
-  FAILED = 'failed',
-  RETRYING = 'retrying',
-}
-
-export enum SyncOperation {
-  EVIDENCE_REGISTER = 'evidence_register',
-  EVIDENCE_VERIFY = 'evidence_verify',
-  PACKAGE_CREATE = 'package_create',
-  PACKAGE_VERIFY = 'package_verify',
-}
+import { BlockchainEventType, VerificationStatus, SyncStatus, SyncOperation } from './types';
 
 export interface SyncQueueItem {
   id: string;
   operation: SyncOperation;
   evidenceId?: string;
   packageId?: string;
+  fingerprint?: string;
   status: SyncStatus;
   retryCount: number;
   maxRetries: number;
@@ -52,44 +38,50 @@ export interface SyncState {
 }
 
 export class BlockchainSyncService {
-  private syncQueue: SyncQueueItem[] = [];
-  private syncState: SyncState = {
-    lastSyncTimestamp: null,
-    lastSuccessfulSync: null,
-    pendingOperations: 0,
-    failedOperations: 0,
-    totalSynced: 0,
-    blockchainConfirmed: 0,
-    syncHealth: 'healthy',
-  };
   private isProcessing = false;
   private readonly MAX_RETRIES = 3;
-  private readonly PROCESS_INTERVAL = 5000; // 5 seconds
+  private readonly PROCESS_INTERVAL = 5000;
   private autoProcessTimer: ReturnType<typeof setInterval> | null = null;
 
-  /**
-   * Start automatic queue processing on an interval.
-   * Called once at service initialization.
-   */
+  async init(): Promise<void> {
+    await this.recoverOrphanedItems();
+    this.startAutoProcessing();
+  }
+
+  private async recoverOrphanedItems(): Promise<void> {
+    try {
+      const result = await BlockchainSyncQueue.updateMany(
+        { status: SyncStatus.IN_PROGRESS },
+        { $set: { status: SyncStatus.PENDING } }
+      );
+      if (result.modifiedCount > 0) {
+        logger.info(`[Sync] Recovery: reset ${result.modifiedCount} in-progress items back to pending`);
+      }
+    } catch (error) {
+      logger.error('[Sync] Recovery failed:', error);
+    }
+  }
+
   startAutoProcessing(): void {
     if (this.autoProcessTimer) return;
     logger.info('[Sync] Starting automatic queue processing every 5s');
     this.autoProcessTimer = setInterval(async () => {
-      const pending = this.syncQueue.filter(
-        i => i.status === SyncStatus.PENDING || i.status === SyncStatus.RETRYING
-      ).length;
-      if (pending > 0) {
-        const result = await this.processQueue();
-        if (result.processed > 0) {
-          logger.info(`[Sync] Auto-processed ${result.processed} items (${result.successful} ok, ${result.failed} failed)`);
+      try {
+        const pending = await BlockchainSyncQueue.countDocuments({
+          status: { $in: [SyncStatus.PENDING, SyncStatus.RETRYING] },
+        });
+        if (pending > 0) {
+          const result = await this.processQueue();
+          if (result.processed > 0) {
+            logger.info(`[Sync] Auto-processed ${result.processed} items (${result.successful} ok, ${result.failed} failed)`);
+          }
         }
+      } catch (error) {
+        logger.error('[Sync] Auto-processing error:', error);
       }
     }, this.PROCESS_INTERVAL);
   }
 
-  /**
-   * Stop automatic queue processing.
-   */
   stopAutoProcessing(): void {
     if (this.autoProcessTimer) {
       clearInterval(this.autoProcessTimer);
@@ -98,56 +90,39 @@ export class BlockchainSyncService {
     }
   }
 
-  /**
-   * Add evidence to synchronization queue
-   */
   async queueEvidenceRegistration(
     evidenceId: string,
     fingerprint: string
   ): Promise<string> {
-    const item: SyncQueueItem = {
-      id: uuidv4(),
+    const doc = await BlockchainSyncQueue.create({
       operation: SyncOperation.EVIDENCE_REGISTER,
       evidenceId,
+      fingerprint,
       status: SyncStatus.PENDING,
       retryCount: 0,
       maxRetries: this.MAX_RETRIES,
       createdAt: new Date(),
-    };
+    });
 
-    this.syncQueue.push(item);
-    this.updateStateMetrics();
-
-    // Log to audit
     await this.logAudit(evidenceId, BlockchainEventType.EVIDENCE_REGISTERED,
       'Evidence queued for blockchain registration', 'system', { fingerprint });
 
-    return item.id;
+    return doc._id.toString();
   }
 
-  /**
-   * Queue verification for synchronization
-   */
   async queueEvidenceVerification(evidenceId: string): Promise<string> {
-    const item: SyncQueueItem = {
-      id: uuidv4(),
+    const doc = await BlockchainSyncQueue.create({
       operation: SyncOperation.EVIDENCE_VERIFY,
       evidenceId,
       status: SyncStatus.PENDING,
       retryCount: 0,
       maxRetries: this.MAX_RETRIES,
       createdAt: new Date(),
-    };
+    });
 
-    this.syncQueue.push(item);
-    this.updateStateMetrics();
-
-    return item.id;
+    return doc._id.toString();
   }
 
-  /**
-   * Process synchronization queue
-   */
   async processQueue(): Promise<{
     processed: number;
     successful: number;
@@ -161,33 +136,33 @@ export class BlockchainSyncService {
     const results = { processed: 0, successful: 0, failed: 0 };
 
     try {
-      const pendingItems = this.syncQueue.filter(
-        item => item.status === SyncStatus.PENDING || item.status === SyncStatus.RETRYING
-      );
+      while (true) {
+        const doc = await BlockchainSyncQueue.findOneAndUpdate(
+          { status: { $in: [SyncStatus.PENDING, SyncStatus.RETRYING] } },
+          { $set: { status: SyncStatus.IN_PROGRESS, lastAttemptAt: new Date() } },
+          { sort: { createdAt: 1 }, returnDocument: 'after' }
+        );
+        if (!doc) break;
 
-      for (const item of pendingItems) {
         results.processed++;
-        item.status = SyncStatus.IN_PROGRESS;
-        item.lastAttemptAt = new Date();
+        const item: SyncQueueItem = {
+          ...doc.toObject(),
+          id: doc._id.toString(),
+        } as unknown as SyncQueueItem;
 
         try {
           await this.processSyncItem(item);
-
-          item.status = SyncStatus.COMPLETED;
+          const updates: Record<string, any> = { status: SyncStatus.COMPLETED };
+          if (item.transactionHash) updates.transactionHash = item.transactionHash;
+          if (item.blockNumber) updates.blockNumber = item.blockNumber;
+          await BlockchainSyncQueue.updateOne({ _id: doc._id }, { $set: updates });
           results.successful++;
-          this.syncState.lastSuccessfulSync = new Date();
-          this.syncState.totalSynced++;
-
-          // Update database records
           await this.updateBlockchainRecord(item);
         } catch (error) {
-          await this.handleSyncFailure(item, error);
+          await this.handleSyncFailure(doc._id.toString(), error);
           results.failed++;
         }
       }
-
-      this.syncState.lastSyncTimestamp = new Date();
-      this.updateStateMetrics();
     } finally {
       this.isProcessing = false;
     }
@@ -195,9 +170,6 @@ export class BlockchainSyncService {
     return results;
   }
 
-  /**
-   * Process individual sync item
-   */
   private async processSyncItem(item: SyncQueueItem): Promise<void> {
     if (!blockchainService.isAvailable()) {
       throw new Error('Blockchain not available');
@@ -219,9 +191,6 @@ export class BlockchainSyncService {
     }
   }
 
-  /**
-   * Register evidence on blockchain
-   */
   private async registerEvidenceOnChain(item: SyncQueueItem): Promise<void> {
     const verification = await BlockchainVerification.findOne({
       evidenceId: item.evidenceId,
@@ -231,7 +200,6 @@ export class BlockchainSyncService {
       throw new Error(`Verification record not found for ${item.evidenceId}`);
     }
 
-    // Try smart contract registration first
     try {
       const txHash = await smartContractService.registerEvidence(
         item.evidenceId!,
@@ -241,25 +209,19 @@ export class BlockchainSyncService {
 
       item.transactionHash = txHash.transactionHash;
 
-      // Wait for confirmation
       const confirmation = item.transactionHash
         ? await blockchainService.verifyTransaction(item.transactionHash)
         : { confirmed: false, blockNumber: 0 };
 
       if (confirmation.confirmed) {
         item.blockNumber = confirmation.blockNumber;
-        this.syncState.blockchainConfirmed++;
       }
     } catch (error) {
-      // Fall back to local-only registration if blockchain fails
       logger.warn(`[Sync] Blockchain registration failed, using local-only: ${error}`);
       item.status = SyncStatus.COMPLETED;
     }
   }
 
-  /**
-   * Verify evidence on blockchain
-   */
   private async verifyEvidenceOnChain(item: SyncQueueItem): Promise<void> {
     try {
       const verification = await BlockchainVerification.findOne({ evidenceId: item.evidenceId });
@@ -271,16 +233,12 @@ export class BlockchainSyncService {
 
       if (result.verified) {
         item.blockNumber = result.blockNumber;
-        this.syncState.blockchainConfirmed++;
       }
     } catch (error) {
       logger.warn(`[Sync] Blockchain verification failed: ${error}`);
     }
   }
 
-  /**
-   * Register package on blockchain
-   */
   private async registerPackageOnChain(item: SyncQueueItem): Promise<void> {
     const pkg = await EvidencePackageHash.findOne({ packageId: item.packageId });
     if (!pkg) {
@@ -327,10 +285,7 @@ export class BlockchainSyncService {
 
         if (confirmation.confirmed) {
           item.blockNumber = confirmation.blockNumber;
-          this.syncState.blockchainConfirmed++;
         }
-
-        this.syncState.totalSynced++;
       }
     } catch (error) {
       logger.warn(`[Sync] Package blockchain registration failed, using local-only: ${error}`);
@@ -338,9 +293,6 @@ export class BlockchainSyncService {
     }
   }
 
-  /**
-   * Verify package on blockchain
-   */
   private async verifyPackageOnChain(item: SyncQueueItem): Promise<void> {
     const pkg = await EvidencePackageHash.findOne({ packageId: item.packageId });
     if (!pkg) {
@@ -377,43 +329,39 @@ export class BlockchainSyncService {
           },
         }
       );
-
-      if (allVerified) {
-        this.syncState.totalSynced++;
-        this.syncState.blockchainConfirmed++;
-      }
     } catch (error) {
       logger.warn(`[Sync] Package blockchain verification failed: ${error}`);
     }
   }
 
-  /**
-   * Handle sync failure with retry logic
-   */
-  private async handleSyncFailure(item: SyncQueueItem, error: unknown): Promise<void> {
-    item.error = error instanceof Error ? error.message : 'Unknown error';
-    item.retryCount++;
+  private async handleSyncFailure(id: string, error: unknown): Promise<void> {
+    const doc = await BlockchainSyncQueue.findById(id);
+    if (!doc) return;
 
-    if (item.retryCount < item.maxRetries) {
-      item.status = SyncStatus.RETRYING;
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const newRetryCount = (doc.retryCount || 0) + 1;
+
+    if (newRetryCount < (doc.maxRetries || 3)) {
+      await BlockchainSyncQueue.updateOne(
+        { _id: doc._id },
+        { $set: { status: SyncStatus.RETRYING, retryCount: newRetryCount, error: errorMessage } }
+      );
     } else {
-      item.status = SyncStatus.FAILED;
-      this.syncState.failedOperations++;
+      await BlockchainSyncQueue.updateOne(
+        { _id: doc._id },
+        { $set: { status: SyncStatus.FAILED, retryCount: newRetryCount, error: errorMessage } }
+      );
 
-      // Log to audit
       await this.logAudit(
-        item.evidenceId || null,
+        doc.evidenceId || null,
         BlockchainEventType.VERIFICATION_FAILED,
-        `Sync failed after ${item.maxRetries} retries: ${item.error}`,
+        `Sync failed after ${doc.maxRetries || 3} retries: ${errorMessage}`,
         'system',
-        { operation: item.operation, error: item.error }
+        { operation: doc.operation, error: errorMessage }
       );
     }
   }
 
-  /**
-   * Update blockchain record after successful sync
-   */
   private async updateBlockchainRecord(item: SyncQueueItem): Promise<void> {
     if (item.evidenceId) {
       await BlockchainVerification.updateOne(
@@ -429,7 +377,6 @@ export class BlockchainSyncService {
         }
       );
 
-      // Update integrity record
       await EvidenceIntegrity.updateOne(
         { evidenceId: item.evidenceId },
         {
@@ -443,9 +390,6 @@ export class BlockchainSyncService {
     }
   }
 
-  /**
-   * Log audit entry
-   */
   private async logAudit(
     evidenceId: string | null,
     eventType: BlockchainEventType,
@@ -466,89 +410,140 @@ export class BlockchainSyncService {
     }
   }
 
-  /**
-   * Update state metrics
-   */
-  private updateStateMetrics(): void {
-    const pending = this.syncQueue.filter(
-      i => i.status === SyncStatus.PENDING || i.status === SyncStatus.RETRYING
-    ).length;
-    const failed = this.syncQueue.filter(i => i.status === SyncStatus.FAILED).length;
+  private computeHealth(pending: number, failed: number): 'healthy' | 'degraded' | 'unhealthy' {
+    if (failed > 10 || pending > 100) return 'unhealthy';
+    if (failed > 5 || pending > 50) return 'degraded';
+    return 'healthy';
+  }
 
-    this.syncState.pendingOperations = pending;
-    this.syncState.failedOperations = failed;
+  async getSyncState(): Promise<SyncState> {
+    try {
+      const [stats] = await BlockchainSyncQueue.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalSynced: { $sum: { $cond: [{ $eq: ['$status', SyncStatus.COMPLETED] }, 1, 0] } },
+            blockchainConfirmed: {
+              $sum: {
+                $cond: [
+                  { $and: [
+                    { $eq: ['$status', SyncStatus.COMPLETED] },
+                    { $ne: ['$blockNumber', null] },
+                  ]},
+                  1,
+                  0,
+                ],
+              },
+            },
+            pendingOperations: {
+              $sum: {
+                $cond: [
+                  { $in: ['$status', [SyncStatus.PENDING, SyncStatus.RETRYING]] },
+                  1,
+                  0,
+                ],
+              },
+            },
+            failedOperations: { $sum: { $cond: [{ $eq: ['$status', SyncStatus.FAILED] }, 1, 0] } },
+            lastSyncTimestamp: { $max: '$lastAttemptAt' },
+            lastSuccessfulSync: {
+              $max: {
+                $cond: [{ $eq: ['$status', SyncStatus.COMPLETED] }, '$lastAttemptAt', null],
+              },
+            },
+          },
+        },
+      ]);
 
-    // Determine health
-    if (failed > 10 || pending > 100) {
-      this.syncState.syncHealth = 'unhealthy';
-    } else if (failed > 5 || pending > 50) {
-      this.syncState.syncHealth = 'degraded';
-    } else {
-      this.syncState.syncHealth = 'healthy';
+      const pending = stats?.pendingOperations || 0;
+      const failed = stats?.failedOperations || 0;
+
+      return {
+        lastSyncTimestamp: stats?.lastSyncTimestamp || null,
+        lastSuccessfulSync: stats?.lastSuccessfulSync || null,
+        totalSynced: stats?.totalSynced || 0,
+        blockchainConfirmed: stats?.blockchainConfirmed || 0,
+        pendingOperations: pending,
+        failedOperations: failed,
+        syncHealth: this.computeHealth(pending, failed),
+      };
+    } catch (error) {
+      logger.error('[Sync] Failed to get sync state:', error);
+      return {
+        lastSyncTimestamp: null,
+        lastSuccessfulSync: null,
+        pendingOperations: 0,
+        failedOperations: 0,
+        totalSynced: 0,
+        blockchainConfirmed: 0,
+        syncHealth: 'unhealthy',
+      };
     }
   }
 
-  /**
-   * Get current sync state
-   */
-  getSyncState(): SyncState {
-    return { ...this.syncState };
-  }
-
-  /**
-   * Get sync queue status
-   */
-  getQueueStatus(): {
+  async getQueueStatus(): Promise<{
     total: number;
     pending: number;
     inProgress: number;
     completed: number;
     failed: number;
     items: SyncQueueItem[];
-  } {
-    return {
-      total: this.syncQueue.length,
-      pending: this.syncQueue.filter(i => i.status === SyncStatus.PENDING).length,
-      inProgress: this.syncQueue.filter(i => i.status === SyncStatus.IN_PROGRESS).length,
-      completed: this.syncQueue.filter(i => i.status === SyncStatus.COMPLETED).length,
-      failed: this.syncQueue.filter(i => i.status === SyncStatus.FAILED).length,
-      items: [...this.syncQueue],
-    };
-  }
+  }> {
+    try {
+      const [counts] = await BlockchainSyncQueue.aggregate([
+        {
+          $group: {
+            _id: null,
+            total: { $sum: 1 },
+            pending: { $sum: { $cond: [{ $eq: ['$status', SyncStatus.PENDING] }, 1, 0] } },
+            inProgress: { $sum: { $cond: [{ $eq: ['$status', SyncStatus.IN_PROGRESS] }, 1, 0] } },
+            completed: { $sum: { $cond: [{ $eq: ['$status', SyncStatus.COMPLETED] }, 1, 0] } },
+            failed: { $sum: { $cond: [{ $eq: ['$status', SyncStatus.FAILED] }, 1, 0] } },
+          },
+        },
+      ]);
 
-  /**
-   * Retry failed operations
-   */
-  async retryFailed(): Promise<number> {
-    const failedItems = this.syncQueue.filter(i => i.status === SyncStatus.FAILED);
+      const items = await BlockchainSyncQueue.find()
+        .sort({ createdAt: -1 })
+        .limit(100)
+        .lean();
 
-    for (const item of failedItems) {
-      item.status = SyncStatus.PENDING;
-      item.retryCount = 0;
+      return {
+        total: counts?.total || 0,
+        pending: counts?.pending || 0,
+        inProgress: counts?.inProgress || 0,
+        completed: counts?.completed || 0,
+        failed: counts?.failed || 0,
+        items: items.map((i: any) => ({
+          ...i,
+          id: i._id.toString(),
+        })) as unknown as SyncQueueItem[],
+      };
+    } catch (error) {
+      logger.error('[Sync] Failed to get queue status:', error);
+      return {
+        total: 0, pending: 0, inProgress: 0, completed: 0, failed: 0, items: [],
+      };
     }
-
-    this.updateStateMetrics();
-    return failedItems.length;
   }
 
-  /**
-   * Clear completed items from queue
-   */
-  clearCompleted(maxAge: number = 86400000): number {
-    const cutoff = new Date(Date.now() - maxAge);
-    const before = this.syncQueue.length;
-
-    this.syncQueue = this.syncQueue.filter(
-      item => item.status !== SyncStatus.COMPLETED ||
-        (item.status === SyncStatus.COMPLETED && item.lastAttemptAt! > cutoff)
+  async retryFailed(): Promise<number> {
+    const result = await BlockchainSyncQueue.updateMany(
+      { status: SyncStatus.FAILED },
+      { $set: { status: SyncStatus.PENDING, retryCount: 0, error: null } }
     );
-
-    return before - this.syncQueue.length;
+    return result.modifiedCount;
   }
 
-  /**
-   * Validate evidence-chain consistency
-   */
+  async clearCompleted(maxAge: number = 86400000): Promise<number> {
+    const cutoff = new Date(Date.now() - maxAge);
+    const result = await BlockchainSyncQueue.deleteMany({
+      status: SyncStatus.COMPLETED,
+      lastAttemptAt: { $lt: cutoff },
+    });
+    return result.deletedCount;
+  }
+
   async validateConsistency(evidenceId: string): Promise<{
     consistent: boolean;
     discrepancies: string[];
@@ -562,17 +557,14 @@ export class BlockchainSyncService {
       return { consistent: false, discrepancies: ['Missing records'] };
     }
 
-    // Check hash consistency
     if (verification.fingerprint !== integrity.currentHash) {
       discrepancies.push('Fingerprint mismatch between verification and integrity records');
     }
 
-    // Check verification status consistency
     if (verification.status === VerificationStatus.ON_CHAIN && !integrity.blockchainVerified) {
       discrepancies.push('Verification shows on-chain but integrity record not verified');
     }
 
-    // Check transaction consistency
     if (verification.transactionHash && !integrity.blockchainTxHash) {
       discrepancies.push('Transaction hash in verification but missing in integrity record');
     }
@@ -583,26 +575,28 @@ export class BlockchainSyncService {
     };
   }
 
-  /**
-   * Get sync health report
-   */
   async getSyncHealthReport(): Promise<{
     state: SyncState;
-    queueStatus: ReturnType<typeof this.getQueueStatus>;
+    queueStatus: Awaited<ReturnType<typeof this.getQueueStatus>>;
     blockchainAvailable: boolean;
     recommendations: string[];
   }> {
+    const [state, queueStatus] = await Promise.all([
+      this.getSyncState(),
+      this.getQueueStatus(),
+    ]);
+
     const recommendations: string[] = [];
 
-    if (this.syncState.syncHealth === 'unhealthy') {
+    if (state.syncHealth === 'unhealthy') {
       recommendations.push('Critical: Review failed sync operations immediately');
     }
 
-    if (this.syncState.failedOperations > 10) {
+    if (state.failedOperations > 10) {
       recommendations.push('High failure rate detected - check blockchain connectivity');
     }
 
-    if (this.syncState.pendingOperations > 100) {
+    if (state.pendingOperations > 100) {
       recommendations.push('Large queue backlog - consider scaling processing');
     }
 
@@ -611,8 +605,8 @@ export class BlockchainSyncService {
     }
 
     return {
-      state: this.getSyncState(),
-      queueStatus: this.getQueueStatus(),
+      state,
+      queueStatus,
       blockchainAvailable: blockchainService.isAvailable(),
       recommendations,
     };
@@ -620,5 +614,4 @@ export class BlockchainSyncService {
 }
 
 export const blockchainSyncService = new BlockchainSyncService();
-blockchainSyncService.startAutoProcessing();
 export default blockchainSyncService;

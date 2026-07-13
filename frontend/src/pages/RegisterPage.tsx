@@ -303,7 +303,7 @@ export function RegisterPage() {
                 </div>
                 {error && <div className="text-red-400 text-sm">{error}</div>}
                 <button onClick={handleVerifyOTP} className="w-full rounded-full bg-white text-black font-medium py-3 hover:bg-white/90 transition-colors disabled:opacity-50" disabled={loading || otp.length !== 6}>
-                  {loading ? <span className="inline-block w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : 'Validate Challenge'}
+                  {loading ? <span className="inline-block w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : 'Sign Up'}
                 </button>
                 <button onClick={handleResendOTP} disabled={otpCooldown > 0 || loading} className="text-xs font-mono uppercase tracking-widest text-white/40 hover:text-white disabled:opacity-50 transition-colors">
                   {otpCooldown > 0 ? `Retry in ${otpCooldown}s` : 'Request New Code'}

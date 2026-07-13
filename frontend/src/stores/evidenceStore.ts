@@ -118,8 +118,8 @@ export const useEvidenceStore = create<EvidenceState>((set, get) => ({
               );
               set({ evidence: updated });
             })
-            .catch(() => {
-              // Blockchain verification failed silently — evidence is still locally verified
+            .catch((err) => {
+              console.error('Blockchain verification failed:', err);
             });
         }
       }

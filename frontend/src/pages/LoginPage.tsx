@@ -78,7 +78,11 @@ export function LoginPage() {
                 </div>
 
                 {error && (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-400 text-sm">
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-3 rounded-xl border border-red-500/30 bg-red-500/10 text-red-300 text-sm text-center"
+                  >
                     {error}
                   </motion.div>
                 )}
@@ -91,7 +95,7 @@ export function LoginPage() {
                   {isLoading ? (
                     <span className="inline-block w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
                   ) : (
-                    'Sign In'
+                    'Login'
                   )}
                 </button>
               </form>

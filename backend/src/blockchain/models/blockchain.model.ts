@@ -7,6 +7,8 @@ import mongoose, { Schema } from 'mongoose';
 import {
   VerificationStatus,
   EvidenceIntegrityState as CoreEvidenceIntegrityState,
+  SyncStatus,
+  SyncOperation,
 } from '../types';
 
 // ============================================
@@ -329,6 +331,57 @@ const evidencePackageHashSchema = new Schema({
 });
 
 // ============================================
+// BLOCKCHAIN SYNC QUEUE SCHEMA
+// ============================================
+
+const blockchainSyncQueueSchema = new Schema({
+  operation: {
+    type: String,
+    required: true,
+    enum: Object.values(SyncOperation),
+    index: true,
+  },
+  evidenceId: {
+    type: String,
+    index: true,
+  },
+  packageId: String,
+  fingerprint: String,
+  status: {
+    type: String,
+    required: true,
+    enum: Object.values(SyncStatus),
+    default: SyncStatus.PENDING,
+    index: true,
+  },
+  retryCount: {
+    type: Number,
+    default: 0,
+  },
+  maxRetries: {
+    type: Number,
+    default: 3,
+  },
+  error: String,
+  transactionHash: String,
+  blockNumber: Number,
+  lastAttemptAt: Date,
+}, {
+  timestamps: true,
+  toJSON: {
+    transform: (doc: any, ret: any) => {
+      ret.id = ret._id;
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    },
+  },
+});
+
+blockchainSyncQueueSchema.index({ status: 1, createdAt: 1 });
+blockchainSyncQueueSchema.index({ operation: 1, status: 1 });
+
+// ============================================
 // CREATE MODELS
 // ============================================
 
@@ -352,6 +405,11 @@ export const EvidencePackageHash = mongoose.model(
   evidencePackageHashSchema
 );
 
+export const BlockchainSyncQueue = mongoose.model(
+  'BlockchainSyncQueue',
+  blockchainSyncQueueSchema
+);
+
 // ============================================
 // INDEXES
 // ============================================
@@ -373,4 +431,5 @@ export default {
   EvidenceIntegrity,
   BlockchainAudit,
   EvidencePackageHash,
+  BlockchainSyncQueue,
 };

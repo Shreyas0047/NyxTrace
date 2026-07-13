@@ -37,23 +37,22 @@ export const useInvestigationStore = create<InvestigationState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await api.getInvestigations(params);
-      if (response.success && response.data) {
-        set({
-          investigations: response.data,
-          pagination: {
-            page: response.meta?.page || 1,
-            limit: response.meta?.limit || 20,
-            total: response.meta?.total || 0,
-            totalPages: response.meta?.totalPages || 0,
-          },
-          isLoading: false,
-        });
+      if (!response.success) {
+        set({ isLoading: false });
+        return;
       }
-    } catch (error) {
       set({
+        investigations: response.data || [],
+        pagination: {
+          page: response.meta?.page || 1,
+          limit: response.meta?.limit || 20,
+          total: response.meta?.total || 0,
+          totalPages: response.meta?.totalPages || 0,
+        },
         isLoading: false,
-        error: 'Failed to fetch investigations',
       });
+    } catch (error) {
+      set({ isLoading: false });
     }
   },
 

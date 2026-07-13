@@ -56,7 +56,7 @@ export const useAuthStore = create<AuthState>()(
             });
             return { user: user };
           }
-          set({ isLoading: false, error: response.message || 'Login failed' });
+          set({ isLoading: false, error: response.message || 'Invalid email or password' });
           return null;
         } catch (error: unknown) {
           let errorMessage = 'Login failed. Please check your credentials.';

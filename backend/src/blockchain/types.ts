@@ -19,6 +19,21 @@ export enum EvidenceIntegrityState {
   VERIFICATION_FAILED = 'verification_failed',
 }
 
+export enum SyncStatus {
+  PENDING = 'pending',
+  IN_PROGRESS = 'in_progress',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
+  RETRYING = 'retrying',
+}
+
+export enum SyncOperation {
+  EVIDENCE_REGISTER = 'evidence_register',
+  EVIDENCE_VERIFY = 'evidence_verify',
+  PACKAGE_CREATE = 'package_create',
+  PACKAGE_VERIFY = 'package_verify',
+}
+
 export enum BlockchainEventType {
   EVIDENCE_REGISTERED = 'evidence_registered',
   EVIDENCE_VERIFIED = 'evidence_verified',

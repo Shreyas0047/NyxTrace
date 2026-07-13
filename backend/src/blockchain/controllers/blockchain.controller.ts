@@ -845,9 +845,11 @@ export class BlockchainController {
    */
   async getSyncStatus(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const state = blockchainSyncService.getSyncState();
-      const queueStatus = blockchainSyncService.getQueueStatus();
-      const healthReport = await blockchainSyncService.getSyncHealthReport();
+      const [state, queueStatus, healthReport] = await Promise.all([
+        blockchainSyncService.getSyncState(),
+        blockchainSyncService.getQueueStatus(),
+        blockchainSyncService.getSyncHealthReport(),
+      ]);
 
       const response: ApiResponse = {
         success: true,

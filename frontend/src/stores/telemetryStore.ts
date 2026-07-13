@@ -85,7 +85,8 @@ export const useTelemetryStore = create<TelemetryState>((set, get) => ({
           }
         };
       }
-    }).catch(() => {
+    }).catch((err) => {
+      console.error('Telemetry WebSocket connection failed:', err);
       set({ isConnected: false });
     });
   },

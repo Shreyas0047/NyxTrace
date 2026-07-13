@@ -12,7 +12,7 @@ class AIServiceConfig:
     SERVICE_NAME: str = "Forensic AI Analysis Engine"
     SERVICE_VERSION: str = "1.0.0"
     HOST: str = os.getenv("AI_SERVICE_HOST", "0.0.0.0")
-    PORT: int = int(os.getenv("AI_SERVICE_PORT", "8001"))
+    PORT: int = int(os.getenv("AI_SERVICE_PORT", "8000"))
 
     # Analysis settings
     MAX_TELEMETRY_EVENTS: int = 10000
@@ -36,6 +36,28 @@ class AIServiceConfig:
 
     # Classification confidence threshold
     MIN_CONFIDENCE: float = 0.5
+
+    # CORS
+    CORS_ORIGINS: list = os.getenv("AI_CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173").split(",")
+
+    # Rate limiting
+    RATE_LIMIT_ENABLED: bool = os.getenv("AI_RATE_LIMIT_ENABLED", "true").lower() == "true"
+    RATE_LIMIT_REQUESTS: int = int(os.getenv("AI_RATE_LIMIT_REQUESTS", "60"))
+    RATE_LIMIT_WINDOW: int = int(os.getenv("AI_RATE_LIMIT_WINDOW", "60"))  # seconds
+
+    # LLM integration
+    LLM_ENABLED: bool = os.getenv("AI_LLM_ENABLED", "false").lower() == "true"
+    LLM_PROVIDER: str = os.getenv("AI_LLM_PROVIDER", "ollama")  # ollama | openai
+    LLM_OLLAMA_URL: str = os.getenv("AI_LLM_OLLAMA_URL", "http://localhost:11434")
+    LLM_OLLAMA_MODEL: str = os.getenv("AI_LLM_OLLAMA_MODEL", "llama3.2")
+    LLM_OPENAI_API_KEY: str = os.getenv("AI_LLM_OPENAI_API_KEY", "")
+    LLM_OPENAI_MODEL: str = os.getenv("AI_LLM_OPENAI_MODEL", "gpt-4o-mini")
+    LLM_TIMEOUT: int = int(os.getenv("AI_LLM_TIMEOUT", "30"))
+
+    # Analysis cache
+    CACHE_ENABLED: bool = os.getenv("AI_CACHE_ENABLED", "true").lower() == "true"
+    CACHE_MAX_SIZE: int = int(os.getenv("AI_CACHE_MAX_SIZE", "128"))
+    CACHE_TTL: int = int(os.getenv("AI_CACHE_TTL", "300"))  # seconds
 
     # Backend API connection
     BACKEND_API_URL: str = os.getenv("BACKEND_API_URL", "http://localhost:3000")

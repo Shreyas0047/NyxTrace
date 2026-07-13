@@ -75,7 +75,7 @@ class ThreatClassifier:
             score = self._calculate_category_score(features, rules)
 
             if score > 0:
-                confidence = min(score / (len(self.CLASSIFICATION_RULES[category].features) * 3.0), 0.95)
+                confidence = min(score / (len(rules["features"]) * 3.0), 0.95)
                 indicators = self._extract_indicators(features, rules)
                 reasoning = self._generate_reasoning(category, score, features)
 

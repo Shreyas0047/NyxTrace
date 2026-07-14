@@ -13,6 +13,7 @@
 type EnvShape = {
   apiUrl: string;
   aiServiceUrl: string;
+  blockchainExplorerUrl: string;
   appName: string;
   appVersion: string;
 };
@@ -24,6 +25,7 @@ function readEnv(): { env: EnvShape; issues: Issue[] } {
 
   const apiUrl = (import.meta.env.VITE_API_URL as string | undefined) ?? '/api/v1';
   const aiServiceUrl = (import.meta.env.VITE_AI_SERVICE_URL as string | undefined) ?? 'http://localhost:8000';
+  const blockchainExplorerUrl = (import.meta.env.VITE_BLOCKCHAIN_EXPLORER_URL as string | undefined) ?? 'https://sepolia.etherscan.io';
   const appName = (import.meta.env.VITE_APP_NAME as string | undefined) ?? 'NyxTrace';
   const appVersion = (import.meta.env.VITE_APP_VERSION as string | undefined) ?? '0.0.0';
 
@@ -37,7 +39,7 @@ function readEnv(): { env: EnvShape; issues: Issue[] } {
     issues.push({ key: 'VITE_AI_SERVICE_URL', reason: `Expected http(s):// URL, got "${aiServiceUrl}"` });
   }
 
-  return { env: { apiUrl, aiServiceUrl, appName, appVersion }, issues };
+  return { env: { apiUrl, aiServiceUrl, blockchainExplorerUrl, appName, appVersion }, issues };
 }
 
 const { env, issues } = readEnv();

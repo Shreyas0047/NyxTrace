@@ -2,6 +2,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, CheckCircle, AlertTriangle, Clock, Search, ExternalLink } from 'lucide-react';
 import api from '../services/api';
+import { config } from '../config';
 import type { TamperAlert } from '../types/blockchain';
 
 interface IntegrityStats {
@@ -177,7 +178,12 @@ export function ChainOfCustodyPage() {
                                     <span className="text-[11px] font-mono text-cyan-400">#{event.blockNumber}</span>
                                   </div>
                                 )}
-                                <a href="#" className="mt-2 flex items-center gap-1 text-[10px] text-cyan-400 hover:text-cyan-300">
+                                <a
+                                  href={event.txHash ? `${config.env.blockchainExplorerUrl}/tx/${event.txHash}` : `${config.env.blockchainExplorerUrl}/block/${event.blockNumber}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="mt-2 flex items-center gap-1 text-[10px] text-cyan-400 hover:text-cyan-300"
+                                >
                                   <ExternalLink className="w-3 h-3" /> View on Explorer
                                 </a>
                               </motion.div>

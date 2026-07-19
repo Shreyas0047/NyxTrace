@@ -117,7 +117,7 @@ export class ForensicIngestionService {
         description: f.description,
         timestamp: new Date(),
         indicators: f.indicators || [],
-        evidence: [],
+        evidence: [] as string[],
         recommendations: f.recommendations || [],
         mitreTactics: f.mitreTactics,
         mitreTechniques: f.mitreTechniques,

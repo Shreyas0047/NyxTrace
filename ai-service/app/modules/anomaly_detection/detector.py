@@ -5,9 +5,8 @@ Detects behavioral anomalies in forensic telemetry.
 Note: Foundation for future ML-based detection systems.
 """
 
-from typing import List, Dict, Any
+from typing import List
 import statistics
-from datetime import datetime
 
 from app.core.models import (
     TelemetryEvent,

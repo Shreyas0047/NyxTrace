@@ -136,6 +136,7 @@ export class BlockchainSyncService {
     const results = { processed: 0, successful: 0, failed: 0 };
 
     try {
+      // eslint-disable-next-line no-constant-condition
       while (true) {
         const doc = await BlockchainSyncQueue.findOneAndUpdate(
           { status: { $in: [SyncStatus.PENDING, SyncStatus.RETRYING] } },

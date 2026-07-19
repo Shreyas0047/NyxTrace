@@ -19,6 +19,10 @@
 
 > This is a defensive / educational project. Simulators are non-destructive and only run inside a sandbox VM with hard rollback.
 
+<p align="center">
+  <img src="docs/screenshot.png" alt="NyxTrace Dashboard" width="800"/>
+</p>
+
 ---
 
 ## Features
@@ -36,73 +40,21 @@
 
 ---
 
-## UI Components & Animations
+## Project Status
 
-The frontend features a polished dark-themed UI with glass-morphism surfaces, animated transitions, and interactive data visualizations.
+| Phase | Status | Highlights |
+|-------|--------|------------|
+| 1-3: Core Platform | Complete | Auth, investigations, evidence, sandbox, blockchain anchoring |
+| 3.5-3.7: Intelligence | Complete | Chain of custody, threat intelligence, forensic analytics |
+| 4: Hardening | Complete | Security middleware, health monitoring, correlation IDs |
+| 5-6: Sandbox & UI | Complete | Headless sandbox runtime, web dashboard |
+| Production Polish | In Progress | Code-splitting, env validation, test coverage |
 
-### Dashboard (EnhancedDashboardPage)
+### Intentionally Not Included
 
-| Component | Description |
-|---|---|
-| **KPI Card Grid** | Live counters for investigations, alerts, sandbox sessions, threat intel. Glass-morphism cards with hover scale animation (Framer Motion) |
-| **Alert Feed** | Real-time scrolling alert timeline with severity-coded left borders and slide-in animations |
-| **Recent Sessions** | Session cards with animated status badges: running spinner, completed checkmark, failed shake |
-| **Chart Panel** | Session trend area chart, alert distribution donut, investigation bar chart. Enter/exit fade transitions via Recharts |
-| **Connection Banner** | Animated pulse indicator for backend/blockchain/AI health status |
-
-### Authentication (LoginPage / RegisterPage)
-
-| Component | Description |
-|---|---|
-| **Auth Card** | Centered glass-morphism card with backdrop blur, fade-in entrance animation |
-| **OTP Input** | Auto-focus chaining across 6 digit inputs, real-time validation shake on wrong code |
-| **Role Selector** | Animated radio cards with icon transitions |
-| **Password Strength** | Progressive color bar (red to yellow to green) with animated requirement checklist |
-
-### Sandbox (SandboxDashboardPage)
-
-| Component | Description |
-|---|---|
-| **Session Timeline** | Animated Gantt-like timeline showing session stages: REVERT, STAGE, EXECUTE, OBSERVE |
-| **Telemetry Stream** | Live WebSocket telemetry with fade-in data points, auto-scrolling log viewer |
-| **Simulator Cards** | Expandable cards with start/stop controls, animated progress rings |
-| **VM Status Badge** | Real-time VM state with pulsing indicators: running, reverting, offline |
-
-### Evidence & Blockchain
-
-| Component | Description |
-|---|---|
-| **Evidence Explorer** | Searchable evidence grid with drag-and-drop upload. Verify button triggers local + blockchain anchor in sequence |
-| **Blockchain Ops Panel** | Three-tab panel (Sync, Worker Queue, Health) with 30s auto-polling, process queue controls |
-| **Chain of Custody** | Timeline visualization with custody transfer nodes, tamper alert highlights with acknowledge flow |
-| **Integrity Badges** | Per-evidence verification badges: SHA-256 Verified, Blockchain Anchored, Tampered warning |
-| **Explorer Integration** | Transaction hash links to Etherscan or local Hardhat explorer |
-
-### Threat Intelligence (ThreatIntelligencePage)
-
-| Component | Description |
-|---|---|
-| **Force Graph** | D3.js force-directed graph of IOC relationships with zoom/pan, animated node transitions |
-| **IOC Cards** | Categorized indicator cards (IP, domain, hash, registry) with severity color coding |
-| **Threat Score** | Animated gauge showing overall threat level |
-
-### AI Analysis (AIAnalysisPage)
-
-| Component | Description |
-|---|---|
-| **Analysis Panel** | Session selector with real-time AI results, confidence bars, anomaly markers |
-| **Summary Cards** | Auto-generated investigation summaries with expand/collapse animation |
-| **Risk Gauge** | Animated severity indicator (critical to low) |
-
-### Navigation & Layout
-
-| Component | Description |
-|---|---|
-| **Sidebar** | Collapsible with micro-transitions, role-based menu items, active route highlight |
-| **Header** | Breadcrumb trail, notification badge with pulse animation, search overlay |
-| **Page Transitions** | Route changes use fade-slide transitions via Framer Motion AnimatePresence |
-| **Glass Morphism** | CSS backdrop-filter: blur() and semi-transparent backgrounds on all panels and cards |
-| **Dot-Grid Texture** | CSS-generated dot pattern overlay on page backgrounds |
+- Docker images (local dev is the supported workflow)
+- HttpOnly cookie auth (JWT in localStorage, migration planned)
+- Full test coverage (scaffolding exists, follow-up project)
 
 ---
 
@@ -519,39 +471,27 @@ The sandbox agent ships 6 safe educational simulators:
 
 ---
 
-## Project Status
-
-- Phase 1-3: Core platform (auth, investigations, evidence, sandbox, blockchain)
-- Phase 3.5-3.7: Chain of custody, threat intelligence, forensic analytics
-- Phase 4: Enterprise hardening (security middleware, health monitoring)
-- Phase 5-6: Headless sandbox runtime, web dashboard
-- Production hardening: code-splitting, env validation, correlation IDs, aggregated health
-
-### Intentionally Not Included
-
-- Docker images (local dev is the supported workflow)
-- HttpOnly cookie auth (JWT in localStorage, migration planned)
-- Full test coverage (scaffolding exists, follow-up project)
-
----
-
 ## Documentation
 
 Operational and architectural details live in `docs/`:
 
-- developer-environment.md
-- execution-runbook.md (sandbox + rollback)
-- operational-runbook.md
-- deployment-runbook.md
-- blockchain-operations-runbook.md
-- threat-intelligence-runbook.md
-- forensic-analytics-runbook.md
+- **Architecture:** blockchain-evidence-verification.md, smart-contracts-evidence-verification.md
+- **Runbooks:** blockchain-operations-runbook.md, deployment-runbook.md, developer-environment.md, execution-runbook.md, forensic-analytics-runbook.md, operational-runbook.md, threat-intelligence-runbook.md
+
+---
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feat/your-feature`)
+3. Commit changes using [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `chore:`, etc.)
+4. Push and open a pull request
 
 ---
 
 ## License
 
-MIT
+[MIT](LICENSE)
 
 ## Disclaimer
 

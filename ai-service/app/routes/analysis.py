@@ -21,7 +21,6 @@ from app.modules.forensic_pipeline import forensic_pipeline
 from app.modules.threat_classification import threat_classifier
 from app.modules.severity_scoring import severity_scorer
 from app.modules.summarization import summarizer as ai_summarizer
-from app.modules.llm_integration import generate_llm_narrative
 
 
 class ForensicReportRequest(BaseModel):
@@ -239,7 +238,6 @@ async def analyze_forensic_report(request: Request, report_data: ForensicReportR
             )
 
         iocs = report_data.get("iocIndicators", report_data.get("iocs", []))
-        summary_text = report_data.get("summary", "")
 
         if not events and not iocs:
             return AnalysisResponse(

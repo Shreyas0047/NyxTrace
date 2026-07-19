@@ -8,7 +8,7 @@ Implements:
 - Predicted next step inference
 """
 
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
 from collections import deque

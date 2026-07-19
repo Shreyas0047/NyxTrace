@@ -3,7 +3,6 @@ AI Service Configuration
 """
 
 import os
-from typing import Optional
 
 class AIServiceConfig:
     """AI Service Configuration"""

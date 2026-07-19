@@ -7,12 +7,10 @@ Extracts structured features from raw telemetry data for AI analysis.
 import logging
 import re
 from typing import List, Dict, Any
-from datetime import datetime
 
 from app.core.models import (
     TelemetryEvent,
-    ForensicFeatureSet,
-    ThreatCategory
+    ForensicFeatureSet
 )
 
 

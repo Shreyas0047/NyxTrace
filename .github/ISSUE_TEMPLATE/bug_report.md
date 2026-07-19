@@ -1,10 +1,9 @@
 ---
-name: Bug Report
-about: Report a bug to help us improve NyxTrace
-title: '[Bug] '
+name: Bug report
+about: Report a bug to help us improve
+title: ''
 labels: bug
 assignees: ''
-
 ---
 
 **Describe the bug**
@@ -13,21 +12,19 @@ A clear and concise description of what the bug is.
 **To Reproduce**
 Steps to reproduce the behavior:
 1. Go to '...'
-2. Click on '...'
-3. Scroll down to '...'
-4. See error
+2. Click on '....'
+3. See error
 
 **Expected behavior**
-What you expected to happen instead.
+A clear and concise description of what you expected to happen.
 
-**Screenshots / Logs**
-If applicable, add screenshots or error logs to help explain the problem.
+**Screenshots**
+If applicable, add screenshots to help explain your problem.
 
 **Environment**
-- OS: [e.g. Fedora 44, macOS 15]
-- Node version: [e.g. 22]
-- Browser (if frontend issue): [e.g. Chrome 130]
-- Backend commit: [e.g. abc123]
+- OS: [e.g. Ubuntu 22.04, Windows 11 WSL2]
+- Node.js version:
+- Browser (if frontend issue):
 
 **Additional context**
 Add any other context about the problem here.

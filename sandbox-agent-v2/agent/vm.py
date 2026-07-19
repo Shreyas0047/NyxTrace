@@ -17,7 +17,6 @@ import subprocess
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 log = logging.getLogger("agent.vm")
 
@@ -345,5 +344,5 @@ class VMManager:
                 timeout=timeout + 30, creationflags=_NO_WINDOW,
             )
             return ExecResult(proc.returncode, proc.stdout, proc.stderr)
-        except subprocess.TimeoutExpired as e:
+        except subprocess.TimeoutExpired:
             raise VMError(f"guest_exec host-side timeout after {timeout + 30}s")

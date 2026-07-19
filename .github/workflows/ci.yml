@@ -45,6 +45,24 @@ jobs:
       - name: Type check + Build
         run: npm run build:check --prefix frontend
 
+  blockchain:
+    name: Blockchain Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: blockchain/package-lock.json
+      - name: Install dependencies
+        run: npm ci --prefix blockchain
+      - name: Compile contracts
+        run: npm run compile --prefix blockchain
+      - name: Run tests
+        run: npm test --prefix blockchain
+
   python-services:
     name: Python Services Validation
     runs-on: ubuntu-latest
@@ -65,7 +83,6 @@ jobs:
         run: pip install -r ai-service/requirements.txt
       - name: Lint + SAST (AI Service)
         run: |
-          pip install ruff bandit
           ruff check ai-service/app --quiet
           bandit -r ai-service/app -ll --quiet
       - name: Compile check (AI Service)
@@ -74,7 +91,6 @@ jobs:
         run: pip install -r sandbox-agent-v2/requirements.txt
       - name: Lint + SAST (Sandbox Agent)
         run: |
-          pip install ruff bandit
           ruff check sandbox-agent-v2/agent --quiet
           bandit -r sandbox-agent-v2/agent -ll --quiet
       - name: Compile check (Sandbox Agent)

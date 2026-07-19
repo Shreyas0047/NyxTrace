@@ -10,8 +10,7 @@ from typing import List, Dict, Any
 from app.core.models import (
     ForensicFeatureSet,
     ThreatCategory,
-    ThreatClassificationResult,
-    SeverityLevel
+    ThreatClassificationResult
 )
 
 
@@ -142,19 +141,7 @@ class ThreatClassifier:
 
     def _generate_reasoning(self, category: ThreatCategory, score: float, features: ForensicFeatureSet) -> str:
         """Generate human-readable reasoning for classification"""
-        category_names = {
-            ThreatCategory.RANSOMWARE_LIKE: "ransomware-like behavior",
-            ThreatCategory.SPYWARE_LIKE: "spyware-like behavior",
-            ThreatCategory.TROJAN_LIKE: "trojan-like behavior",
-            ThreatCategory.BOTNET_LIKE: "botnet-like behavior",
-            ThreatCategory.CREDENTIAL_ACCESS: "credential access attempt",
-            ThreatCategory.PERSISTENCE: "persistence mechanism",
-            ThreatCategory.PROCESS_INJECTION: "process injection indicators",
-            ThreatCategory.DATA_EXFILTRATION: "potential data exfiltration",
-            ThreatCategory.DESTRUCTIVE: "destructive behavior",
-        }
-
-        parts = [f"Classification based on analysis of"]
+        parts = ["Classification based on analysis of"]
         if features.file_modifications > 10:
             parts.append(f"{features.file_modifications} file modifications")
         if features.suspicious_processes > 0:

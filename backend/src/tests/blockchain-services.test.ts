@@ -130,8 +130,8 @@ describe('SynchronizationService', () => {
   it('should track sync state', () => {
     // This test validates the sync state structure
     const state = {
-      lastSyncTimestamp: null,
-      lastSuccessfulSync: null,
+      lastSyncTimestamp: null as number | null,
+      lastSuccessfulSync: null as number | null,
       pendingOperations: 0,
       failedOperations: 0,
       totalSynced: 0,
@@ -150,7 +150,7 @@ describe('SynchronizationService', () => {
       inProgress: 0,
       completed: 0,
       failed: 0,
-      items: [],
+      items: [] as string[],
     };
 
     expect(queueStatus.total).toBe(0);
@@ -236,7 +236,7 @@ describe('StateTrackingService', () => {
       syncQueueHealth: 90,
       dataIntegrityScore: 95,
       lastCheck: new Date(),
-      issues: [],
+      issues: [] as string[],
     };
 
     expect(mockMetrics.score).toBeGreaterThanOrEqual(70);

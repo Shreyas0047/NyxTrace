@@ -366,7 +366,7 @@ export class IntelligencePipeline {
         severity: this.getEventSeverity(e),
         timestamp: new Date(e.timestamp),
         source_process: e.metadata.processName || 'unknown',
-        mitre_techniques: []
+        mitre_techniques: [] as string[]
       }));
 
     return {

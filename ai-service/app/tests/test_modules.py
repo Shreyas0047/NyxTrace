@@ -8,7 +8,6 @@ from app.core.models import (
     TelemetryEvent,
     TelemetryAnalysisRequest,
     ThreatClassificationResult,
-    SeverityLevel,
     ThreatCategory,
 )
 from app.core.cache import analysis_cache

@@ -9,12 +9,10 @@ from datetime import datetime
 import asyncio
 
 from app.core.models import (
-    TelemetryEvent,
     TelemetryAnalysisRequest,
     TelemetryAnalysisResult,
     SeverityLevel,
-    ThreatCategory,
-    InvestigationSummary
+    ThreatCategory
 )
 
 # Import analysis modules
@@ -38,7 +36,6 @@ class TelemetryAnalyzer:
 
         # Step 1: Feature extraction
         features = feature_extractor.extract_features(request.events)
-        feature_summary = feature_extractor.get_feature_summary(features)
 
         # Step 2: Threat classification
         classifications = threat_classifier.classify(features)

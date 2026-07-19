@@ -18,8 +18,7 @@ from pathlib import Path
 from typing import Callable, Optional
 
 from agent.models import (
-    RuntimeSession, SessionState, ForensicEvent,
-    EventCategory, EventSeverity, MonitoringStatus,
+    RuntimeSession, SessionState, MonitoringStatus,
 )
 from agent.vm import VMManager, VMError, GUEST_SIMULATORS
 

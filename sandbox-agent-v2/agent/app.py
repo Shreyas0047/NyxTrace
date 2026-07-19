@@ -34,9 +34,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from agent.config import settings
 from agent.models import (
     HealthResponse, SimulatorInfo, StartSessionRequest,
-    RuntimeSession, SessionState, MonitoringStatus, ExecutionStatus,
+    SessionState, ExecutionStatus,
 )
-from agent.security import SandboxResourceLimits, verify_api_key, validate_resource_limits
+from agent.security import SandboxResourceLimits, validate_resource_limits
 from agent.vm import VMManager, VMError
 from agent.pipeline import SessionPipeline
 
@@ -326,7 +326,7 @@ def create_app() -> FastAPI:
     async def get_logs(limit: int = Query(100), level: Optional[str] = Query(None)) -> dict:
         logs = list(_log_buffer)
         if level:
-            logs = [l for l in logs if l.get("level", "").upper() == level.upper()]
+            logs = [entry for entry in logs if entry.get("level", "").upper() == level.upper()]
         return {"logs": logs[-limit:]}
 
     # -------------------------------------------------------------------------

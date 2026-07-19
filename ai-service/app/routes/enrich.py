@@ -66,7 +66,6 @@ async def enrich_alert(request: Request, alert_data: AlertEnrichmentRequest):
 
         iocs = alert_data.get("iocIndicators", alert_data.get("indicators", []))
         description = alert_data.get("description", "")
-        alert_severity = alert_data.get("severity", "medium")
 
         if events:
             features = feature_extractor.extract_features(events)

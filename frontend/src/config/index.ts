@@ -51,7 +51,6 @@ if (issues.length > 0) {
   if (import.meta.env.DEV) {
     throw new Error(message);
   } else {
-    // eslint-disable-next-line no-console
     console.error(message);
   }
 }

@@ -5,7 +5,6 @@ Generates AI-powered investigation summaries from forensic analysis.
 """
 
 from typing import List, Dict, Any
-from datetime import datetime
 
 from app.core.models import (
     ForensicFeatureSet,
@@ -78,7 +77,7 @@ class ForensicSummarizer:
         # Determine threat category
         threats = [c.value.replace('_', ' ').title() for c in classifications.keys() if c != ThreatCategory.NORMAL]
 
-        summary = f"Analysis of sandbox session identified "
+        summary = "Analysis of sandbox session identified "
 
         if severity_level == SeverityLevel.CRITICAL:
             summary += "CRITICAL severity threats requiring immediate attention. "

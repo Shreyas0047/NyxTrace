@@ -57,6 +57,15 @@ class AIServiceConfig:
     LLM_OPENAI_MODEL: str = os.getenv("AI_LLM_OPENAI_MODEL", "gpt-4o-mini")
     LLM_TIMEOUT: int = int(os.getenv("AI_LLM_TIMEOUT", "30"))
 
+    # LLM Router settings (when LLM_ENABLED=true and LLM_PRIMARY_PATH=true)
+    LLM_PRIMARY_PATH: bool = os.getenv("AI_LLM_PRIMARY_PATH", "false").lower() == "true"
+    LLM_TEMPERATURE: float = float(os.getenv("AI_LLM_TEMPERATURE", "0.1"))
+    LLM_MAX_RESPONSE_TOKENS: int = int(os.getenv("AI_LLM_MAX_RESPONSE_TOKENS", "2000"))
+    LLM_MAX_EVENTS_IN_PROMPT: int = int(os.getenv("AI_LLM_MAX_EVENTS_IN_PROMPT", "50"))
+    LLM_FALLBACK_TO_HEURISTIC: bool = os.getenv("AI_LLM_FALLBACK_TO_HEURISTIC", "true").lower() == "true"
+    LLM_RETRY_ON_FAILURE: bool = os.getenv("AI_LLM_RETRY_ON_FAILURE", "true").lower() == "true"
+    LLM_OLLAMA_PING_TIMEOUT: int = int(os.getenv("AI_LLM_OLLAMA_PING_TIMEOUT", "5"))
+
     # Analysis cache
     CACHE_ENABLED: bool = os.getenv("AI_CACHE_ENABLED", "true").lower() == "true"
     CACHE_MAX_SIZE: int = int(os.getenv("AI_CACHE_MAX_SIZE", "128"))

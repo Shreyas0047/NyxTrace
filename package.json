@@ -2,6 +2,7 @@
   "name": "nyxtrace",
   "version": "2.0.0",
   "private": true,
+  "license": "MIT",
   "description": "NyxTrace - AI-powered digital forensics platform",
   "scripts": {
     "start": "concurrently --kill-others -n \"backend,frontend,ai,sandbox\" -c \"cyan,blue,magenta,yellow\" \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\" \"npm run start:ai\" \"npm run start:sandbox\"",

@@ -126,26 +126,26 @@ The frontend features a polished dark-themed UI with glass-morphism surfaces, an
 +-----------+   +------------------+   +-------------------+
 | AI Service|   | Sandbox Agent   |   | MongoDB           |
 | (FastAPI) |   | (FastAPI :8765) |   | (local :27017)    |
-| Threat    |   | Pipeline + VBox |   | Investigations,   |
+| LLM Router|   | Pipeline + VBox |   | Investigations,   |
 | Severity  |   | Telemetry WS    |   | evidence, alerts, |
 | Anomalies |   | Logs WS         |   | sessions, IOCs    |
-+-----------+   +-------+---------+   +-------------------+
-                        | VBoxManage
-                        v
-              +----------------------+     +----------------------+
-              | VirtualBox VM        |     | Ethereum Blockchain  |
-              | ForensicsSandbox     |     | (Hardhat / Sepolia)  |
-              | Snapshot:            |     | EvidenceRegistry.sol |
-              |   CleanBaselinePython|     | Audit trail + State  |
-              | Simulators run here  |     +----------------------+
-              +----------------------+
++-----+-----+   +-------+---------+   +-------------------+
+      | HTTP              | VBoxManage
+      v                   v
++-------------+  +----------------------+     +----------------------+
+| Ollama      |  | VirtualBox VM        |     | Ethereum Blockchain  |
+| llama3.2:3b |  | ForensicsSandbox     |     | (Hardhat / Sepolia)  |
+| localhost   |  | Snapshot:            |     | EvidenceRegistry.sol |
+| :11434      |  |   CleanBaselinePython|     | Audit trail + State  |
+| JSON mode   |  | Simulators run here  |     +----------------------+
++-------------+  +----------------------+
 ```
 
 ### Technology Stack
 
 | Layer | Tech |
 |---|---|
-| **Frontend** | React 18, TypeScript, Vite, Zustand, React Router, Framer Motion, Socket.IO client, D3.js, Recharts |
+| **Frontend** | React 19, TypeScript, Vite, Zustand, React Router, Framer Motion, Socket.IO client, D3.js, Recharts |
 | **Backend** | Express.js, TypeScript, Mongoose, Socket.IO, Ethers.js, Winston, Helmet, express-rate-limit |
 | **AI Service** | FastAPI, scikit-learn, pandas, uvicorn |
 | **Sandbox Agent** | FastAPI, VirtualBox (VBoxManage), WebSocket streaming |
@@ -230,7 +230,7 @@ nyxtrace/
 |-- shared/                     Cross-service contracts + port config
 |-- docs/                       Architecture notes + 9 runbooks
 |-- .env.example                Sample environment config
-+-- start-all.sh / start-all.ps1   Orchestrated startup
++-- start-all.sh               Orchestrated startup (Linux / WSL)
 ```
 
 ---
@@ -387,19 +387,74 @@ npm install
 npm run dev              # http://localhost:5173
 ```
 
-### Windows
+### Windows (WSL 2 — Recommended)
+
+The project uses Linux-native tools (`bash`, `nohup`, `ollama serve`, VirtualBox via `VBoxManage`, `source` for Python venv activation).
+**WSL 2 with Ubuntu** is the recommended way to run it on Windows — everything works as documented under WSL.
+
+1. **Install WSL 2 + Ubuntu**
+   ```powershell
+   wsl --install -d Ubuntu
+   ```
+   Restart, then launch Ubuntu from the Start menu and set up your Linux user.
+
+2. **Install prerequisites inside WSL**
+   ```bash
+   # Node.js 18+
+   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+   sudo apt-get install -y nodejs
+
+   # Python 3.11+
+   sudo apt-get install -y python3 python3-venv python3-pip
+
+   # MongoDB
+   curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | sudo gpg --dearmor -o /usr/share/keyrings/mongodb-server-7.0.gpg
+   echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+   sudo apt-get update && sudo apt-get install -y mongodb-org
+
+   # Ollama (LLM backend for AI analysis)
+   curl -fsSL https://ollama.com/install.sh | sh
+   ```
+
+3. **Clone and set up**
+   ```bash
+   git clone <repo-url> nyxtrace
+   cd nyxtrace
+   ```
+
+4. **Start all services** (inside WSL terminal)
+   ```bash
+   ./start-all.sh
+   ```
+   This launches backend, AI service, sandbox agent, and frontend automatically.
+
+5. **Access from Windows browser**
+   - Frontend: `http://localhost:5173`
+   - Backend API: `http://localhost:3000/api/v1`
+   - All ports are forwarded by WSL 2 — no extra config needed.
+
+**Note:** VirtualBox on the Windows host is accessible from WSL via `localhost`. MongoDB and Ollama must run inside WSL (not on the Windows host) unless you reconfigure the connection URLs.
+
+### Windows (Native — Partial)
+
+If WSL is not an option, you can run the Node.js services (backend + frontend) directly on Windows:
 
 ```powershell
+# Backend
 cd backend
 npm install
 Copy-Item ..\.env.example .env
 notepad .env
 npm run dev
 
+# Frontend (new terminal)
 cd frontend
 npm install
 npm run dev
 ```
+
+The AI service, Ollama, and sandbox agent require WSL or a Linux VM  (they rely on `bash` scripts, `nohup`, and VirtualBox's Linux toolchain).
+For the full experience, use WSL 2.
 
 ### Smart Contracts (optional)
 
@@ -491,8 +546,6 @@ Operational and architectural details live in `docs/`:
 - blockchain-operations-runbook.md
 - threat-intelligence-runbook.md
 - forensic-analytics-runbook.md
-- vm-safety-runbook.md
-- phase1-foundation.md
 
 ---
 

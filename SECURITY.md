@@ -9,9 +9,10 @@
 ## Reporting a Vulnerability
 
 NyxTrace is a digital forensics platform handling potentially sensitive evidence data.
-If you discover a security vulnerability, please do **not** open a public issue.
+If you discover a security vulnerability, please **do not** open a public issue.
 
-Send details to: **projectphase35@gmail.com**
+Open a private vulnerability report on GitHub:
+https://github.com/Shreyas0047/NyxTrace/security/advisories/new
 
 You should receive a response within 48 hours. If you don't, please follow up.
 

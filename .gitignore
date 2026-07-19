@@ -50,6 +50,9 @@ Thumbs.db
 *.log
 VBoxHeadless*.log
 
+# Developer / Agent config
+AGENTS.md
+
 # Hardhat / Blockchain
 blockchain/artifacts/
 blockchain/cache/

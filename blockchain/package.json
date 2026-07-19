@@ -1,6 +1,7 @@
 {
   "name": "nyxtrace-blockchain",
   "version": "1.0.0",
+  "license": "MIT",
   "description": "NyxTrace forensic evidence smart contracts",
   "scripts": {
     "compile": "hardhat compile",

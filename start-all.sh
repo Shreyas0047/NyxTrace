@@ -9,7 +9,7 @@ set -euo pipefail
 #   chmod +x start-all.sh
 #   ./start-all.sh
 #
-# To skip a service, set SKIP_{BACKEND,AI,SANDBOX,FRONTEND}=1:
+# To skip a service, set SKIP_{BACKEND,OLLAMA,AI,SANDBOX,FRONTEND}=1:
 #   SKIP_SANDBOX=1 ./start-all.sh
 
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -64,6 +64,38 @@ else
   warn "Skipping Backend"
 fi
 
+# ─── Ollama (LLM backend for AI Service) ────────────────────────────────
+OLLAMA_AVAILABLE=""
+if [ -z "${SKIP_OLLAMA:-}" ]; then
+  if command -v ollama &>/dev/null; then
+    if curl -sf http://localhost:11434/api/tags >/dev/null 2>&1; then
+      log "Ollama already running"
+      OLLAMA_AVAILABLE="1"
+    else
+      log "Starting Ollama (LLM backend)..."
+      nohup ollama serve > "$LOG_DIR/ollama.log" 2>&1 &
+      if health_ok "http://localhost:11434/api/tags" "Ollama" 30; then
+        OLLAMA_AVAILABLE="1"
+      fi
+    fi
+  else
+    warn "Ollama not installed — LLM features won't be available (see ai-service/ollama_setup.sh)"
+  fi
+else
+  warn "Skipping Ollama"
+fi
+
+# Pull the model (fast if cached, downloads ~2 GB on first run)
+if [ -n "$OLLAMA_AVAILABLE" ]; then
+  OLLAMA_MODEL="${OLLAMA_MODEL:-llama3.2}"
+  if ollama list 2>/dev/null | grep -q "$OLLAMA_MODEL"; then
+    log "Model $OLLAMA_MODEL already cached"
+  else
+    log "Pulling model $OLLAMA_MODEL (may take a few minutes on first run)..."
+    ollama pull "$OLLAMA_MODEL" 2>&1 | tail -1 || true
+  fi
+fi
+
 # ─── AI Service ──────────────────────────────────────────────────────────
 if [ -z "${SKIP_AI:-}" ]; then
   log "Starting AI Service (FastAPI)..."
@@ -73,6 +105,13 @@ if [ -z "${SKIP_AI:-}" ]; then
   fi
   source .venv/bin/activate
   pip install -q -r requirements.txt 2>/dev/null
+  # Auto-enable LLM when Ollama is running (respects user's existing env vars)
+  if [ -n "$OLLAMA_AVAILABLE" ]; then
+    : "${AI_LLM_ENABLED:=true}"
+    : "${AI_LLM_PRIMARY_PATH:=true}"
+  fi
+  AI_LLM_ENABLED="${AI_LLM_ENABLED:-false}" \
+  AI_LLM_PRIMARY_PATH="${AI_LLM_PRIMARY_PATH:-false}" \
   uvicorn app.main:app --reload --host 127.0.0.1 --port 8000 > "$LOG_DIR/ai-service.log" 2>&1 &
   health_ok "http://localhost:8000/health" "AI Service" 30 || true
   cd "$ROOT_DIR"
@@ -114,6 +153,7 @@ log "  Logs: $LOG_DIR/"
 log "  Frontend:  http://localhost:5173"
 log "  Backend:   http://localhost:3000/api/v1"
 log "  AI:        http://localhost:8000"
+log "  Ollama:    http://localhost:11434"
 log "  Sandbox:   http://127.0.0.1:8765"
 log "═══════════════════════════════════════════════════════════════"
 

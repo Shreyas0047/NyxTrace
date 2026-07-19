@@ -43,7 +43,7 @@ const categoryIcons: Record<string, typeof Activity> = {
 };
 
 const categoryColors: Record<string, string> = {
-  process: 'bg-cyan-100 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400',
+  process: 'bg-amber-500/15 text-amber-400',
   file: 'bg-violet-100 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400',
   registry: 'bg-amber-100 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400',
   network: 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
@@ -105,7 +105,7 @@ export function ReportsPage() {
           <DashboardStat
             label="Total Reports"
             value={reports.length}
-            icon={<FileText className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />}
+            icon={<FileText className="w-5 h-5 text-amber-400" />}
           />
         </DashboardCard>
         <DashboardCard>
@@ -174,7 +174,7 @@ export function ReportsPage() {
       <Card>
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="animate-spin w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full" />
+            <div className="animate-spin w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full" />
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-12">
@@ -198,8 +198,8 @@ export function ReportsPage() {
                 className="px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-cyan-100 dark:bg-cyan-900/20 flex items-center justify-center">
-                    <FileText className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-amber-400" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -250,13 +250,13 @@ export function ReportsPage() {
       <Modal isOpen={showDetail} onClose={handleCloseDetail} title="Report Details" size="xl">
         {isDetailLoading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="animate-spin w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full" />
+            <div className="animate-spin w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full" />
           </div>
         ) : currentReport ? (
           <div className="space-y-4">
             <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-              <div className="w-12 h-12 rounded-xl bg-cyan-100 dark:bg-cyan-900/20 flex items-center justify-center">
-                <FileText className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
+              <div className="w-12 h-12 rounded-xl bg-amber-500/15 flex items-center justify-center">
+                <FileText className="w-6 h-6 text-amber-400" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-slate-900 dark:text-white">{currentReport.simulatorName}</p>
@@ -283,7 +283,7 @@ export function ReportsPage() {
                 <button key={tab} onClick={() => setDetailTab(tab)}
                   className={cn('px-4 py-2 text-sm font-medium capitalize border-b-2 transition-colors',
                     detailTab === tab
-                      ? 'border-cyan-500 text-cyan-600 dark:text-cyan-400'
+                      ? 'border-amber-500 text-amber-400'
                       : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                   )}>
                   {tab}

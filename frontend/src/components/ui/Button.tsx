@@ -1,8 +1,3 @@
-/**
- * Enterprise Button Component
- * Consistent button system with multiple variants
- */
-
 import React from 'react';
 import { cn } from '../../design-system';
 import { Loader2 } from 'lucide-react';
@@ -20,51 +15,13 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: `
-    bg-gradient-to-r from-amber-400 to-amber-500
-    text-white
-    hover:from-amber-500 hover:to-amber-600
-    shadow-sm hover:shadow-md
-    focus:ring-2 focus:ring-amber-500/50 focus:ring-offset-2
-  `,
-  secondary: `
-    bg-gradient-to-r from-cyan-500 to-cyan-600
-    text-white
-    hover:from-cyan-600 hover:to-cyan-700
-    shadow-sm hover:shadow-md
-    focus:ring-2 focus:ring-cyan-500/50 focus:ring-offset-2
-  `,
-  solid: `
-    bg-slate-100 dark:bg-slate-700
-    text-slate-700 dark:text-slate-200
-    hover:bg-slate-200 dark:hover:bg-slate-600
-    border border-slate-200 dark:border-slate-600
-  `,
-  outline: `
-    bg-transparent
-    text-slate-700 dark:text-slate-200
-    border border-slate-300 dark:border-slate-600
-    hover:bg-slate-50 dark:hover:bg-slate-800
-  `,
-  ghost: `
-    bg-transparent
-    text-slate-600 dark:text-slate-300
-    hover:bg-slate-100 dark:hover:bg-slate-800
-  `,
-  danger: `
-    bg-gradient-to-r from-red-500 to-red-600
-    text-white
-    hover:from-red-600 hover:to-red-700
-    shadow-sm hover:shadow-md
-    focus:ring-2 focus:ring-red-500/50 focus:ring-offset-2
-  `,
-  success: `
-    bg-gradient-to-r from-emerald-500 to-emerald-600
-    text-white
-    hover:from-emerald-600 hover:to-emerald-700
-    shadow-sm hover:shadow-md
-    focus:ring-2 focus:ring-emerald-500/50 focus:ring-offset-2
-  `,
+  primary: 'bg-amber-500 text-[#0a0a08] font-medium hover:bg-amber-400 active:bg-amber-600 shadow-sm hover:shadow-[0_0_24px_rgba(245,158,11,0.15)]',
+  secondary: 'bg-[#24211a] text-[#f0ede4] hover:bg-[#2a2620] active:bg-[#1e1b14] border border-[#3a3730]',
+  solid: 'bg-[#24211a] text-[#f0ede4] hover:bg-[#2a2620] active:bg-[#1e1b14] border border-[#3a3730]',
+  outline: 'bg-transparent text-[#a8a294] border border-[#3a3730] hover:bg-[#171510] hover:text-[#f0ede4] hover:border-[#5c574c]',
+  ghost: 'bg-transparent text-[#a8a294] hover:bg-[#171510] hover:text-[#f0ede4]',
+  danger: 'bg-rose-600 text-white font-medium hover:bg-rose-500 active:bg-rose-700 shadow-sm',
+  success: 'bg-emerald-600 text-white font-medium hover:bg-emerald-500 active:bg-emerald-700 shadow-sm',
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -92,9 +49,9 @@ export function Button({
       disabled={disabled || loading}
       type={type}
       className={cn(
-        'inline-flex items-center justify-center font-medium rounded-lg',
-        'transition-all duration-150 active:scale-95',
-        'focus:outline-none',
+        'inline-flex items-center justify-center font-medium rounded-[10px]',
+        'transition-all duration-200 ease-out active:scale-95',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         variantClasses[variant],
         sizeClasses[size],
@@ -136,9 +93,9 @@ export function IconButton({ variant = 'ghost', size = 'md', icon, label, loadin
     <button
       aria-label={label}
       className={cn(
-        'inline-flex items-center justify-center rounded-lg',
-        'transition-all duration-150 active:scale-95',
-        'focus:outline-none focus:ring-2 focus:ring-offset-2',
+        'inline-flex items-center justify-center rounded-[10px]',
+        'transition-all duration-200 ease-out active:scale-95',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         variantClasses[variant],
         iconSizeClasses[size],

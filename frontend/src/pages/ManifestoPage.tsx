@@ -34,15 +34,15 @@ export function ManifestoPage() {
           className="space-y-20"
         >
           <div className="text-center space-y-4">
-            <h1 className="text-[3rem] font-bold tracking-tight text-white">Manifesto</h1>
-            <p className="text-xl text-white/50 font-light max-w-xl mx-auto leading-relaxed">
+            <h1 className="text-[3rem] font-bold tracking-tight text-slate-100">Manifesto</h1>
+            <p className="text-xl text-slate-400 font-light max-w-xl mx-auto leading-relaxed">
               Philosophy, ethics, and principles behind the NyxTrace platform.
             </p>
           </div>
 
           <section className="space-y-4">
-            <h2 className="text-2xl font-semibold text-white">Mission</h2>
-            <p className="text-base text-white/60 leading-relaxed">
+            <h2 className="text-2xl font-semibold text-slate-100">Mission</h2>
+            <p className="text-base text-slate-400 leading-relaxed">
               NyxTrace is an AI-powered cybercrime digital forensics platform with blockchain evidence
               verification. It provides educational malware behavior simulation and forensic analysis in
               controlled VirtualBox sandbox environments. Our mission is to equip researchers, educators,
@@ -52,7 +52,7 @@ export function ManifestoPage() {
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl font-semibold text-white">Ethics Pledge</h2>
+            <h2 className="text-2xl font-semibold text-slate-100">Ethics Pledge</h2>
             <div className="grid gap-3">
               {ethics.map((item, i) => (
                 <motion.div
@@ -62,15 +62,15 @@ export function ManifestoPage() {
                   transition={{ delay: 0.1 * i, duration: 0.4 }}
                   className="flex items-start gap-3"
                 >
-                  <span className="mt-0.5 text-emerald-400 text-lg font-bold">✓</span>
-                  <span className="text-white/60 text-base">{item}</span>
+                  <span className="mt-0.5 text-amber-500 text-lg font-bold">✓</span>
+                  <span className="text-slate-400 text-base">{item}</span>
                 </motion.div>
               ))}
             </div>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl font-semibold text-white">Engineering Principles</h2>
+            <h2 className="text-2xl font-semibold text-slate-100">Engineering Principles</h2>
             <div className="grid md:grid-cols-2 gap-4">
               {principles.map((p, i) => (
                 <motion.div
@@ -78,17 +78,17 @@ export function ManifestoPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 * i, duration: 0.4 }}
-                  className="border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-colors"
+                  className="border border-slate-700 rounded-2xl p-6 hover:border-slate-500 transition-colors"
                 >
-                  <h3 className="text-white font-semibold mb-2">{p.title}</h3>
-                  <p className="text-white/50 text-sm leading-relaxed">{p.description}</p>
+                  <h3 className="text-slate-100 font-semibold mb-2">{p.title}</h3>
+                  <p className="text-slate-400 text-sm leading-relaxed">{p.description}</p>
                 </motion.div>
               ))}
             </div>
           </section>
 
           <section className="space-y-6 text-center">
-            <h2 className="text-2xl font-semibold text-white">Team</h2>
+            <h2 className="text-2xl font-semibold text-slate-100">Team</h2>
             <div className="flex flex-wrap justify-center gap-6">
               {team.map((member, i) => (
                 <motion.div
@@ -96,21 +96,21 @@ export function ManifestoPage() {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.1 * i, duration: 0.4 }}
-                  className="border border-white/10 rounded-2xl px-8 py-5 hover:border-white/20 transition-colors min-w-[200px]"
+                  className="border border-slate-700 rounded-2xl px-8 py-5 hover:border-slate-500 transition-colors min-w-[200px]"
                 >
-                  <div className="w-10 h-10 mx-auto mb-3 rounded-full bg-white/10 flex items-center justify-center">
-                    <span className="text-white/60 text-sm font-mono">
+                  <div className="w-10 h-10 mx-auto mb-3 rounded-full bg-slate-700 flex items-center justify-center">
+                    <span className="text-slate-400 text-sm font-mono">
                       {member.name.split(' ').map(n => n[0]).join('')}
                     </span>
                   </div>
-                  <p className="text-white font-medium text-sm">{member.name}</p>
+                  <p className="text-slate-100 font-medium text-sm">{member.name}</p>
                 </motion.div>
               ))}
             </div>
           </section>
 
-          <div className="text-center pt-8 border-t border-white/5">
-            <p className="text-white/30 text-xs">NyxTrace — Educational Digital Forensics Platform</p>
+          <div className="text-center pt-8 border-t border-slate-800">
+            <p className="text-slate-500 text-xs">NyxTrace — Educational Digital Forensics Platform</p>
           </div>
         </motion.div>
       </div>

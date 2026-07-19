@@ -51,7 +51,7 @@ const severityColors: Record<string, { bg: string; text: string; border: string;
 // ============================================
 interface IocTypeConfig {
   label: string;
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
   description: string;
 }
 

@@ -1,15 +1,6 @@
-/**
- * Enterprise Design System
- * Centralized design tokens, styles, and utilities for the NyxTrace platform
- */
-
 import { clsx, type ClassValue } from 'clsx';
 
-// ============================================
-// Design Tokens - Spacing System
-// ============================================
 export const spacing = {
-  // Core spacing scale (based on 4px grid)
   '0': '0px',
   '0.5': '2px',
   '1': '4px',
@@ -24,8 +15,6 @@ export const spacing = {
   '16': '64px',
   '20': '80px',
   '24': '96px',
-
-  // Semantic spacing
   'page-padding': '24px',
   'section-gap': '24px',
   'card-gap': '16px',
@@ -34,17 +23,12 @@ export const spacing = {
   'tight-gap': '4px',
 } as const;
 
-// ============================================
-// Design Tokens - Typography Scale
-// ============================================
 export const typography = {
-  // Font families
   fontFamily: {
-    sans: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-    mono: "'JetBrains Mono', 'Fira Code', Consolas, monospace",
+    display: "'Space Grotesk', ui-sans-serif, system-ui, sans-serif",
+    body: "'DM Sans', 'Inter', ui-sans-serif, system-ui, sans-serif",
+    mono: "'JetBrains Mono', ui-monospace, SFMono-Regular, monospace",
   },
-
-  // Font sizes
   fontSize: {
     '2xs': '10px',
     xs: '12px',
@@ -57,222 +41,114 @@ export const typography = {
     '4xl': '36px',
     '5xl': '48px',
   },
-
-  // Font weights
   fontWeight: {
     normal: '400',
     medium: '500',
     semibold: '600',
     bold: '700',
-    extrabold: '800',
   },
-
-  // Line heights
   lineHeight: {
-    tight: '1.25',
-    snug: '1.375',
+    tight: '1.15',
+    snug: '1.3',
     normal: '1.5',
-    relaxed: '1.625',
-    loose: '2',
+    relaxed: '1.6',
+    loose: '1.8',
   },
-
-  // Letter spacing
   letterSpacing: {
     tighter: '-0.05em',
     tight: '-0.025em',
-    normal: '0em',
+    normal: '-0.01em',
     wide: '0.025em',
     wider: '0.05em',
   },
 } as const;
 
-// ============================================
-// Design Tokens - Color System
-// ============================================
 export const colors = {
-  // Primary - Amber (forensic evidence)
   primary: {
     50: '#fffbeb',
     100: '#fef3c7',
     200: '#fde68a',
     300: '#fcd34d',
-    400: '#f59e0b',
-    500: '#d97706',
-    600: '#b45309',
-    700: '#92400e',
-    800: '#78350f',
-    900: '#451a03',
+    400: '#fbbf24',
+    500: '#f59e0b',
+    600: '#d97706',
+    700: '#b45309',
+    800: '#92400e',
+    900: '#78350f',
+    950: '#451a03',
   },
-
-  // Secondary - Teal
-  secondary: {
-    50: '#ecfdf5',
-    100: '#d1fae5',
-    200: '#a7f3d0',
-    300: '#6ee7b7',
-    400: '#4b9b9f',
-    500: '#3b8488',
-    600: '#2d6d71',
-    700: '#23595c',
-    800: '#1a4548',
-    900: '#0f2e30',
-  },
-
-  // Tertiary - Muted violet
-  tertiary: {
-    400: '#9886c9',
-    500: '#7c6baf',
-    600: '#655694',
-  },
-
-  // Severity Colors
   severity: {
-    critical: {
-      bg: 'bg-red-50 dark:bg-red-950/30',
-      text: 'text-red-700 dark:text-red-400',
-      border: 'border-red-200 dark:border-red-800/50',
-      solid: 'bg-red-500',
-    },
-    high: {
-      bg: 'bg-orange-50 dark:bg-orange-950/30',
-      text: 'text-orange-700 dark:text-orange-400',
-      border: 'border-orange-200 dark:border-orange-800/50',
-      solid: 'bg-orange-500',
-    },
-    medium: {
-      bg: 'bg-amber-50 dark:bg-amber-950/30',
-      text: 'text-amber-700 dark:text-amber-400',
-      border: 'border-amber-200 dark:border-amber-800/50',
-      solid: 'bg-amber-500',
-    },
-    low: {
-      bg: 'bg-emerald-50 dark:bg-emerald-950/30',
-      text: 'text-emerald-700 dark:text-emerald-400',
-      border: 'border-emerald-200 dark:border-emerald-800/50',
-      solid: 'bg-emerald-500',
-    },
-    info: {
-      bg: 'bg-sky-50 dark:bg-sky-950/30',
-      text: 'text-sky-700 dark:text-sky-400',
-      border: 'border-sky-200 dark:border-sky-800/50',
-      solid: 'bg-sky-500',
-    },
+    critical: { bg: 'bg-rose-950/30', text: 'text-rose-400', border: 'border-rose-800/40', solid: 'bg-rose-500' },
+    high: { bg: 'bg-orange-950/30', text: 'text-orange-400', border: 'border-orange-800/40', solid: 'bg-orange-500' },
+    medium: { bg: 'bg-amber-950/30', text: 'text-amber-400', border: 'border-amber-800/40', solid: 'bg-amber-500' },
+    low: { bg: 'bg-emerald-950/30', text: 'text-emerald-400', border: 'border-emerald-800/40', solid: 'bg-emerald-500' },
+    info: { bg: 'bg-sky-950/30', text: 'text-sky-400', border: 'border-sky-800/40', solid: 'bg-sky-500' },
   },
-
-  // Status Colors
   status: {
-    active: {
-      bg: 'bg-emerald-50 dark:bg-emerald-950/30',
-      text: 'text-emerald-700 dark:text-emerald-400',
-      dot: 'bg-emerald-500',
-    },
-    pending: {
-      bg: 'bg-amber-50 dark:bg-amber-950/30',
-      text: 'text-amber-700 dark:text-amber-400',
-      dot: 'bg-amber-500',
-    },
-    error: {
-      bg: 'bg-red-50 dark:bg-red-950/30',
-      text: 'text-red-700 dark:text-red-400',
-      dot: 'bg-red-500',
-    },
-    inactive: {
-      bg: 'bg-slate-50 dark:bg-slate-800/50',
-      text: 'text-slate-600 dark:text-slate-400',
-      dot: 'bg-slate-400',
-    },
+    active: { bg: 'bg-emerald-950/30', text: 'text-emerald-400', dot: 'bg-emerald-500' },
+    pending: { bg: 'bg-amber-950/30', text: 'text-amber-400', dot: 'bg-amber-500' },
+    error: { bg: 'bg-rose-950/30', text: 'text-rose-400', dot: 'bg-rose-500' },
+    inactive: { bg: 'bg-slate-800/50', text: 'text-slate-500', dot: 'bg-slate-500' },
   },
-
-  // Background Scale
-  background: {
-    primary: 'bg-white dark:bg-slate-900',
-    secondary: 'bg-slate-50 dark:bg-slate-800/50',
-    tertiary: 'bg-slate-100 dark:bg-slate-800',
-    card: 'bg-white dark:bg-slate-800/80',
-    elevated: 'bg-white dark:bg-slate-800',
-    overlay: 'bg-slate-900/50 dark:bg-slate-900/80',
+  surface: {
+    base: 'bg-[#0a0a08]',
+    dim: 'bg-[#0d0c0a]',
+    container: 'bg-[#171510]',
+    'container-high': 'bg-[#1e1b14]',
+    'container-highest': 'bg-[#24211a]',
+    bright: 'bg-[#2a2620]',
   },
-
-  // Border Scale
   border: {
-    primary: 'border-slate-200 dark:border-slate-700',
-    secondary: 'border-slate-300 dark:border-slate-600',
-    accent: 'border-cyan-500 dark:border-cyan-400',
+    primary: 'border-[#29251c]',
+    secondary: 'border-[#3a3730]',
+    accent: 'border-[#f59e0b]',
   },
-
-  // Text Scale
   text: {
-    primary: 'text-slate-900 dark:text-slate-100',
-    secondary: 'text-slate-600 dark:text-slate-400',
-    tertiary: 'text-slate-500 dark:text-slate-500',
-    muted: 'text-slate-400 dark:text-slate-600',
-    inverse: 'text-white dark:text-slate-900',
+    primary: 'text-[#f0ede4]',
+    secondary: 'text-[#a8a294]',
+    tertiary: 'text-[#6c675c]',
+    muted: 'text-[#3a3730]',
+    inverse: 'text-[#0a0a08]',
   },
 } as const;
 
-// ============================================
-// Design Tokens - Shadows
-// ============================================
 export const shadows = {
-  sm: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-  DEFAULT: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
-  md: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-  lg: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
-  xl: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
-  '2xl': '0 25px 50px -12px rgb(0 0 0 / 0.25)',
-  inner: 'inset 0 2px 4px 0 rgb(0 0 0 / 0.05)',
-
-  // Enterprise shadows
-  card: '0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05)',
-  elevated: '0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06)',
-  dropdown: '0 10px 40px -5px rgb(0 0 0 / 0.12), 0 4px 6px -2px rgb(0 0 0 / 0.08)',
+  sm: '0 1px 2px rgba(0,0,0,0.5)',
+  DEFAULT: '0 1px 3px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.4)',
+  md: '0 4px 12px rgba(0,0,0,0.55), 0 2px 4px rgba(0,0,0,0.4)',
+  lg: '0 12px 32px rgba(0,0,0,0.6), 0 4px 8px rgba(0,0,0,0.45)',
+  xl: '0 20px 40px rgba(0,0,0,0.65), 0 8px 16px rgba(0,0,0,0.5)',
+  card: '0 1px 3px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.4)',
+  elevated: '0 4px 12px rgba(0,0,0,0.55), 0 2px 4px rgba(0,0,0,0.4)',
+  dropdown: '0 10px 40px rgba(0,0,0,0.6), 0 4px 8px rgba(0,0,0,0.45)',
   glow: {
-    amber: '0 0 20px rgb(245 158 11 / 0.25)',
-    teal: '0 0 20px rgb(59 132 136 / 0.25)',
-    red: '0 0 20px rgb(239 68 68 / 0.25)',
+    amber: '0 0 0 1px rgba(245,158,11,0.15), 0 4px 20px rgba(245,158,11,0.08)',
+    emerald: '0 0 0 1px rgba(52,211,153,0.15), 0 4px 20px rgba(52,211,153,0.08)',
+    rose: '0 0 0 1px rgba(251,113,133,0.15), 0 4px 20px rgba(251,113,133,0.08)',
   },
 } as const;
 
-// ============================================
-// Design Tokens - Border Radius
-// ============================================
 export const radii = {
   none: '0px',
-  sm: '4px',
-  DEFAULT: '6px',
-  md: '8px',
-  lg: '12px',
-  xl: '16px',
-  '2xl': '20px',
-  '3xl': '24px',
+  sm: '6px',
+  DEFAULT: '8px',
+  md: '10px',
+  lg: '14px',
+  xl: '20px',
+  '2xl': '24px',
   full: '9999px',
 } as const;
 
-// ============================================
-// Design Tokens - Transitions
-// ============================================
 export const transitions = {
-  // Duration
-  duration: {
-    fast: '75ms',
-    DEFAULT: '150ms',
-    slow: '300ms',
-    slower: '500ms',
-  },
-
-  // Easing
+  duration: { fast: '120ms', DEFAULT: '200ms', slow: '300ms', slower: '500ms' },
   easing: {
-    DEFAULT: 'cubic-bezier(0.4, 0, 0.2, 1)',
+    DEFAULT: 'cubic-bezier(0.16, 1, 0.3, 1)',
     easeIn: 'cubic-bezier(0.4, 0, 1, 1)',
     easeOut: 'cubic-bezier(0, 0, 0.2, 1)',
-    easeInOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
-    spring: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+    spring: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
   },
 } as const;
 
-// ============================================
-// Z-Index Scale
-// ============================================
 export const zIndex = {
   dropdown: '1000',
   sticky: '1100',
@@ -283,201 +159,120 @@ export const zIndex = {
   tooltip: '1600',
 } as const;
 
-// ============================================
-// Animation Keyframes
-// ============================================
 export const animations = {
-  fadeIn: {
-    keyframe: 'fadeIn',
-    duration: '200ms',
-    easing: 'ease-out',
-  },
-  fadeOut: {
-    keyframe: 'fadeOut',
-    duration: '150ms',
-    easing: 'ease-in',
-  },
-  slideUp: {
-    keyframe: 'slideUp',
-    duration: '300ms',
-    easing: 'ease-out',
-  },
-  slideDown: {
-    keyframe: 'slideDown',
-    duration: '200ms',
-    easing: 'ease-out',
-  },
-  slideInRight: {
-    keyframe: 'slideInRight',
-    duration: '300ms',
-    easing: 'ease-out',
-  },
-  slideInLeft: {
-    keyframe: 'slideInLeft',
-    duration: '300ms',
-    easing: 'ease-out',
-  },
-  scaleIn: {
-    keyframe: 'scaleIn',
-    duration: '200ms',
-    easing: 'ease-out',
-  },
-  pulse: {
-    keyframe: 'pulse',
-    duration: '2s',
-    easing: 'cubic-bezier(0.4, 0, 0.6, 1)',
-    repeat: 'infinite',
-  },
-  spin: {
-    keyframe: 'spin',
-    duration: '1s',
-    easing: 'linear',
-    repeat: 'infinite',
-  },
-  shimmer: {
-    keyframe: 'shimmer',
-    duration: '1.5s',
-    easing: 'linear',
-    repeat: 'infinite',
-  },
+  fadeIn: { keyframe: 'fadeIn', duration: '200ms', easing: 'cubic-bezier(0.16, 1, 0.3, 1)' },
+  slideUp: { keyframe: 'slideUp', duration: '300ms', easing: 'cubic-bezier(0.16, 1, 0.3, 1)' },
+  slideDown: { keyframe: 'slideDown', duration: '200ms', easing: 'cubic-bezier(0.16, 1, 0.3, 1)' },
+  pulse: { keyframe: 'pulse', duration: '2s', easing: 'cubic-bezier(0.4, 0, 0.6, 1)', repeat: 'infinite' },
+  spin: { keyframe: 'spin', duration: '1s', easing: 'linear', repeat: 'infinite' },
+  shimmer: { keyframe: 'shimmer', duration: '1.5s', easing: 'linear', repeat: 'infinite' },
 } as const;
 
-// ============================================
-// Component Variants
-// ============================================
 export const buttonVariants = {
-  // Primary variants
   primary: `
-    bg-gradient-to-r from-amber-400 to-amber-500
-    text-white
-    hover:from-amber-500 hover:to-amber-600
-    shadow-sm hover:shadow-md
-    focus:ring-2 focus:ring-amber-500/50 focus:ring-offset-2
+    bg-amber-500
+    text-[#0a0a08]
+    font-medium
+    hover:bg-amber-400 active:bg-amber-600
+    shadow-sm hover:shadow-[0_0_24px_rgba(245,158,11,0.15)]
+    focus-visible:ring-2 focus-visible:ring-amber-500/50
+    transition-all duration-[200ms] ease-out
   `,
   secondary: `
-    bg-gradient-to-r from-cyan-500 to-cyan-600
-    text-white
-    hover:from-cyan-600 hover:to-cyan-700
-    shadow-sm hover:shadow-md
-    focus:ring-2 focus:ring-cyan-500/50 focus:ring-offset-2
-  `,
-
-  // Neutral variants
-  solid: `
-    bg-slate-100 dark:bg-slate-700
-    text-slate-700 dark:text-slate-200
-    hover:bg-slate-200 dark:hover:bg-slate-600
-    border border-slate-200 dark:border-slate-600
+    bg-[#24211a]
+    text-[#f0ede4]
+    hover:bg-[#2a2620] active:bg-[#1e1b14]
+    border border-[#3a3730]
+    focus-visible:ring-2 focus-visible:ring-amber-500/50
+    transition-all duration-[200ms] ease-out
   `,
   outline: `
     bg-transparent
-    text-slate-700 dark:text-slate-200
-    border border-slate-300 dark:border-slate-600
-    hover:bg-slate-50 dark:hover:bg-slate-800
+    text-[#a8a294]
+    border border-[#3a3730]
+    hover:bg-[#171510] hover:text-[#f0ede4] hover:border-[#5c574c]
+    focus-visible:ring-2 focus-visible:ring-amber-500/50
+    transition-all duration-[200ms] ease-out
   `,
   ghost: `
     bg-transparent
-    text-slate-600 dark:text-slate-300
-    hover:bg-slate-100 dark:hover:bg-slate-800
+    text-[#a8a294]
+    hover:bg-[#171510] hover:text-[#f0ede4]
+    focus-visible:ring-2 focus-visible:ring-amber-500/50
+    transition-all duration-[200ms] ease-out
   `,
-
-  // Danger
   danger: `
-    bg-red-500
+    bg-rose-600
     text-white
-    hover:bg-red-600
-    shadow-sm hover:shadow-md
-    focus:ring-2 focus:ring-red-500/50 focus:ring-offset-2
+    font-medium
+    hover:bg-rose-500 active:bg-rose-700
+    shadow-sm
+    focus-visible:ring-2 focus-visible:ring-rose-500/50
+    transition-all duration-[200ms] ease-out
   `,
-
-  // Success
   success: `
-    bg-emerald-500
+    bg-emerald-600
     text-white
-    hover:bg-emerald-600
-    shadow-sm hover:shadow-md
-    focus:ring-2 focus:ring-emerald-500/50 focus:ring-offset-2
+    font-medium
+    hover:bg-emerald-500 active:bg-emerald-700
+    shadow-sm
+    focus-visible:ring-2 focus-visible:ring-emerald-500/50
+    transition-all duration-[200ms] ease-out
   `,
 } as const;
 
 export const cardVariants = {
   default: `
-    bg-white dark:bg-slate-800/80
-    border border-slate-200 dark:border-slate-700/50
-    shadow-card
+    bg-[#171510]
+    border border-[rgba(245,240,230,0.05)]
+    shadow-sm
+    rounded-[20px]
   `,
   elevated: `
-    bg-white dark:bg-slate-800
-    border border-slate-200 dark:border-slate-700
-    shadow-elevated
+    bg-[#1e1b14]
+    border border-[rgba(245,240,230,0.08)]
+    shadow-md
+    rounded-[20px]
   `,
   bordered: `
-    bg-white dark:bg-slate-800/80
-    border-2 border-slate-300 dark:border-slate-600
+    bg-[#171510]
+    border-2 border-[#3a3730]
+    rounded-[20px]
   `,
   ghost: `
     bg-transparent
     border border-transparent
   `,
   accent: `
-    bg-white dark:bg-slate-800/80
-    border border-amber-200 dark:border-amber-700/50
-    shadow-card
+    bg-[#171510]
+    border border-[rgba(245,158,11,0.2)]
+    shadow-sm
+    rounded-[20px]
   `,
 } as const;
 
-// ============================================
-// Utility Functions
-// ============================================
-
-/**
- * Combine class names with clsx
- */
 export function cn(...inputs: ClassValue[]) {
   return clsx(inputs);
 }
 
-/**
- * Create a responsive class name
- */
-export function responsive(
-  base: string,
-  sm?: string,
-  md?: string,
-  lg?: string,
-  xl?: string
-): string {
+export function responsive(base: string, sm?: string, md?: string, lg?: string, xl?: string): string {
   return [base, sm, md, lg, xl].filter(Boolean).join(' ');
 }
 
-/**
- * Get CSS variable value
- */
 export function cssVar(name: string): string {
   return `var(--${name})`;
 }
 
-/**
- * Format date for display
- */
 export function formatDate(date: string | Date, format: 'short' | 'long' | 'relative' = 'short'): string {
   const d = new Date(date);
-
   switch (format) {
-    case 'short':
-      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    case 'long':
-      return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-    case 'relative':
-      return getRelativeTime(d);
-    default:
-      return d.toLocaleDateString();
+    case 'short': return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    case 'long': return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    case 'relative': return getRelativeTime(d);
+    default: return d.toLocaleDateString();
   }
 }
 
-/**
- * Get relative time string
- */
 function getRelativeTime(date: Date): string {
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -485,7 +280,6 @@ function getRelativeTime(date: Date): string {
   const diffMin = Math.floor(diffSec / 60);
   const diffHour = Math.floor(diffMin / 60);
   const diffDay = Math.floor(diffHour / 24);
-
   if (diffSec < 60) return 'just now';
   if (diffMin < 60) return `${diffMin}m ago`;
   if (diffHour < 24) return `${diffHour}h ago`;
@@ -493,44 +287,14 @@ function getRelativeTime(date: Date): string {
   return date.toLocaleDateString();
 }
 
-// ============================================
-// Hooks for Design System
-// ============================================
 export const useDesignSystem = () => ({
-  spacing,
-  typography,
-  colors,
-  shadows,
-  radii,
-  transitions,
-  zIndex,
-  animations,
-  buttonVariants,
-  cardVariants,
-  cn,
-  responsive,
-  cssVar,
-  formatDate,
+  spacing, typography, colors, shadows, radii, transitions, zIndex, animations,
+  buttonVariants, cardVariants, cn, responsive, cssVar, formatDate,
 });
 
-// ============================================
-// Export all design tokens
-// ============================================
 export const designSystem = {
-  spacing,
-  typography,
-  colors,
-  shadows,
-  radii,
-  transitions,
-  zIndex,
-  animations,
-  buttonVariants,
-  cardVariants,
-  cn,
-  responsive,
-  cssVar,
-  formatDate,
+  spacing, typography, colors, shadows, radii, transitions, zIndex, animations,
+  buttonVariants, cardVariants, cn, responsive, cssVar, formatDate,
 };
 
 export default designSystem;

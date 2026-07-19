@@ -6,6 +6,7 @@ FastAPI microservice for AI-powered forensic threat analysis.
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import Request, HTTPException
 import logging
 
 from app.core.config import config
@@ -35,7 +36,18 @@ app.add_middleware(
 
 
 @app.middleware("http")
-async def _correlation_id_middleware(request, call_next):
+async def _auth_middleware(request: Request, call_next):
+    if config.API_KEY:
+        if request.url.path in ("/docs", "/redoc", "/openapi.json", "/api/v1/health", "/api/v1/health/live", "/api/v1/health/ready"):
+            return await call_next(request)
+        auth_header = request.headers.get("Authorization", "")
+        if not auth_header.startswith("Bearer ") or auth_header.removeprefix("Bearer ") != config.API_KEY:
+            raise HTTPException(status_code=401, detail="Invalid or missing API key")
+    return await call_next(request)
+
+
+@app.middleware("http")
+async def _correlation_id_middleware(request: Request, call_next):
     from app.tracing import correlation_id
 
     cid = request.headers.get("x-correlation-id") or request.headers.get("X-Correlation-ID")

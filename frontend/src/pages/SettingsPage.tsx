@@ -93,7 +93,7 @@ export function SettingsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <div className="animate-spin w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full" />
+        <div className="animate-spin w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -158,7 +158,7 @@ export function SettingsPage() {
                     className={`
                       w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left
                       ${activeTab === tab.id
-                        ? 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400'
+                        ? 'bg-amber-500/20 text-amber-400'
                         : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                       }
                     `}
@@ -177,7 +177,7 @@ export function SettingsPage() {
             {activeTab === 'vm' && (
               <div className="space-y-6">
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Server className="w-5 h-5 text-cyan-500" />
+                  <Server className="w-5 h-5 text-amber-500" />
                   Virtual Machine Configuration
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -228,7 +228,7 @@ export function SettingsPage() {
             {activeTab === 'monitoring' && (
               <div className="space-y-6">
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Eye className="w-5 h-5 text-cyan-500" />
+                  <Eye className="w-5 h-5 text-amber-500" />
                   Monitoring Configuration
                 </h3>
                 <div className="flex items-center gap-3 mb-4">
@@ -288,7 +288,7 @@ export function SettingsPage() {
             {activeTab === 'execution' && (
               <div className="space-y-6">
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Play className="w-5 h-5 text-cyan-500" />
+                  <Play className="w-5 h-5 text-amber-500" />
                   Execution Configuration
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -334,7 +334,7 @@ export function SettingsPage() {
             {activeTab === 'logging' && (
               <div className="space-y-6">
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-cyan-500" />
+                  <FileText className="w-5 h-5 text-amber-500" />
                   Logging Configuration
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -369,7 +369,7 @@ export function SettingsPage() {
             {activeTab === 'notifications' && (
               <div className="space-y-6">
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Bell className="w-5 h-5 text-cyan-500" />
+                  <Bell className="w-5 h-5 text-amber-500" />
                   Notification Configuration
                 </h3>
                 <div className="space-y-4">

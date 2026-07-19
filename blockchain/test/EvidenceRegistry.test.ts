@@ -92,11 +92,11 @@ describe('EvidenceRegistry', function () {
         ethers.hexlify(ethers.randomBytes(32)),
       ];
 
-      const tx = await registry.connect(investigator).batchRegisterEvidence(
+      const tx = await registry.connect(owner).batchRegisterEvidence(
         ids, hashes, investigationId
       );
       await expect(tx).to.emit(registry, 'EvidenceRegistered').withArgs(
-        ids[2], hashes[2], investigator.address, anyValue, investigationId
+        ids[2], hashes[2], owner.address, anyValue, investigationId
       );
 
       expect(await registry.evidenceCount()).to.equal(3n);

@@ -58,7 +58,7 @@ export class UserController {
     const response: ApiResponse = {
       success: true,
       message: 'Users retrieved',
-      data: result.users,
+      data: { users: result.users, total: result.total, totalPages: result.totalPages },
       meta: {
         page: Number(page),
         limit: Number(limit),

@@ -24,6 +24,9 @@ import evidenceArtifactsRoutes from './evidence-artifacts.routes';
 import threatAnalysisRoutes from './threat-analysis.routes';
 import alertRoutes from './alerts.routes';
 import analysisRoutes from './analysis.routes';
+import knowledgeRoutes from './knowledge.routes';
+import rolesRoutes from './roles.routes';
+import configRoutes from './config.routes';
 
 const router = Router();
 
@@ -50,6 +53,9 @@ router.use(`${API_PREFIX}/evidence/artifacts`, evidenceArtifactsRoutes);
 router.use(`${API_PREFIX}/threat-analysis`, threatAnalysisRoutes);
 router.use(`${API_PREFIX}/alerts`, alertRoutes);
 router.use(`${API_PREFIX}/analysis`, analysisRoutes);
+router.use(`${API_PREFIX}/knowledge-base`, knowledgeRoutes);
+router.use(`${API_PREFIX}/roles`, rolesRoutes);
+router.use(`${API_PREFIX}/config`, configRoutes);
 
 // Health check endpoint
 router.get('/health', (req, res) => {

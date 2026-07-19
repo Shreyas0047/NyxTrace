@@ -201,7 +201,7 @@ contract EvidenceRegistry {
         string[] memory _evidenceIds,
         bytes32[] memory _evidenceHashes,
         string memory _investigationId
-    ) external returns (bool) {
+    ) external onlyOwner returns (bool) {
         require(_evidenceIds.length == _evidenceHashes.length, "Array length mismatch");
 
         for (uint256 i = 0; i < _evidenceIds.length; i++) {
@@ -277,7 +277,7 @@ contract EvidenceRegistry {
     function updateEvidenceStatus(
         string memory _evidenceId,
         uint8 _newStatus
-    ) external evidenceExists(_evidenceId) returns (bool) {
+    ) external onlyOwner evidenceExists(_evidenceId) returns (bool) {
         EvidenceData storage ev = _evidence[_evidenceId];
         uint8 oldStatus = ev.verificationStatus;
 
@@ -302,14 +302,15 @@ contract EvidenceRegistry {
 
     function markEvidenceInvalid(
         string memory _evidenceId,
-        string memory _reason
-    ) external evidenceExists(_evidenceId) returns (bool) {
+        string memory /* _reason */
+    ) external onlyOwner evidenceExists(_evidenceId) returns (bool) {
         EvidenceData storage ev = _evidence[_evidenceId];
+        uint8 oldStatus = ev.verificationStatus;
         ev.verificationStatus = STATE_PENDING;
 
         emit EvidenceStatusUpdated(
             _evidenceId,
-            ev.verificationStatus,
+            oldStatus,
             STATE_PENDING,
             msg.sender,
             block.timestamp
@@ -381,7 +382,7 @@ contract EvidenceRegistry {
         string memory _investigationId,
         string memory _evidenceId,
         bytes memory _metadata
-    ) public returns (uint256) {
+    ) public onlyOwner returns (uint256) {
         bytes32 eventHash = keccak256(
             abi.encodePacked(
                 _category,
@@ -457,7 +458,7 @@ contract EvidenceRegistry {
         string memory _investigationId,
         bytes32 _expectedHash,
         bytes32 _actualHash
-    ) public returns (uint256) {
+    ) public onlyOwner returns (uint256) {
         uint256 index = createAuditEntry(2, 3, "TAMPER DETECTED", _investigationId, _evidenceId, abi.encode(_expectedHash, _actualHash));
 
         emit CriticalAuditEvent(index, "TAMPER DETECTED", msg.sender, block.timestamp);
@@ -469,7 +470,7 @@ contract EvidenceRegistry {
     function recordSystemEvent(
         string memory _description,
         bytes memory _metadata
-    ) public returns (uint256) {
+    ) public onlyOwner returns (uint256) {
         return createAuditEntry(3, 0, _description, "", "", _metadata);
     }
 

@@ -91,7 +91,9 @@ export const useAuthStore = create<AuthState>()(
       },
 
       checkAuth: async () => {
-        const token = get().token || localStorage.getItem('accessToken');
+        let lsToken: string | null = null;
+        try { lsToken = localStorage.getItem('accessToken'); } catch { /* storage unavailable */ }
+        const token = get().token || lsToken;
 
         if (!token) {
           set({ isAuthenticated: false, permissions: [] });

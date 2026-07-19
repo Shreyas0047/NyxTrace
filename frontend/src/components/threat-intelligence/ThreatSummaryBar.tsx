@@ -36,7 +36,7 @@ interface ThreatSummaryBarProps {
 // ============================================
 interface StatConfig {
   label: string;
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
   colorClass: string;
   iconBgClass: string;
   format?: (value: number) => string;

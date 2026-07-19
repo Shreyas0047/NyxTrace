@@ -80,7 +80,7 @@ interface AnomalyData {
 interface ChainStage {
   id: string;
   name: string;
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
   status: 'completed' | 'in-progress' | 'detected' | 'blocked' | 'pending';
   timestamp?: string;
   events: number;
@@ -211,15 +211,15 @@ export function AIAnalysisPage() {
       return;
     }
     const session = sessions.find(s => s.sessionId === selectedSessionForAnalysis);
-    if (session?.state !== 'completed' && session?.state !== 'failed') {
+    if (session?.status !== 'completed' && session?.status !== 'failed') {
       setStoredAIAnalysis(null);
       return;
     }
     setIsLoadingStoredAnalysis(true);
     api.getSessionAIAnalysis(selectedSessionForAnalysis)
       .then(res => {
-        if (res.data?.analysis) {
-          setStoredAIAnalysis(res.data.analysis);
+        if (res.data?.aiAnalysis) {
+          setStoredAIAnalysis(res.data.aiAnalysis);
         } else {
           setStoredAIAnalysis(null);
         }
@@ -377,7 +377,7 @@ export function AIAnalysisPage() {
             className={cn(
               'flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-all',
               analysisMode === id
-                ? 'bg-white dark:bg-slate-700 text-cyan-600 dark:text-cyan-400 shadow-sm'
+                ? 'bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-sm'
                 : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
             )}
           >
@@ -404,7 +404,7 @@ export function AIAnalysisPage() {
           <button
             onClick={handleAnalyzeSession}
             disabled={!selectedSessionForAnalysis || isLoadingReport || !!storedAIAnalysis}
-            className="flex items-center gap-2 px-3 py-2 text-sm bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 disabled:opacity-50"
+            className="flex items-center gap-2 px-3 py-2 text-sm bg-amber-500 text-black rounded-lg hover:bg-amber-400 disabled:opacity-50"
           >
             {isLoadingReport ? <Loader2 className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />}
             Analyze Session
@@ -506,7 +506,7 @@ export function AIAnalysisPage() {
           <DashboardStat
             label="MITRE Techniques"
             value={mitreTechniques.length || '—'}
-            icon={<Target className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />}
+            icon={<Target className="w-5 h-5 text-amber-400" />}
             delta={mitreTechniques.length ? 'Attack pattern mapping' : 'No techniques mapped'}
           />
         </DashboardCard>
@@ -537,14 +537,14 @@ export function AIAnalysisPage() {
           { id: 'heuristics', label: 'Heuristics', icon: Activity },
           { id: 'anomalies', label: 'Anomalies', icon: AlertTriangle },
           { id: 'compare', label: 'Comparison', icon: GitCompare },
-        ] as { id: TabType; label: string; icon: React.ElementType }[]).map(({ id, label, icon: Icon }) => (
+        ] as { id: TabType; label: string; icon: React.ComponentType<{ className?: string }> }[]).map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             onClick={() => setActiveTab(id)}
             className={cn(
               'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px',
               activeTab === id
-                ? 'border-cyan-500 text-cyan-600 dark:text-cyan-400'
+                ? 'border-amber-500 text-amber-400'
                 : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
             )}
           >
@@ -659,7 +659,7 @@ export function AIAnalysisPage() {
             <Card>
               <div className="p-4 border-b border-slate-100 dark:border-slate-700/50">
                 <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Target className="w-4 h-4 text-cyan-600" />
+                  <Target className="w-4 h-4 text-amber-400" />
                   MITRE ATT&CK Coverage
                 </h3>
               </div>
@@ -669,7 +669,7 @@ export function AIAnalysisPage() {
                     {mitreTechniques.slice(0, 4).map((tech: any) => (
                       <div key={tech.id} className="p-3 rounded-lg border bg-slate-50 border-slate-200">
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="px-2 py-0.5 text-xs font-mono bg-cyan-100 text-cyan-700 rounded">
+                          <span className="px-2 py-0.5 text-xs font-mono bg-amber-500/15 text-amber-700 rounded">
                             {tech.id}
                           </span>
                           <span className="text-xs text-slate-400">{tech.tactic}</span>
@@ -678,7 +678,7 @@ export function AIAnalysisPage() {
                         <div className="flex items-center gap-1 mt-2">
                           <div className="w-12 h-1.5 bg-slate-700 rounded-full overflow-hidden">
                             <div
-                              className="h-full bg-cyan-500 rounded-full"
+                              className="h-full bg-amber-500 rounded-full"
                               style={{ width: `${tech.confidence * 100}%` }}
                             />
                           </div>
@@ -941,7 +941,7 @@ export function AIAnalysisPage() {
                     className="flex items-center justify-between cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/30 -mx-4 px-4 py-2"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="px-2 py-1 text-xs font-mono bg-cyan-100 text-cyan-700 rounded">
+                      <span className="px-2 py-1 text-xs font-mono bg-amber-500/15 text-amber-700 rounded">
                         {tech.id}
                       </span>
                       <div>
@@ -953,7 +953,7 @@ export function AIAnalysisPage() {
                       <div className="flex items-center gap-1">
                         <div className="w-16 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-cyan-500 rounded-full"
+                            className="h-full bg-amber-500 rounded-full"
                             style={{ width: `${tech.confidence * 100}%` }}
                           />
                         </div>
@@ -1009,7 +1009,7 @@ export function AIAnalysisPage() {
               </div>
               <div className="p-4 grid grid-cols-2 gap-4">
                 <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                  <p className="text-3xl font-bold text-cyan-600 dark:text-cyan-400">
+                  <p className="text-3xl font-bold text-amber-400">
                     {attackChainStages.filter(s => s.status !== 'pending').length}
                   </p>
                   <p className="text-xs text-slate-500 mt-1">Stages Detected</p>
@@ -1250,10 +1250,10 @@ export function AIAnalysisPage() {
               </Card>
 
               <Card>
-                <div className="p-4 border-b border-slate-100 dark:border-slate-700/50 bg-cyan-500/5">
+                <div className="p-4 border-b border-slate-100 dark:border-slate-700/50 bg-amber-500/5">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center">
-                      <Cpu className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/15 dark:bg-amber-900/30 flex items-center justify-center">
+                      <Cpu className="w-5 h-5 text-amber-400" />
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-slate-900 dark:text-white">Session 2</p>
@@ -1278,7 +1278,7 @@ export function AIAnalysisPage() {
                     <p className="text-xs font-medium text-slate-500 mb-2">MITRE Techniques:</p>
                     <div className="flex flex-wrap gap-1">
                       {comparisonResult.session2.mitreTechniques.map((tech) => (
-                        <span key={tech} className="px-2 py-0.5 text-xs bg-cyan-100 text-cyan-700 rounded font-mono">
+                        <span key={tech} className="px-2 py-0.5 text-xs bg-amber-500/15 text-amber-700 rounded font-mono">
                           {tech}
                         </span>
                       ))}
@@ -1314,7 +1314,7 @@ export function AIAnalysisPage() {
                   </div>
                   <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
                     <div className="flex items-center justify-center gap-2 mb-2">
-                      <Link2 className="w-5 h-5 text-cyan-500" />
+                      <Link2 className="w-5 h-5 text-amber-500" />
                       <span className="text-sm font-medium">Shared Techniques</span>
                     </div>
                     <p className="text-2xl font-bold text-slate-900 dark:text-white">
@@ -1339,7 +1339,7 @@ export function AIAnalysisPage() {
                       <p className="text-xs font-medium text-slate-500 mb-2">Unique to Session 2:</p>
                       <div className="flex flex-wrap gap-1">
                         {comparisonResult.differences.uniqueToSession2.map((tech) => (
-                          <span key={tech} className="px-2 py-0.5 text-xs bg-cyan-100 text-cyan-700 rounded font-mono">
+                          <span key={tech} className="px-2 py-0.5 text-xs bg-amber-500/15 text-amber-700 rounded font-mono">
                             {tech}
                           </span>
                         ))}
@@ -1381,8 +1381,8 @@ export function AIAnalysisPage() {
                 className={cn(
                   'p-4 rounded-lg border cursor-pointer transition-colors',
                   selectedComparisonSessions.includes(session.sessionId)
-                    ? 'bg-cyan-500/10 border-cyan-500/30'
-                    : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 hover:border-cyan-300 dark:hover:border-cyan-700'
+                    ? 'bg-amber-500/10 border-amber-500/30'
+                    : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-700'
                 )}
               >
                 <div className="flex items-center justify-between">
@@ -1391,7 +1391,7 @@ export function AIAnalysisPage() {
                     <p className="text-xs text-slate-500 font-mono">{session.sessionId.slice(0, 12)}...</p>
                   </div>
                   {selectedComparisonSessions.includes(session.sessionId) && (
-                    <CheckCircle className="w-5 h-5 text-cyan-500" />
+                    <CheckCircle className="w-5 h-5 text-amber-500" />
                   )}
                 </div>
               </div>
@@ -1464,7 +1464,7 @@ export function AIAnalysisPage() {
 
           {threatIntelLoading ? (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 text-cyan-500 animate-spin" />
+              <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
             </div>
           ) : analysisHistory.length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -1487,7 +1487,7 @@ export function AIAnalysisPage() {
               <div className="flex items-center justify-center gap-4">
                 <button
                   onClick={() => setAnalysisMode('document')}
-                  className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 text-sm font-medium"
+                  className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-black rounded-lg hover:bg-amber-400 text-sm font-medium"
                 >
                   <FileSearch className="w-4 h-4" />
                   Analyze Document

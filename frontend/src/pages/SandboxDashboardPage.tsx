@@ -55,14 +55,14 @@ const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { st
 const levelColors: Record<string, string> = {
   ERROR: 'bg-red-500/20 text-red-400 border-red-500/30',
   WARNING: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-  INFO: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
+  INFO: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
   DEBUG: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
 };
 
 const levelBorderColors: Record<string, string> = {
   ERROR: 'border-l-red-500',
   WARNING: 'border-l-amber-500',
-  INFO: 'border-l-cyan-500',
+  INFO: 'border-l-amber-500',
   DEBUG: 'border-l-slate-500',
 };
 
@@ -76,7 +76,7 @@ const categoryIcons: Record<string, React.ReactNode> = {
 };
 
 const categoryColors: Record<string, string> = {
-  process: 'bg-cyan-500/20 text-cyan-400',
+  process: 'bg-amber-500/20 text-amber-400',
   file: 'bg-violet-500/20 text-violet-400',
   registry: 'bg-amber-500/20 text-amber-400',
   network: 'bg-blue-500/20 text-blue-400',
@@ -118,7 +118,7 @@ export function SandboxDashboardPage() {
   const [selectedSimulator, setSelectedSimulator] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('sessions');
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
-  const [tick, setTick] = useState(0);
+  const [, setTick] = useState(0);
   const [persistedMonitoring, setPersistedMonitoring] = useState<any>(null);
   const prevSessionIdRef = useRef<string | null>(null);
 
@@ -192,7 +192,7 @@ export function SandboxDashboardPage() {
   }, [activeSession?.simulator_id, activeSession?.created_at]);
 
   useEffect(() => {
-    const sessionId = activeSession?.session_id || activeSession?.sessionId || null;
+    const sessionId = activeSession?.session_id || null;
     const isActive = activeSession && !['completed', 'failed', 'timeout', 'rolled_back'].includes(activeSession.state);
     if (isActive && sessionId && sessionId !== prevSessionIdRef.current) {
       prevSessionIdRef.current = sessionId;
@@ -460,7 +460,7 @@ export function SandboxDashboardPage() {
               health?.vm_status?.error ? 'bg-red-500' :
               'bg-slate-400'
             )} />
-            <Bug className="w-4 h-4 text-cyan-600" />
+            <Bug className="w-4 h-4 text-amber-400" />
             <span className="text-sm text-slate-600 dark:text-slate-400">VM:</span>
             <span className={cn(
               "text-sm font-medium",
@@ -492,7 +492,7 @@ export function SandboxDashboardPage() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-4 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-between text-white"
+          className="p-4 bg-gradient-to-r from-blue-500 to-amber-500 rounded-lg flex items-center justify-between text-white"
         >
           <div className="flex items-center gap-4">
             <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
@@ -522,7 +522,7 @@ export function SandboxDashboardPage() {
             className={cn(
               'px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px',
               activeTab === tab
-                ? 'border-cyan-500 text-cyan-600 dark:text-cyan-400'
+                ? 'border-amber-500 text-amber-400'
                 : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
             )}
           >
@@ -595,21 +595,21 @@ export function SandboxDashboardPage() {
                       onClick={() => setSelectedSession(session)}
                       className={cn(
                         'px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors',
-                        selectedSession?.id === session.id && 'bg-cyan-50/50 dark:bg-cyan-900/10'
+                        selectedSession?.id === session.id && 'bg-amber-500/10'
                       )}
                     >
                       <div className="flex items-center gap-4">
                         <div
                           className={cn(
                             'w-10 h-10 rounded-xl flex items-center justify-center',
-                            session.status === 'running' && 'bg-cyan-100 dark:bg-cyan-900/20',
+                            session.status === 'running' && 'bg-amber-500/15',
                             session.status === 'completed' && 'bg-emerald-100 dark:bg-emerald-900/20',
                             session.status === 'failed' && 'bg-red-100 dark:bg-red-900/20',
                             session.status === 'timeout' && 'bg-amber-100 dark:bg-amber-900/20',
                             !['running', 'completed', 'failed', 'timeout'].includes(session.status) && 'bg-slate-100 dark:bg-slate-800'
                           )}
                         >
-                          {session.status === 'running' && <Play className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />}
+                          {session.status === 'running' && <Play className="w-5 h-5 text-amber-400" />}
                           {session.status === 'completed' && <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />}
                           {session.status === 'failed' && <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />}
                           {session.status === 'timeout' && <Timer className="w-5 h-5 text-amber-600 dark:text-amber-400" />}
@@ -736,7 +736,7 @@ export function SandboxDashboardPage() {
             <DashboardStat
               label="Process Events"
               value={processCount}
-              icon={<Cpu className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />}
+              icon={<Cpu className="w-5 h-5 text-amber-400" />}
               delta="Live monitoring"
             />
           </DashboardCard>
@@ -795,7 +795,7 @@ export function SandboxDashboardPage() {
             <Card>
               <div className="p-4 border-b border-slate-100 dark:border-slate-700/50">
                 <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-cyan-600" />
+                  <Activity className="w-4 h-4 text-amber-400" />
                   Event Categories
                 </h3>
               </div>
@@ -915,7 +915,7 @@ export function SandboxDashboardPage() {
         <Card className="h-[550px] flex flex-col">
           <div className="p-3 border-b border-slate-100 dark:border-slate-700/50 flex items-center justify-between bg-slate-50 dark:bg-slate-800/30">
             <div className="flex items-center gap-3">
-              <Timer className="w-4 h-4 text-cyan-500" />
+              <Timer className="w-4 h-4 text-amber-500" />
               <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
                 Event Timeline
               </span>
@@ -933,7 +933,7 @@ export function SandboxDashboardPage() {
               </div>
             ) : (
               <div className="relative pl-6">
-                <div className="absolute left-2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-cyan-500 via-violet-500 to-amber-500" />
+                <div className="absolute left-2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-amber-500 via-violet-500 to-amber-500" />
                 {[...telemetry.events]
                   .sort((a, b) => new Date(a.timestamp || 0).getTime() - new Date(b.timestamp || 0).getTime())
                   .map((event, idx) => {
@@ -944,7 +944,7 @@ export function SandboxDashboardPage() {
                       sev === 'critical' ? 'bg-red-500' :
                       sev === 'high' ? 'bg-orange-500' :
                       sev === 'medium' ? 'bg-amber-500' :
-                      cat === 'process' ? 'bg-cyan-500' :
+                      cat === 'process' ? 'bg-amber-500' :
                       cat === 'file' ? 'bg-violet-500' :
                       cat === 'registry' ? 'bg-amber-500' :
                       cat === 'network' ? 'bg-blue-500' :
@@ -997,7 +997,7 @@ export function SandboxDashboardPage() {
               <div className="h-4 w-px bg-slate-300 dark:bg-slate-600" />
               <div className="flex items-center gap-3 text-xs">
                 <span className="flex items-center gap-1">
-                  <Cpu className="w-3 h-3 text-cyan-500" />
+                  <Cpu className="w-3 h-3 text-amber-500" />
                   <span className="text-slate-500">Process:</span>
                   <span className="font-medium text-slate-700 dark:text-slate-300">{telemetryCounts.process || 0}</span>
                 </span>
@@ -1023,7 +1023,7 @@ export function SandboxDashboardPage() {
                 onClick={() => telemetry.toggleAutoScroll()}
                 className={cn(
                   'p-1.5 rounded transition-colors',
-                  telemetry.autoScroll ? 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600' : 'text-slate-400 hover:text-slate-600'
+                  telemetry.autoScroll ? 'bg-amber-500/20 text-amber-400' : 'text-slate-400 hover:text-slate-600'
                 )}
                 title={telemetry.autoScroll ? 'Auto-scroll ON' : 'Auto-scroll OFF'}
               >
@@ -1067,7 +1067,7 @@ export function SandboxDashboardPage() {
                   transition={{ duration: 0.15 }}
                   className={cn(
                     'flex items-start gap-2 p-2 rounded border-l-2 bg-slate-800/50',
-                    event.category === 'process' ? 'border-l-cyan-500' :
+                    event.category === 'process' ? 'border-l-amber-500' :
                     event.category === 'file' ? 'border-l-violet-500' :
                     event.category === 'registry' ? 'border-l-amber-500' :
                     event.category === 'network' ? 'border-l-blue-500' :
@@ -1147,7 +1147,7 @@ export function SandboxDashboardPage() {
                   onClick={() => logs.toggleAutoScroll()}
                   className={cn(
                     'p-1.5 rounded transition-colors',
-                    logs.autoScroll ? 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600' : 'text-slate-400 hover:text-slate-600'
+                    logs.autoScroll ? 'bg-amber-500/20 text-amber-400' : 'text-slate-400 hover:text-slate-600'
                   )}
                   title={logs.autoScroll ? 'Auto-scroll ON' : 'Auto-scroll OFF'}
                 >
@@ -1241,7 +1241,7 @@ export function SandboxDashboardPage() {
           <DashboardStat
             label="Total Sessions"
             value={stats?.total || sessions.length}
-            icon={<Server className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />}
+            icon={<Server className="w-5 h-5 text-amber-400" />}
           />
         </DashboardCard>
         <DashboardCard>

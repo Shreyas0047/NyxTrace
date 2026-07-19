@@ -16,3 +16,6 @@ export { logsController } from './logs.controller';
 export { settingsController } from './settings.controller';
 export { evidenceArtifactsController } from './evidence-artifacts.controller';
 export { analysisController } from './analysis.controller';
+export { knowledgeController } from './knowledge.controller';
+export { rolesController } from './roles.controller';
+export { configController } from './config.controller';

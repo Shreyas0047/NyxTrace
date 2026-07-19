@@ -1,9 +1,3 @@
-/**
- * Command Sidebar — Editorial Dark
- * Warm near-black surface, cream typography, amber active accent.
- * No glassmorphism slop — clean industrial aesthetic.
- */
-
 import { NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -22,7 +16,7 @@ interface SidebarProps {
 }
 
 interface NavItem {
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
   label: string;
   path: string;
   roles: string[];
@@ -80,16 +74,13 @@ const NavItemRow = memo(({ item, isCollapsed }: { item: NavItem; isCollapsed: bo
   <NavLink
     to={item.path}
     className={({ isActive }) => cn(
-      'group relative flex items-center gap-3 h-9 px-2.5 rounded-md',
-      'transition-colors duration-150',
+      'group relative flex items-center gap-3 h-9 px-2.5 rounded-[10px]',
+      'transition-all duration-200',
       isActive
-        ? 'text-[#ebe8e3]'
-        : 'text-[#a09b93] hover:text-[#ebe8e3]'
+        ? 'text-[#f0ede4] bg-amber-500/8'
+        : 'text-[#a09b93] hover:bg-[rgba(245,240,230,0.03)] hover:text-[#f0ede4]'
     )}
-    style={({ isActive }: any) => isActive
-      ? { background: 'rgba(245, 158, 11, 0.08)' }
-      : {}
-    }
+    style={({ isActive }: any) => isActive ? { background: 'rgba(245, 158, 11, 0.08)' } : {}}
   >
     {({ isActive }) => (
       <>
@@ -97,7 +88,7 @@ const NavItemRow = memo(({ item, isCollapsed }: { item: NavItem; isCollapsed: bo
           <motion.div
             layoutId="sidebar-active-rail"
             className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r"
-            style={{ background: '#f59e0b' }}
+            style={{ background: '#f59e0b', boxShadow: '0 0 8px rgba(245, 158, 11, 0.4)' }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
           />
         )}
@@ -106,7 +97,7 @@ const NavItemRow = memo(({ item, isCollapsed }: { item: NavItem; isCollapsed: bo
             strokeWidth={1.5}
             className={cn(
               'w-[18px] h-[18px] transition-colors',
-              isActive ? 'text-amber-400' : 'text-[#6c6862] group-hover:text-[#ebe8e3]'
+              isActive ? 'text-amber-400' : 'text-[#6c6862] group-hover:text-[#f0ede4]'
             )}
           />
         </div>
@@ -118,7 +109,7 @@ const NavItemRow = memo(({ item, isCollapsed }: { item: NavItem; isCollapsed: bo
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.12 }}
-              className="flex-1 text-[13px] font-medium tracking-[-0.005em] truncate"
+              className="flex-1 text-[13px] font-medium font-body tracking-[-0.01em] truncate"
             >
               {item.label}
             </motion.span>
@@ -162,7 +153,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         borderRight: '1px solid var(--border-subtle)',
       }}
     >
-      {/* ─── Brand ─── */}
+      {/* Brand */}
       <div
         className={cn(
           'h-16 flex items-center flex-shrink-0',
@@ -171,7 +162,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         style={{ borderBottom: '1px solid var(--border-subtle)' }}
       >
         <div
-          className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+          className="w-8 h-8 rounded-[10px] flex items-center justify-center flex-shrink-0"
           style={{
             background: 'linear-gradient(135deg, #f59e0b, #b45309)',
             boxShadow: '0 1px 3px rgba(245, 158, 11, 0.25)',
@@ -187,16 +178,18 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.12 }}
             >
-              <h1 className="font-display font-semibold text-[15px] text-[#ebe8e3] tracking-tight leading-tight">
+              <h1 className="font-display font-semibold text-[15px] text-[#f0ede4] tracking-tight leading-tight">
                 NyxTrace
               </h1>
-              <p className="overline text-[9px] mt-0.5">Cyber Intelligence</p>
+              <p className="text-[10px] font-mono text-[#6c675c] mt-0.5 tracking-[0.12em] uppercase">
+                Cyber Intelligence
+              </p>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* ─── Navigation ─── */}
+      {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-4 px-2.5">
         {visibleSections.map((section, idx) => (
           <div key={section.label} className={cn(idx > 0 && 'mt-5')}>
@@ -206,7 +199,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="overline px-2.5 mb-1.5"
+                  className="px-2.5 mb-1.5 text-[10px] font-mono text-[#6c675c] tracking-[0.14em] uppercase"
                 >
                   {section.label}
                 </motion.div>
@@ -221,39 +214,31 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         ))}
       </nav>
 
-      {/* ─── Footer ─── */}
+      {/* Footer */}
       <div className="p-3 flex-shrink-0" style={{ borderTop: '1px solid var(--border-subtle)' }}>
         {isCollapsed ? (
           <button
             onClick={handleToggle}
-            className="w-full h-9 flex items-center justify-center rounded-md text-[#6c6862] hover:text-[#ebe8e3] transition-colors"
-            style={{ }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
-            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+            className="w-full h-9 flex items-center justify-center rounded-[10px] text-[#6c6862] hover:text-[#f0ede4] hover:bg-[rgba(245,240,230,0.03)] transition-all"
             aria-label="Expand sidebar"
           >
             <ChevronRight strokeWidth={1.5} className="w-4 h-4" />
           </button>
         ) : (
           <div className="space-y-2">
-            <div
-              className="px-2.5 py-2 rounded-md"
-              style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-subtle)' }}
-            >
+            <div className="px-2.5 py-2 rounded-[10px] bg-[rgba(245,240,230,0.02)] border border-[rgba(245,240,230,0.05)]">
               <div className="flex items-center gap-2 mb-0.5">
                 <Circle className="w-1.5 h-1.5 fill-emerald-400 text-emerald-400" />
-                <span className="overline text-[9px]">Operational</span>
+                <span className="text-[10px] font-mono text-[#6c675c] tracking-[0.14em] uppercase">Operational</span>
               </div>
               <p className="font-mono text-[10px] text-[#6c6862] tracking-tight">v2.0 · Enterprise</p>
             </div>
             <button
               onClick={handleToggle}
-              className="w-full h-8 flex items-center justify-center gap-1.5 rounded-md text-[#6c6862] hover:text-[#a09b93] transition-colors"
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.025)')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+              className="w-full h-8 flex items-center justify-center gap-1.5 rounded-[10px] text-[#6c6862] hover:text-[#a09b93] hover:bg-[rgba(245,240,230,0.03)] transition-all"
             >
               <ChevronLeft strokeWidth={1.5} className="w-3.5 h-3.5" />
-              <span className="text-[11px] font-medium">Collapse</span>
+              <span className="text-[11px] font-medium font-body">Collapse</span>
             </button>
           </div>
         )}

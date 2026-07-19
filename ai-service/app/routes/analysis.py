@@ -4,12 +4,13 @@ Telemetry and forensic report analysis endpoints.
 
 import logging
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, Request
-from pydantic import ValidationError
+from pydantic import BaseModel, Field, ValidationError
 
 from app.core.config import config
-from app.core.models import TelemetryAnalysisRequest, TelemetryEvent, AnalysisResponse
+from app.core.models import TelemetryAnalysisRequest, TelemetryEvent, AnalysisResponse, ThreatCategory
 from app.core.cache import analysis_cache
 from app.core.rate_limiter import rate_limiter
 from app.modules.telemetry_analysis import telemetry_analyzer
@@ -19,6 +20,13 @@ from app.modules.threat_classification import threat_classifier
 from app.modules.severity_scoring import severity_scorer
 from app.modules.summarization import summarizer as ai_summarizer
 from app.modules.llm_integration import generate_llm_narrative
+
+
+class ForensicReportRequest(BaseModel):
+    events: List[Dict[str, Any]] = Field(default_factory=list)
+    iocIndicators: List[Dict[str, Any]] = Field(default_factory=list)
+    iocs: List[Dict[str, Any]] = Field(default_factory=list)
+    summary: str = ""
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1", tags=["analysis"])
@@ -41,7 +49,7 @@ async def analyze_telemetry(request: Request, body: TelemetryAnalysisRequest):
     and generates investigation summaries.
     """
     client_ip = _get_client_ip(request)
-    allowed, retry_after = rate_limiter.check(client_ip)
+    allowed, retry_after = await rate_limiter.check(client_ip)
     if not allowed:
         raise HTTPException(
             status_code=429,
@@ -163,13 +171,13 @@ async def analyze_telemetry(request: Request, body: TelemetryAnalysisRequest):
 
 
 @router.post("/analyze/report", response_model=AnalysisResponse)
-async def analyze_forensic_report(request: Request, report_data: dict, investigation_id: str = None):
+async def analyze_forensic_report(request: Request, report_data: ForensicReportRequest, investigation_id: Optional[str] = None):
     """
     Analyze a forensic report by running its events/indicators through
     the same classification and scoring pipeline used for telemetry.
     """
     client_ip = _get_client_ip(request)
-    allowed, retry_after = rate_limiter.check(client_ip)
+    allowed, retry_after = await rate_limiter.check(client_ip)
     if not allowed:
         raise HTTPException(
             status_code=429,

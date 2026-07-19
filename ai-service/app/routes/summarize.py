@@ -4,8 +4,10 @@ Investigation summarization endpoint.
 
 import logging
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, Request
+from pydantic import BaseModel, Field
 
 from app.core.models import TelemetryEvent, AnalysisResponse
 from app.core.rate_limiter import rate_limiter
@@ -14,6 +16,16 @@ from app.modules.threat_classification import threat_classifier
 from app.modules.severity_scoring import severity_scorer
 from app.modules.anomaly_detection import anomaly_detector
 from app.modules.summarization import summarizer as ai_summarizer
+
+
+class InvestigationSummaryRequest(BaseModel):
+    id: Optional[str] = None
+    title: str = "Untitled Investigation"
+    description: str = ""
+    events: List[Dict[str, Any]] = Field(default_factory=list)
+    telemetry: List[Dict[str, Any]] = Field(default_factory=list)
+    evidence: List[Dict[str, Any]] = Field(default_factory=list)
+    alerts: List[Dict[str, Any]] = Field(default_factory=list)
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1", tags=["summarization"])
@@ -27,13 +39,13 @@ def _get_client_ip(request: Request) -> str:
 
 
 @router.post("/summarize/investigation", response_model=AnalysisResponse)
-async def summarize_investigation(request: Request, investigation_data: dict):
+async def summarize_investigation(request: Request, investigation_data: InvestigationSummaryRequest):
     """
     Generate AI-powered investigation summary from investigation data
     by running available events through the full analysis pipeline.
     """
     client_ip = _get_client_ip(request)
-    allowed, retry_after = rate_limiter.check(client_ip)
+    allowed, retry_after = await rate_limiter.check(client_ip)
     if not allowed:
         raise HTTPException(
             status_code=429,

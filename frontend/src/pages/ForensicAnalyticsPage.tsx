@@ -75,13 +75,13 @@ export const ForensicAnalyticsPage = () => {
     if (!hit) return '';
     if (hit.confidence >= 0.8) return 'ring-2 ring-red-500/60 shadow-[0_0_15px_rgba(239,68,68,0.3)]';
     if (hit.confidence >= 0.5) return 'ring-2 ring-amber-500/60 shadow-[0_0_12px_rgba(245,158,11,0.25)]';
-    return 'ring-1 ring-cyan-500/40 shadow-[0_0_8px_rgba(34,211,238,0.15)]';
+    return 'ring-1 ring-amber-500/40 shadow-[0_0_8px_rgba(245,158,11,0.15)]';
   };
 
   if (loading) {
     return (
       <div className="min-h-full flex items-center justify-center">
-        <div className="w-12 h-12 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-12 h-12 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -97,7 +97,7 @@ export const ForensicAnalyticsPage = () => {
         {dashboardData && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="grid grid-cols-4 gap-4 mb-6">
             {[
-              { label: 'Clusters', value: dashboardData.summary.totalClusters, color: 'cyan' },
+              { label: 'Clusters', value: dashboardData.summary.totalClusters, color: 'amber' },
               { label: 'High Severity', value: dashboardData.summary.highSeverityInsights, color: 'red' },
               { label: 'Patterns', value: dashboardData.summary.totalPatterns, color: 'violet' },
               { label: 'Critical', value: dashboardData.summary.criticalPatterns, color: 'orange' },
@@ -128,7 +128,7 @@ export const ForensicAnalyticsPage = () => {
                   transition={{ delay: 0.3 + i * 0.04 }}
                   className="text-center pb-2 border-b border-slate-200/50 dark:border-slate-700/50"
                 >
-                  <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-wide">{tactic.name}</span>
+                  <span className="text-[10px] font-mono text-amber-400 uppercase tracking-wide">{tactic.name}</span>
                 </motion.div>
               ))}
 
@@ -172,17 +172,17 @@ export const ForensicAnalyticsPage = () => {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="mt-4 rounded-lg border border-cyan-500/30 bg-slate-50/60 dark:bg-slate-700/60 p-4 overflow-hidden"
+                    className="mt-4 rounded-lg border border-amber-500/30 bg-slate-50/60 dark:bg-slate-700/60 p-4 overflow-hidden"
                   >
                     <div className="flex items-center gap-3 mb-2">
-                      <span className="font-mono text-cyan-400 text-sm">{tech.technique_id}</span>
+                      <span className="font-mono text-amber-400 text-sm">{tech.technique_id}</span>
                       <span className="text-slate-900 dark:text-white font-medium">{tech.technique_name}</span>
-                      <span className="px-2 py-0.5 text-xs bg-cyan-500/20 text-cyan-300 rounded">{tech.tactic}</span>
+                      <span className="px-2 py-0.5 text-xs bg-amber-500/20 text-amber-300 rounded">{tech.tactic}</span>
                       <span className="text-xs text-slate-500 dark:text-slate-400">Confidence: {(tech.confidence * 100).toFixed(0)}%</span>
                     </div>
                     <div className="space-y-1">
                       {tech.evidence_snippets.map((snippet, i) => (
-                        <div key={i} className="text-xs font-mono text-slate-500 dark:text-slate-400 bg-white/60 dark:bg-slate-800/60 rounded px-3 py-1.5 border-l-2 border-cyan-500/40">
+                        <div key={i} className="text-xs font-mono text-slate-500 dark:text-slate-400 bg-white/60 dark:bg-slate-800/60 rounded px-3 py-1.5 border-l-2 border-amber-500/40">
                           {snippet}
                         </div>
                       ))}

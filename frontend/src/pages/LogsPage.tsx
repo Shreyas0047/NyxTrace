@@ -55,8 +55,8 @@ const levelIcons: Record<string, typeof Info> = {
 
 const categoryColors: Record<string, string> = {
   app: 'bg-violet-100 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400',
-  monitoring: 'bg-cyan-100 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400',
-  simulator: 'bg-blue-100 dark:bg-cyan-900/20 text-blue-600 dark:text-blue-400',
+  monitoring: 'bg-amber-500/15 text-amber-400',
+  simulator: 'bg-blue-500/15 text-blue-400',
   execution: 'bg-amber-100 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400',
   forensics: 'bg-emerald-100 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400',
   vm: 'bg-orange-100 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400',
@@ -202,7 +202,7 @@ export function LogsPage() {
                 className={cn(
                   'px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5',
                   view === 'audit'
-                    ? 'bg-white dark:bg-slate-700 text-cyan-600 dark:text-cyan-400 shadow-sm'
+                    ? 'bg-white dark:bg-slate-700 text-amber-400 shadow-sm'
                     : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
                 )}
               >
@@ -214,7 +214,7 @@ export function LogsPage() {
                 className={cn(
                   'px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5',
                   view === 'system'
-                    ? 'bg-white dark:bg-slate-700 text-cyan-600 dark:text-cyan-400 shadow-sm'
+                    ? 'bg-white dark:bg-slate-700 text-amber-400 shadow-sm'
                     : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
                 )}
               >
@@ -253,7 +253,7 @@ export function LogsPage() {
               <DashboardStat
                 label="Total Events"
                 value={auditStats?.total || 0}
-                icon={<History className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />}
+                icon={<History className="w-5 h-5 text-amber-400" />}
               />
             </DashboardCard>
             <DashboardCard>
@@ -324,7 +324,7 @@ export function LogsPage() {
             <div className="bg-slate-900 text-slate-100 font-mono text-xs">
               <div className="px-4 py-2 bg-slate-800 flex items-center justify-between border-b border-slate-700">
                 <div className="flex items-center gap-2">
-                  <History className="w-4 h-4 text-cyan-400" />
+                  <History className="w-4 h-4 text-amber-400" />
                   <span className="text-slate-300">Audit Trail</span>
                 </div>
                 <span className="text-slate-500">{auditEntries.length} entries</span>
@@ -332,7 +332,7 @@ export function LogsPage() {
               <div className="max-h-[600px] overflow-y-auto">
                 {auditLoading && auditEntries.length === 0 ? (
                   <div className="flex items-center justify-center py-12">
-                    <div className="animate-spin w-6 h-6 border-2 border-cyan-500 border-t-transparent rounded-full" />
+                    <div className="animate-spin w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full" />
                   </div>
                 ) : auditError ? (
                   <div className="flex flex-col items-center justify-center py-12">
@@ -366,7 +366,7 @@ export function LogsPage() {
                             </span>
                             <span className={cn(
                               'flex-shrink-0 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider',
-                              isFailed ? 'bg-red-500/15 text-red-300' : 'bg-cyan-500/15 text-cyan-300'
+                              isFailed ? 'bg-red-500/15 text-red-300' : 'bg-amber-500/15 text-amber-300'
                             )}>
                               {entry.action}
                             </span>
@@ -425,7 +425,7 @@ export function LogsPage() {
                       className={cn(
                         'inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors',
                         auditActionFilter === action
-                          ? 'bg-cyan-500/10 border-cyan-500/50 text-cyan-400'
+                          ? 'bg-amber-500/10 border-amber-500/50 text-amber-400'
                           : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
                       )}
                     >
@@ -444,7 +444,7 @@ export function LogsPage() {
           <DashboardStat
             label="Total Lines"
             value={totalLines}
-            icon={<Terminal className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />}
+            icon={<Terminal className="w-5 h-5 text-amber-400" />}
           />
         </DashboardCard>
         <DashboardCard>
@@ -542,7 +542,7 @@ export function LogsPage() {
         <div className="bg-slate-900 dark:bg-slate-900 text-slate-100 font-mono text-xs overflow-hidden">
           <div className="px-4 py-2 bg-slate-800 dark:bg-slate-900 flex items-center justify-between border-b border-slate-700">
             <div className="flex items-center gap-2">
-              <Terminal className="w-4 h-4 text-cyan-400" />
+              <Terminal className="w-4 h-4 text-amber-400" />
               <span className="text-slate-300">Live Log Stream</span>
               {autoRefresh && <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />}
             </div>
@@ -552,7 +552,7 @@ export function LogsPage() {
           <div className="max-h-[500px] overflow-y-auto p-0">
             {isLoading && logs.length === 0 ? (
               <div className="flex items-center justify-center py-12">
-                <div className="animate-spin w-6 h-6 border-2 border-cyan-500 border-t-transparent rounded-full" />
+                <div className="animate-spin w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full" />
               </div>
             ) : error && logs.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12">
@@ -608,7 +608,7 @@ export function LogsPage() {
                   <button key={level} onClick={() => handleLevelFilter(level)}
                     className={cn('inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors',
                       filters.level === level
-                        ? 'bg-cyan-500/10 border-cyan-500/50 text-cyan-400'
+                        ? 'bg-amber-500/10 border-amber-500/50 text-amber-400'
                         : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
                     )}>
                     <Icon className="w-3 h-3" />

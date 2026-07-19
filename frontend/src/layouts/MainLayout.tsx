@@ -34,7 +34,7 @@ import {
 interface BreadcrumbItem {
   label: string;
   path?: string;
-  icon?: React.ElementType;
+  icon?: React.ComponentType<{ className?: string }>;
 }
 
 const routeBreadcrumbs: Record<string, BreadcrumbItem[]> = {

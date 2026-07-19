@@ -14,7 +14,7 @@ import { connectToDatabase, checkDatabaseHealth, closeDatabase } from './config/
 import routes from './routes';
 import { errorHandler, notFoundHandler, sanitizeRequest, validateRequestIntegrity, logSecurityEvent, correlationIdMiddleware, tracingMiddleware, requestContextMiddleware } from './middleware';
 import fs from 'fs';
-import { evidenceService, analysisService } from './services';
+import { evidenceService, analysisService, knowledgeService } from './services';
 import { websocketService } from './services/websocket.service';
 import { blockchainService } from './blockchain/blockchain.service';
 import { smartContractService } from './blockchain/smart-contract.service';
@@ -130,6 +130,9 @@ async function startServer(): Promise<void> {
     await smartContractService.initialize().catch(() => {});
     distributedVerificationService.startWorker().catch(() => {});
     await blockchainSyncService.init();
+
+    // Seed knowledge base
+    await knowledgeService.seed().catch(() => {});
 
     // Start listening
     const { port, nodeEnv } = config.server;

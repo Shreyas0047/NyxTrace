@@ -98,27 +98,30 @@ class TestCache:
 
 
 class TestRateLimiter:
-    def test_is_allowed(self):
+    @pytest.mark.asyncio
+    async def test_is_allowed(self):
         rate_limiter._buckets.clear()
-        allowed, retry = rate_limiter.is_allowed("test-client")
+        allowed, retry = await rate_limiter.is_allowed("test-client")
         assert allowed is True
         assert retry == 0
 
-    def test_block_after_limit(self):
+    @pytest.mark.asyncio
+    async def test_block_after_limit(self):
         rate_limiter._buckets.clear()
         rate_limiter.max_requests = 3
         for _ in range(3):
-            allowed, _ = rate_limiter.is_allowed("test-block")
+            allowed, _ = await rate_limiter.is_allowed("test-block")
             assert allowed is True
-        allowed, retry = rate_limiter.is_allowed("test-block")
+        allowed, retry = await rate_limiter.is_allowed("test-block")
         assert allowed is False
         assert retry > 0
 
-    def test_cleanup(self):
+    @pytest.mark.asyncio
+    async def test_cleanup(self):
         import time
         rate_limiter._buckets.clear()
         rate_limiter.window_seconds = 0.01
-        rate_limiter.is_allowed("test-cleanup")
+        await rate_limiter.is_allowed("test-cleanup")
         time.sleep(0.02)
         rate_limiter.cleanup()
         assert "test-cleanup" not in rate_limiter._buckets

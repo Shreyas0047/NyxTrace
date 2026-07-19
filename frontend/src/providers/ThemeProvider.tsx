@@ -4,7 +4,6 @@ interface ThemeContextValue {
   theme: 'dark';
   actualTheme: 'dark';
   setTheme: () => void;
-  toggleTheme: () => void;
   isDark: true;
 }
 
@@ -24,7 +23,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     theme: 'dark',
     actualTheme: 'dark',
     setTheme: () => {},
-    toggleTheme: () => {},
     isDark: true,
   };
 

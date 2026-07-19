@@ -41,7 +41,7 @@ const categoryIcons: Record<string, typeof File> = {
 };
 
 const categoryColors: Record<string, string> = {
-  process_dump: 'bg-cyan-100 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400',
+  process_dump: 'bg-amber-500/15 text-amber-400',
   file_sample: 'bg-violet-100 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400',
   registry_snapshot: 'bg-amber-100 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400',
   network_capture: 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
@@ -157,7 +157,7 @@ export function EvidenceArtifactsPage() {
           <DashboardStat
             label="Total Artifacts"
             value={totalArtifacts}
-            icon={<FileText className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />}
+            icon={<FileText className="w-5 h-5 text-amber-400" />}
           />
         </DashboardCard>
         <DashboardCard>
@@ -224,7 +224,7 @@ export function EvidenceArtifactsPage() {
           <Card>
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="animate-spin w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full" />
+                <div className="animate-spin w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full" />
               </div>
             ) : error ? (
               <div className="flex flex-col items-center justify-center py-12">
@@ -241,7 +241,7 @@ export function EvidenceArtifactsPage() {
                   wait for the session to complete and sync evidence back to the server.
                 </p>
                 <div className="mt-4 text-xs text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 rounded px-3 py-2">
-                  Expected data path: <code className="text-cyan-600 dark:text-cyan-400">uploads/evidence/</code> and <code className="text-cyan-600 dark:text-cyan-400">uploads/sandbox-logs/</code>
+                  Expected data path: <code className="text-amber-400">uploads/evidence/</code> and <code className="text-amber-400">uploads/sandbox-logs/</code>
                 </div>
               </div>
             ) : (
@@ -256,7 +256,7 @@ export function EvidenceArtifactsPage() {
                       onClick={() => handleSelectArtifact(artifact)}
                       className={cn(
                         'px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors',
-                        selectedArtifact?.id === artifact.id && 'bg-cyan-50/50 dark:bg-cyan-900/10'
+                        selectedArtifact?.id === artifact.id && 'bg-amber-500/10'
                       )}
                     >
                       <div className="flex items-center gap-4">
@@ -322,7 +322,7 @@ export function EvidenceArtifactsPage() {
 
                 {isDetailLoading ? (
                   <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin w-6 h-6 border-2 border-cyan-500 border-t-transparent rounded-full" />
+                    <div className="animate-spin w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full" />
                   </div>
                 ) : viewMode === 'detail' && detail ? (
                   <div className="space-y-3">

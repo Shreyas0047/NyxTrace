@@ -887,6 +887,66 @@ async verifyHash(filePath: string, expectedHash: string): Promise<ApiResponse<Ha
     const response = await this.client.patch<ApiResponse<T>>(path, data);
     return response.data;
   }
+
+  // Knowledge Base
+  async getKnowledgeArticles(params?: {
+    page?: number; limit?: number; category?: string; type?: string; search?: string;
+  }): Promise<ApiResponse<any[]>> {
+    const response = await this.client.get('/knowledge-base', { params });
+    return response.data;
+  }
+
+  async getKnowledgeArticle(id: string): Promise<ApiResponse<any>> {
+    const response = await this.client.get(`/knowledge-base/${id}`);
+    return response.data;
+  }
+
+  async createKnowledgeArticle(data: Record<string, unknown>): Promise<ApiResponse<any>> {
+    const response = await this.client.post('/knowledge-base', data);
+    return response.data;
+  }
+
+  async updateKnowledgeArticle(id: string, data: Record<string, unknown>): Promise<ApiResponse<any>> {
+    const response = await this.client.put(`/knowledge-base/${id}`, data);
+    return response.data;
+  }
+
+  async deleteKnowledgeArticle(id: string): Promise<ApiResponse<void>> {
+    const response = await this.client.delete(`/knowledge-base/${id}`);
+    return response.data;
+  }
+
+  // Roles
+  async getRoles(): Promise<ApiResponse<any[]>> {
+    const response = await this.client.get('/roles');
+    return response.data;
+  }
+
+  async getPermissions(): Promise<ApiResponse<any[]>> {
+    const response = await this.client.get('/roles/permissions');
+    return response.data;
+  }
+
+  // System Config
+  async getSystemConfig(): Promise<ApiResponse<any>> {
+    const response = await this.client.get('/config');
+    return response.data;
+  }
+
+  async updateSystemConfig(section: string, values: Record<string, unknown>): Promise<ApiResponse<any>> {
+    const response = await this.client.put('/config', { section, values });
+    return response.data;
+  }
+
+  async getConfigSection(section: string): Promise<ApiResponse<any>> {
+    const response = await this.client.get(`/config/${section}`);
+    return response.data;
+  }
+
+  async resetConfig(): Promise<ApiResponse<any>> {
+    const response = await this.client.post('/config/reset');
+    return response.data;
+  }
 }
 
 export const api = new ApiService();

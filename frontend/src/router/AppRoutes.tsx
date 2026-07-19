@@ -29,6 +29,10 @@ const InvestigationDetailPage = lazy(() => import('../pages/InvestigationDetailP
 const ReportsPage = lazy(() => import('../pages/ReportsPage'));
 const EvidenceArtifactsPage = lazy(() => import('../pages/EvidenceArtifactsPage'));
 const SystemHealthPage = lazy(() => import('../pages/SystemHealthPage'));
+const KnowledgeBasePage = lazy(() => import('../pages/KnowledgeBasePage'));
+const UserDossierPage = lazy(() => import('../pages/UserDossierPage'));
+const RoleAssignmentPage = lazy(() => import('../pages/RoleAssignmentPage'));
+const SystemConfigurationPage = lazy(() => import('../pages/SystemConfigurationPage'));
 
 // Loading screen shown during auth check
 function AuthLoadingScreen() {
@@ -247,6 +251,34 @@ export const router = createBrowserRouter([
         element: (
           <RoleRoute allowedRoles={['admin', 'super_admin']}>
             <UsersPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: 'users/:id/dossier',
+        element: (
+          <RoleRoute allowedRoles={['admin', 'super_admin']}>
+            <UserDossierPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: 'roles',
+        element: (
+          <RoleRoute allowedRoles={['admin', 'super_admin']}>
+            <RoleAssignmentPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: 'knowledge-base',
+        element: <KnowledgeBasePage />,
+      },
+      {
+        path: 'system-config',
+        element: (
+          <RoleRoute allowedRoles={['admin', 'super_admin']}>
+            <SystemConfigurationPage />
           </RoleRoute>
         ),
       },

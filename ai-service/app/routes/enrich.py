@@ -4,14 +4,25 @@ Alert enrichment endpoint.
 
 import logging
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, Request
+from pydantic import BaseModel, Field
 
 from app.core.models import TelemetryEvent, AnalysisResponse, ThreatCategory
 from app.core.rate_limiter import rate_limiter
 from app.modules.feature_extraction import feature_extractor
 from app.modules.threat_classification import threat_classifier
 from app.modules.severity_scoring import severity_scorer
+
+
+class AlertEnrichmentRequest(BaseModel):
+    alert_id: Optional[str] = None
+    events: List[Dict[str, Any]] = Field(default_factory=list)
+    iocIndicators: List[Dict[str, Any]] = Field(default_factory=list)
+    indicators: List[Dict[str, Any]] = Field(default_factory=list)
+    description: str = ""
+    severity: str = "medium"
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1", tags=["enrichment"])
@@ -25,12 +36,12 @@ def _get_client_ip(request: Request) -> str:
 
 
 @router.post("/enrich/alert", response_model=AnalysisResponse)
-async def enrich_alert(request: Request, alert_data: dict):
+async def enrich_alert(request: Request, alert_data: AlertEnrichmentRequest):
     """
     Enrich an alert with AI analysis using the classification and scoring pipeline.
     """
     client_ip = _get_client_ip(request)
-    allowed, retry_after = rate_limiter.check(client_ip)
+    allowed, retry_after = await rate_limiter.check(client_ip)
     if not allowed:
         raise HTTPException(
             status_code=429,

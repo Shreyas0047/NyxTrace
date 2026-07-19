@@ -254,7 +254,7 @@ export const ThreatIntelligencePage: React.FC = () => {
             <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjAuNSIgZmlsbD0icmdiYSgxNDgsMTYzLDE4NCwwLjA1KSIvPjwvc3ZnPg==')] opacity-50" />
             {loading ? (
               <div className="flex items-center justify-center h-[500px]">
-                <div className="w-12 h-12 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+                <div className="w-12 h-12 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
               </div>
             ) : graphNodes.length > 0 ? (
               <ThreatMapCanvas nodes={graphNodes} edges={graphEdges} />

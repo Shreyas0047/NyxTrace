@@ -52,7 +52,7 @@ const severityColors: Record<string, string> = {
   benign: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
 };
 
-const threatLevelConfig: Record<string, { label: string; color: string; barColor: string; icon: React.ElementType }> = {
+const threatLevelConfig: Record<string, { label: string; color: string; barColor: string; icon: React.ComponentType<{ className?: string }> }> = {
   critical: { label: 'Critical', color: 'text-red-400', barColor: 'bg-red-500', icon: AlertTriangle },
   high: { label: 'High', color: 'text-orange-400', barColor: 'bg-orange-500', icon: AlertTriangle },
   medium: { label: 'Medium', color: 'text-amber-400', barColor: 'bg-amber-500', icon: Shield },
@@ -60,7 +60,7 @@ const threatLevelConfig: Record<string, { label: string; color: string; barColor
   benign: { label: 'Benign', color: 'text-slate-400', barColor: 'bg-slate-500', icon: Shield },
 };
 
-const findingCategoryConfig: Record<string, { label: string; icon: React.ElementType }> = {
+const findingCategoryConfig: Record<string, { label: string; icon: React.ComponentType<{ className?: string }> }> = {
   malware: { label: 'Malware', icon: AlertTriangle },
   phishing: { label: 'Phishing', icon: FileText },
   exploit: { label: 'Exploit', icon: AlertTriangle },

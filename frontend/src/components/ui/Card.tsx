@@ -1,8 +1,3 @@
-/**
- * Enterprise Card Component
- * Standardized card wrapper with consistent styling
- */
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '../../design-system';
@@ -21,11 +16,11 @@ export function Card({
   hover = false,
 }: CardProps) {
   const variantClasses = {
-    default: 'bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm',
-    elevated: 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-md',
-    bordered: 'bg-white dark:bg-slate-800/80 border-2 border-slate-300 dark:border-slate-600',
+    default: 'bg-[#171510] border border-[rgba(245,240,230,0.05)] shadow-sm',
+    elevated: 'bg-[#1e1b14] border border-[rgba(245,240,230,0.08)] shadow-md',
+    bordered: 'bg-[#171510] border-2 border-[#3a3730]',
     ghost: 'bg-transparent border border-transparent',
-    accent: 'bg-white dark:bg-slate-800/80 border border-amber-200 dark:border-amber-700/50 shadow-sm',
+    accent: 'bg-[#171510] border border-[rgba(245,158,11,0.2)] shadow-sm',
   };
 
   const paddingClasses = {
@@ -42,10 +37,10 @@ export function Card({
       transition={{ duration: 0.15 }}
       whileHover={hover ? { y: -2 } : undefined}
       className={cn(
-        'rounded-xl',
+        'rounded-[20px]',
         variantClasses[variant],
         paddingClasses[padding],
-        hover && 'cursor-pointer transition-shadow hover:shadow-md',
+        hover && 'cursor-pointer transition-shadow duration-200 hover:shadow-[0_0_0_1px_rgba(245,158,11,0.08),0_4px_20px_rgba(245,158,11,0.04)]',
         className
       )}
     >
@@ -63,22 +58,22 @@ interface CardHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
 export function CardHeader({ title, description, action, className, children }: CardHeaderProps) {
   if (children) {
     return (
-      <div className={cn('px-5 py-4 border-b border-slate-100 dark:border-slate-700/50', className)}>
+      <div className={cn('px-5 py-4 border-b border-[rgba(245,240,230,0.05)]', className)}>
         {children}
       </div>
     );
   }
 
   return (
-    <div className={cn('flex items-start justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-700/50', className)}>
+    <div className={cn('flex items-start justify-between px-5 py-4 border-b border-[rgba(245,240,230,0.05)]', className)}>
       <div>
         {title && (
-          <h3 className="text-base font-semibold text-slate-900 dark:text-white">
+          <h3 className="font-display text-base font-semibold text-[#f0ede4]">
             {title}
           </h3>
         )}
         {description && (
-          <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+          <p className="mt-0.5 text-sm text-[#a8a294] font-body">
             {description}
           </p>
         )}
@@ -102,7 +97,7 @@ interface CardFooterProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 export function CardFooter({ children, className }: CardFooterProps) {
   return (
-    <div className={cn('px-5 py-4 border-t border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/30 rounded-b-xl', className)}>
+    <div className={cn('px-5 py-4 border-t border-[rgba(245,240,230,0.05)] bg-[#14120d]/50 rounded-b-[20px]', className)}>
       {children}
     </div>
   );

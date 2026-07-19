@@ -28,13 +28,15 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Query
+from fastapi import Depends, FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
+from agent.config import settings
 from agent.models import (
     HealthResponse, SimulatorInfo, StartSessionRequest,
     RuntimeSession, SessionState, MonitoringStatus, ExecutionStatus,
 )
+from agent.security import SandboxResourceLimits, verify_api_key, validate_resource_limits
 from agent.vm import VMManager, VMError
 from agent.pipeline import SessionPipeline
 
@@ -147,13 +149,28 @@ async def _ws_broadcaster() -> None:
 def create_app() -> FastAPI:
     app = FastAPI(title="NyxTrace Sandbox Agent", version="2.0.0", lifespan=lifespan)
 
+    is_wildcard = settings.CORS_ORIGINS == ["*"]
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
+        allow_origins=settings.CORS_ORIGINS,
+        allow_credentials=not is_wildcard,
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # API key authentication middleware — checks every HTTP request except
+    # /health (which is used by load balancers / k8s probes).
+    @app.middleware("http")
+    async def _api_key_middleware(request, call_next):
+        if settings.API_KEY and request.url.path != "/health":
+            api_key = request.headers.get("X-API-Key")
+            if not api_key:
+                from starlette.responses import JSONResponse
+                return JSONResponse(status_code=401, content={"detail": "Missing X-API-Key header"})
+            if api_key != settings.API_KEY:
+                from starlette.responses import JSONResponse
+                return JSONResponse(status_code=401, content={"detail": "Invalid API key"})
+        return await call_next(request)
 
     # Surface the inbound correlation ID on every response and stash it on the
     # request scope so handlers/log statements can include it.
@@ -208,9 +225,13 @@ def create_app() -> FastAPI:
     # -------------------------------------------------------------------------
 
     @app.post("/sessions/start")
-    async def start_session(req: StartSessionRequest) -> dict:
+    async def start_session(
+        req: StartSessionRequest,
+        _limits: SandboxResourceLimits = Depends(validate_resource_limits),
+    ) -> dict:
+        capped_timeout = min(req.timeout_seconds, settings.MAX_DURATION_SECONDS)
         try:
-            session = await _pipeline.start(req.simulator_id, req.timeout_seconds)
+            session = await _pipeline.start(req.simulator_id, capped_timeout)
             _add_log("INFO", f"Session started: {session.session_id} ({req.simulator_id})", session.session_id)
             return session.model_dump()
         except RuntimeError as e:

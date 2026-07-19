@@ -20,6 +20,8 @@ jobs:
           cache-dependency-path: backend/package-lock.json
       - name: Install dependencies
         run: npm ci --prefix backend
+      - name: Lint
+        run: npm run lint --prefix backend || true
       - name: Type check
         run: npm run build:check --prefix backend
       - name: Run tests
@@ -38,23 +40,42 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - name: Install dependencies
         run: npm ci --prefix frontend
+      - name: Lint
+        run: npm run lint --prefix frontend || true
       - name: Type check + Build
         run: npm run build:check --prefix frontend
 
   python-services:
     name: Python Services Validation
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: |
+            ai-service/requirements.txt
+            sandbox-agent-v2/requirements.txt
       - name: Install dependencies (AI Service)
         run: pip install -r ai-service/requirements.txt
+      - name: Lint + SAST (AI Service)
+        run: |
+          pip install ruff bandit
+          ruff check ai-service/app --quiet || true
+          bandit -r ai-service/app -ll --quiet || true
       - name: Compile check (AI Service)
         run: python -m compileall ai-service/app
       - name: Install dependencies (Sandbox Agent)
         run: pip install -r sandbox-agent-v2/requirements.txt
+      - name: Lint + SAST (Sandbox Agent)
+        run: |
+          pip install ruff bandit
+          ruff check sandbox-agent-v2/agent --quiet || true
+          bandit -r sandbox-agent-v2/agent -ll --quiet || true
       - name: Compile check (Sandbox Agent)
         run: python -m compileall sandbox-agent-v2/agent

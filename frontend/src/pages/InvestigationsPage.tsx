@@ -251,7 +251,7 @@ export function InvestigationsPage() {
                     key={p}
                     variant="outline"
                     size="sm"
-                    className={cn(page === p && 'bg-cyan-50 dark:bg-cyan-900/20 border-cyan-200 dark:border-cyan-700 text-cyan-700 dark:text-cyan-400')}
+                    className={cn(page === p && 'bg-amber-500/20 border-amber-500/30 text-amber-400')}
                     onClick={() => setPage(p)}
                   >
                     {p}

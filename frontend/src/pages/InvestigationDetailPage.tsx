@@ -155,7 +155,7 @@ export function InvestigationDetailPage() {
               className={cn(
                 'flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors',
                 activeTab === tab.id
-                  ? 'border-cyan-500 text-cyan-600 dark:text-cyan-400'
+                  ? 'border-amber-500 text-amber-400'
                   : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
               )}
             >
@@ -200,8 +200,8 @@ export function InvestigationDetailPage() {
               <div className="grid grid-cols-3 gap-4">
                 <DashboardCard>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-cyan-100 dark:bg-cyan-900/20 flex items-center justify-center">
-                      <FileText className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center">
+                      <FileText className="w-5 h-5 text-amber-400" />
                     </div>
                     <div>
                       <p className="text-2xl font-bold text-slate-900 dark:text-white">{currentInvestigation.evidenceCount}</p>
@@ -241,7 +241,7 @@ export function InvestigationDetailPage() {
                   <div className="space-y-3">
                     {currentInvestigation.assignedAnalysts.map((analyst: any) => (
                       <div key={analyst.userId} className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-violet-500 flex items-center justify-center text-white text-sm font-medium">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-violet-500 flex items-center justify-center text-white text-sm font-medium">
                           {analyst.user?.name?.charAt(0) || '?'}
                         </div>
                         <div className="flex-1">
@@ -271,7 +271,7 @@ export function InvestigationDetailPage() {
                     {events.slice(0, 5).map((entry, index) => (
                       <div key={index} className="flex gap-3">
                         <div className="flex flex-col items-center">
-                          <div className="w-2 h-2 rounded-full bg-cyan-500 dark:bg-cyan-400" />
+                          <div className="w-2 h-2 rounded-full bg-amber-500" />
                           {index < events.length - 1 && <div className="w-px h-full bg-slate-200 dark:bg-slate-700 mt-1" />}
                         </div>
                         <div className="flex-1 pb-3">
@@ -372,7 +372,7 @@ export function InvestigationDetailPage() {
           <div className="space-y-6">
             <DashboardCard>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-violet-500 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-violet-500 flex items-center justify-center">
                   <Brain className="w-5 h-5 text-white" />
                 </div>
                 <div>

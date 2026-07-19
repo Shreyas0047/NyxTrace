@@ -20,3 +20,5 @@ export { settingsService } from './settings.service';
 export { evidenceArtifactsService } from './evidence-artifacts.service';
 export { analysisService } from './analysis.service';
 export { analysisRouterService } from './analysis-router.service';
+export { knowledgeService } from './knowledge.service';
+export { configService } from './config.service';

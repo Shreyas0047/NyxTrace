@@ -237,7 +237,7 @@ export function SystemHealthPage() {
           <DashboardStat
             label="Active Connections"
             value={systemMetrics.activeConnections}
-            icon={<Wifi className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />}
+            icon={<Wifi className="w-5 h-5 text-amber-400" />}
             delta="WebSocket clients"
           />
         </DashboardCard>
@@ -251,7 +251,7 @@ export function SystemHealthPage() {
               <div className="relative w-20 h-20 mx-auto mb-2">
                 <svg className="w-20 h-20 transform -rotate-90">
                   <circle cx="40" cy="40" r="36" fill="none" stroke="currentColor" strokeWidth="8" className="text-slate-200 dark:text-slate-700" />
-                  <circle cx="40" cy="40" r="36" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray={`${(systemMetrics.cpu / 100) * 226} 226`} className="text-cyan-500" />
+                  <circle cx="40" cy="40" r="36" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray={`${(systemMetrics.cpu / 100) * 226} 226`} className="text-amber-500" />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <span className="text-lg font-bold text-slate-900 dark:text-white">{systemMetrics.cpu}%</span>
@@ -340,7 +340,7 @@ export function SystemHealthPage() {
       <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <DashboardCard>
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-blue-500 flex items-center justify-center">
               <Server className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -421,7 +421,7 @@ export function SystemHealthPage() {
         <DashboardCard className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-800">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-violet-500 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-violet-500 flex items-center justify-center">
                 <Shield className="w-6 h-6 text-white" />
               </div>
               <div>

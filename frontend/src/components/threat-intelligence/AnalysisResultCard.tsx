@@ -60,7 +60,7 @@ interface ThreatLevelConfig {
   bg: string;
   text: string;
   border: string;
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
 }
 
 const threatLevelConfig: Record<string, ThreatLevelConfig> = {

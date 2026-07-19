@@ -49,7 +49,7 @@ const typeColors: Record<string, string> = {
   network_capture: 'bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
   memory_dump: 'bg-orange-100 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400',
   file: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400',
-  log: 'bg-cyan-100 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400',
+  log: 'bg-amber-500/15 text-amber-400',
   screenshot: 'bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400',
   registry_dump: 'bg-violet-100 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400',
 };
@@ -124,7 +124,7 @@ export function EvidenceExplorerPage() {
           <DashboardStat
             label="Total Evidence"
             value={evidence.length}
-            icon={<FileText className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />}
+            icon={<FileText className="w-5 h-5 text-amber-400" />}
             delta={`${pagination.total || 0} in database`}
           />
         </DashboardCard>
@@ -222,7 +222,7 @@ export function EvidenceExplorerPage() {
                       onClick={() => setSelectedId(ev.id)}
                       className={cn(
                         'px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors',
-                        selectedId === ev.id && 'bg-cyan-50/50 dark:bg-cyan-900/10'
+                        selectedId === ev.id && 'bg-amber-500/10'
                       )}
                     >
                       <div className="flex items-center gap-4">

@@ -146,7 +146,7 @@ const severityColors: Record<string, string> = {
   high: 'bg-orange-500/15 text-orange-300 border-orange-500/30',
   medium: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
   low: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
-  info: 'bg-white/5 text-[#a09b93] border-white/10',
+  info: 'bg-slate-800 text-slate-400 border-slate-600',
 };
 
 const SeverityBadge = ({ severity }: { severity: string }) => (

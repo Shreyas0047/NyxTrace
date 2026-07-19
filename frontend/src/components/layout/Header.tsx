@@ -7,13 +7,12 @@ import {
   AlertTriangle, CheckCircle, Info, X,
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
-import { cn } from '../../design-system';
 import ConnectionStatus from './ConnectionStatus';
 
 interface BreadcrumbItem {
   label: string;
   path?: string;
-  icon?: React.ElementType;
+  icon?: React.ComponentType<{ className?: string }>;
 }
 
 interface HeaderProps {
@@ -56,9 +55,9 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case 'critical': return <AlertTriangle className="w-4 h-4 text-red-500" />;
+      case 'critical': return <AlertTriangle className="w-4 h-4 text-rose-500" />;
       case 'success': return <CheckCircle className="w-4 h-4 text-emerald-500" />;
-      default: return <Info className="w-4 h-4 text-blue-500" />;
+      default: return <Info className="w-4 h-4 text-amber-400" />;
     }
   };
 
@@ -77,26 +76,27 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
               initial={{ opacity: 0, y: -20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
-              className="w-full max-w-2xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden bg-black/90 backdrop-blur-xl"
+              className="w-full max-w-2xl rounded-[20px] border shadow-2xl overflow-hidden"
+              style={{ background: 'var(--surface-overlay)', borderColor: 'var(--border-default)', backdropFilter: 'blur(24px)' }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center gap-3 px-4 py-4 border-b border-white/5">
-                <Search className="w-5 h-5 text-slate-500" />
+              <div className="flex items-center gap-3 px-4 py-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
+                <Search className="w-5 h-5 text-[#6c675c]" />
                 <input
                   ref={searchInputRef}
                   type="text"
                   placeholder="Search investigations, evidence, alerts, reports..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1 bg-transparent text-sm text-slate-200 placeholder:text-slate-600 outline-none"
+                  className="flex-1 bg-transparent text-sm font-body text-[#a8a294] placeholder:text-[#6c675c] outline-none"
                 />
-                <button onClick={() => setShowSearch(false)} className="p-1 rounded-lg hover:bg-white/5">
-                  <X className="w-4 h-4 text-slate-500" />
+                <button onClick={() => setShowSearch(false)} className="p-1 rounded-[8px] hover:bg-[rgba(245,240,230,0.04)]">
+                  <X className="w-4 h-4 text-[#6c675c]" />
                 </button>
               </div>
-              <div className="p-2 bg-white/[0.02]">
+              <div className="p-2 bg-[rgba(245,240,230,0.01)]">
                 <div className="flex items-center gap-2 px-2 py-1">
-                  <span className="text-xs text-slate-600">Quick actions</span>
+                  <span className="text-xs font-mono text-[#6c675c] tracking-[0.12em] uppercase">Quick actions</span>
                 </div>
               </div>
               <div className="max-h-80 overflow-y-auto">
@@ -108,14 +108,14 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
                   <button
                     key={index}
                     onClick={item.action}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/[0.02] transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-[rgba(245,240,230,0.02)] transition-colors"
                   >
-                    <div className="p-2 rounded-lg bg-white/5">
-                      <Search className="w-4 h-4 text-slate-500" />
+                    <div className="p-2 rounded-[10px] bg-[rgba(245,240,230,0.04)]">
+                      <Search className="w-4 h-4 text-[#6c675c]" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-slate-200">{item.title}</p>
-                      <p className="text-xs text-slate-500">{item.description}</p>
+                      <p className="text-sm font-medium text-[#a8a294] font-body">{item.title}</p>
+                      <p className="text-xs text-[#6c675c] font-body">{item.description}</p>
                     </div>
                   </button>
                 ))}
@@ -134,14 +134,14 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
         }}
       >
         <div className="flex items-center gap-2">
-          <nav className="flex items-center gap-1.5 text-sm">
+          <nav className="flex items-center gap-1.5 text-sm font-body">
             {breadcrumbs.slice(1).map((item, index) => (
               <div key={index} className="flex items-center gap-1.5">
                 {index > 0 && <ChevronRight className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} />}
                 {item.path ? (
                   <Link
                     to={item.path}
-                    className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-sm font-medium transition-colors"
+                    className="flex items-center gap-1.5 px-2 py-1 rounded-[8px] text-sm font-medium transition-colors font-body"
                     style={{ color: 'var(--text-tertiary)' }}
                     onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
                     onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.background = 'transparent'; }}
@@ -150,7 +150,7 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
                     {item.label}
                   </Link>
                 ) : (
-                  <span className="flex items-center gap-1.5 px-2 py-1" style={{ color: 'var(--text-primary)' }}>
+                  <span className="flex items-center gap-1.5 px-2 py-1 font-body" style={{ color: 'var(--text-primary)' }}>
                     {item.icon && <item.icon className="w-3.5 h-3.5" />}
                     {item.label}
                   </span>
@@ -158,7 +158,7 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
               </div>
             ))}
             {currentPage && (
-              <span style={{ color: 'var(--text-tertiary)' }} className="mx-1">/</span>
+              <span style={{ color: 'var(--text-tertiary)' }} className="mx-1 text-[#6c675c]">/</span>
             )}
             {currentPage && (
               <span className="font-display text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
@@ -169,15 +169,11 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Search — icon only */}
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setShowSearch(true)}
-            className="flex items-center justify-center w-9 h-9 rounded-xl transition-colors"
-            style={{ color: 'var(--text-tertiary)' }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)'; }}
+            className="flex items-center justify-center w-9 h-9 rounded-[10px] transition-colors text-[#6c675c] hover:bg-[rgba(245,240,230,0.04)] hover:text-[#a8a294]"
           >
             <Search className="w-4 h-4" />
           </motion.button>
@@ -189,13 +185,10 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setShowNotifications(!showNotifications)}
-              className="relative flex items-center justify-center w-9 h-9 rounded-xl transition-colors"
-              style={{ color: 'var(--text-tertiary)' }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-tertiary)'; }}
+              className="relative flex items-center justify-center w-9 h-9 rounded-[10px] transition-colors text-[#6c675c] hover:bg-[rgba(245,240,230,0.04)] hover:text-[#a8a294]"
             >
               <Bell className="w-4 h-4" />
-              <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-red-500 rounded-full" />
+              <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-rose-500 rounded-full pulse-ring" />
             </motion.button>
 
             <AnimatePresence>
@@ -205,33 +198,31 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute right-0 mt-2 w-80 rounded-2xl border shadow-xl overflow-hidden"
-                  style={{ background: 'var(--surface-overlay)', borderColor: 'var(--border-default)', backdropFilter: 'blur(20px)' }}
+                  className="absolute right-0 mt-2 w-80 rounded-[20px] border shadow-xl overflow-hidden"
+                  style={{ background: 'var(--surface-overlay)', borderColor: 'var(--border-default)', backdropFilter: 'blur(24px)' }}
                 >
                   <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-                    <h3 style={{ color: 'var(--text-primary)' }} className="font-semibold text-sm">Notifications</h3>
+                    <h3 className="font-display font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>Notifications</h3>
                   </div>
                   <div className="max-h-80 overflow-y-auto">
                     {notifications.map((notification) => (
                       <div
                         key={notification.id}
-                        className="px-4 py-3 cursor-pointer border-b transition-colors"
+                        className="px-4 py-3 cursor-pointer border-b transition-colors hover:bg-[rgba(245,240,230,0.02)]"
                         style={{ borderColor: 'var(--border-subtle)' }}
-                        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                       >
                         <div className="flex items-start gap-3">
                           <div className="mt-0.5">{getNotificationIcon(notification.type)}</div>
                           <div className="flex-1">
-                            <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{notification.message}</p>
-                            <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>{notification.time}</p>
+                            <p className="text-sm font-body" style={{ color: 'var(--text-primary)' }}>{notification.message}</p>
+                            <p className="text-xs font-body mt-1" style={{ color: 'var(--text-tertiary)' }}>{notification.time}</p>
                           </div>
                         </div>
                       </div>
                     ))}
                   </div>
-                  <div className="px-4 py-3 border-t" style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'var(--border-subtle)' }}>
-                    <button className="text-sm font-medium" style={{ color: 'var(--accent-cobalt)' }}>
+                  <div className="px-4 py-3 border-t bg-[rgba(245,240,230,0.02)]" style={{ borderColor: 'var(--border-subtle)' }}>
+                    <button className="text-sm font-medium font-body text-amber-400 hover:text-amber-300 transition-colors">
                       View all notifications
                     </button>
                   </div>
@@ -245,18 +236,16 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-2 px-2 py-1 rounded-xl transition-colors"
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+              className="flex items-center gap-2 px-2 py-1 rounded-[10px] transition-colors hover:bg-[rgba(245,240,230,0.03)]"
             >
               <div
-                className="w-7 h-7 rounded-lg flex items-center justify-center"
+                className="w-7 h-7 rounded-[8px] flex items-center justify-center"
                 style={{ background: 'linear-gradient(135deg, #f59e0b, #b45309)' }}
               >
                 <User className="w-3.5 h-3.5 text-white" />
               </div>
               <div className="text-left hidden md:block">
-                <p className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
+                <p className="text-xs font-medium font-body" style={{ color: 'var(--text-primary)' }}>
                   {user?.name || 'User'}
                 </p>
               </div>
@@ -273,13 +262,13 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute right-0 mt-2 w-48 rounded-xl border shadow-xl overflow-hidden"
-                  style={{ background: 'var(--surface-overlay)', borderColor: 'var(--border-default)', backdropFilter: 'blur(20px)' }}
+                  className="absolute right-0 mt-2 w-48 rounded-[14px] border shadow-xl overflow-hidden"
+                  style={{ background: 'var(--surface-overlay)', borderColor: 'var(--border-default)', backdropFilter: 'blur(24px)' }}
                 >
                   <div className="py-1">
                     <button
                       onClick={() => { setShowUserMenu(false); navigate('/profile'); }}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-sm transition-colors"
+                      className="w-full flex items-center gap-3 px-4 py-2 text-sm font-body transition-colors"
                       style={{ color: 'var(--text-primary)' }}
                       onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
@@ -289,7 +278,7 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
                     </button>
                     <button
                       onClick={() => { setShowUserMenu(false); navigate('/settings'); }}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-sm transition-colors"
+                      className="w-full flex items-center gap-3 px-4 py-2 text-sm font-body transition-colors"
                       style={{ color: 'var(--text-primary)' }}
                       onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
@@ -300,10 +289,7 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
                     <div style={{ borderColor: 'var(--border-subtle)' }} className="my-1 border-t" />
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-sm transition-colors"
-                      style={{ color: 'var(--accent-rose)' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(251, 113, 133, 0.08)'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                      className="w-full flex items-center gap-3 px-4 py-2 text-sm font-body transition-colors text-rose-400 hover:bg-rose-500/10"
                     >
                       <LogOut className="w-4 h-4" />
                       Logout

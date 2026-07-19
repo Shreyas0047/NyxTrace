@@ -75,7 +75,7 @@ export function ChainOfCustodyPage() {
       <div className="max-w-5xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-mono tracking-tight flex items-center gap-3">
-            <Shield className="w-8 h-8 text-cyan-400" />
+            <Shield className="w-8 h-8 text-amber-400" />
             Chain of Custody
           </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Immutable evidence lineage · Blockchain verification · Tamper detection</p>
@@ -106,7 +106,7 @@ export function ChainOfCustodyPage() {
         )}
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="rounded-xl border border-slate-200/50 dark:border-slate-700/50 bg-white dark:bg-slate-800/80 backdrop-blur p-4 mb-6">
-          <h2 className="text-sm font-mono text-cyan-400 uppercase tracking-wider mb-3">Evidence Custody Lookup</h2>
+          <h2 className="text-sm font-mono text-amber-400 uppercase tracking-wider mb-3">Evidence Custody Lookup</h2>
           <div className="flex gap-2">
             <input
               type="text"
@@ -114,9 +114,9 @@ export function ChainOfCustodyPage() {
               onChange={e => setEvidenceIdInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && lookupCustody()}
               placeholder="Enter evidence ID..."
-              className="flex-1 px-3 py-2 rounded-lg bg-white/80 dark:bg-slate-700/80 border border-slate-600/50 text-slate-900 dark:text-white text-sm font-mono placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
+              className="flex-1 px-3 py-2 rounded-lg bg-white/80 dark:bg-slate-700/80 border border-slate-600/50 text-slate-900 dark:text-white text-sm font-mono placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50"
             />
-            <button onClick={lookupCustody} disabled={loading} className="px-4 py-2 bg-cyan-600/80 hover:bg-cyan-500 text-white text-sm font-mono rounded-lg flex items-center gap-2 transition-all disabled:opacity-50">
+            <button onClick={lookupCustody} disabled={loading} className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black text-sm font-mono rounded-lg flex items-center gap-2 transition-all disabled:opacity-50">
               <Search className="w-4 h-4" /> Trace
             </button>
           </div>
@@ -125,7 +125,7 @@ export function ChainOfCustodyPage() {
 
         {custodyChain.length > 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="relative mb-6">
-            <div className="absolute left-6 top-0 bottom-0 w-px bg-gradient-to-b from-cyan-500/60 via-cyan-500/20 to-transparent" />
+            <div className="absolute left-6 top-0 bottom-0 w-px bg-gradient-to-b from-amber-500/60 via-amber-500/20 to-transparent" />
 
             <div className="space-y-0">
               {custodyChain.map((event, i) => (
@@ -139,20 +139,20 @@ export function ChainOfCustodyPage() {
                   onMouseLeave={() => setHoveredEvent(null)}
                 >
                   <div className="absolute left-[18px] top-4 w-3 h-3">
-                    <div className={`absolute inset-0 rounded-full ${event.verified ? 'bg-green-500' : 'bg-cyan-500'}`} />
-                    <div className={`absolute inset-0 rounded-full ${event.verified ? 'bg-green-500' : 'bg-cyan-500'} animate-ping opacity-30`} />
+                    <div className={`absolute inset-0 rounded-full ${event.verified ? 'bg-green-500' : 'bg-amber-500'}`} />
+                    <div className={`absolute inset-0 rounded-full ${event.verified ? 'bg-green-500' : 'bg-amber-500'} animate-ping opacity-30`} />
                   </div>
 
                   <div className={`rounded-lg border transition-all duration-200 p-3 ${
                     hoveredEvent === i
-                      ? 'border-cyan-500/50 bg-slate-50/60 dark:bg-slate-700/60 shadow-[0_0_20px_rgba(34,211,238,0.08)]'
+                      ? 'border-amber-500/50 bg-slate-700/60 shadow-[0_0_20px_rgba(245,158,11,0.08)]'
                       : 'border-slate-200/30 dark:border-slate-700/30 bg-white dark:bg-slate-800/80'
                   }`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <span className="text-xs font-mono text-slate-500 dark:text-slate-400">{new Date(event.timestamp).toLocaleString()}</span>
                         <span className="text-sm font-medium text-slate-900 dark:text-white">{event.action}</span>
-                        <span className="text-xs text-slate-500 dark:text-slate-400">by <span className="text-cyan-400">{event.actor}</span></span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">by <span className="text-amber-400">{event.actor}</span></span>
                       </div>
 
                       {event.verified && (
@@ -175,14 +175,14 @@ export function ChainOfCustodyPage() {
                                 {event.blockNumber && (
                                   <div className="mt-2 flex items-center gap-2">
                                     <span className="text-[10px] text-slate-500 dark:text-slate-400">Block:</span>
-                                    <span className="text-[11px] font-mono text-cyan-400">#{event.blockNumber}</span>
+                                    <span className="text-[11px] font-mono text-amber-400">#{event.blockNumber}</span>
                                   </div>
                                 )}
                                 <a
                                   href={event.txHash ? `${config.env.blockchainExplorerUrl}/tx/${event.txHash}` : `${config.env.blockchainExplorerUrl}/block/${event.blockNumber}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="mt-2 flex items-center gap-1 text-[10px] text-cyan-400 hover:text-cyan-300"
+                                  className="mt-2 flex items-center gap-1 text-[10px] text-amber-400 hover:text-amber-300"
                                 >
                                   <ExternalLink className="w-3 h-3" /> View on Explorer
                                 </a>

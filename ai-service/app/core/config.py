@@ -37,6 +37,9 @@ class AIServiceConfig:
     # Classification confidence threshold
     MIN_CONFIDENCE: float = 0.5
 
+    # API Key (optional — when set, all requests except /health must include Authorization: Bearer <key>)
+    API_KEY: str = os.getenv("AI_API_KEY", "")
+
     # CORS
     CORS_ORIGINS: list = os.getenv("AI_CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173").split(",")
 

@@ -112,7 +112,7 @@ export function AlertsPage() {
           <DashboardStat
             label="Active Alerts"
             value={totalActive}
-            icon={<Bell className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />}
+            icon={<Bell className="w-5 h-5 text-amber-400" />}
             delta={`${pagination.total || 0} total alerts`}
           />
         </DashboardCard>
@@ -231,7 +231,7 @@ export function AlertsPage() {
                           </button>
                           {alert.status === 'new' && (
                             <button
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-cyan-50 dark:hover:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400 flex items-center gap-2"
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-amber-500/10 dark:hover:bg-amber-900/20 text-amber-400 flex items-center gap-2"
                               onClick={() => handleAcknowledge(alert.id)}
                             >
                               <CheckCircle className="w-3.5 h-3.5" />

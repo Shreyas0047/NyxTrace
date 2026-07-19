@@ -22,7 +22,7 @@ const ROLE_OPTIONS: { value: UserRole; label: string; description: string }[] = 
 
 const ROLE_COLORS: Record<string, string> = {
   super_admin: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-  admin: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
+  admin: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
   forensic_analyst: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
   analyst: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
 };
@@ -143,7 +143,7 @@ export const UsersPage: React.FC = () => {
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />
             Add User
@@ -166,7 +166,7 @@ export const UsersPage: React.FC = () => {
                 placeholder="Search users..."
                 value={searchQuery}
                 onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-600 rounded-lg text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:border-cyan-500 focus:outline-none"
+                className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-600 rounded-lg text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:border-amber-500 focus:outline-none"
               />
             </div>
           </div>
@@ -274,7 +274,7 @@ export const UsersPage: React.FC = () => {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-600 rounded-lg text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-600 rounded-lg text-slate-900 dark:text-white focus:border-amber-500 focus:outline-none"
                 />
               </div>
               <div>
@@ -283,7 +283,7 @@ export const UsersPage: React.FC = () => {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-600 rounded-lg text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-600 rounded-lg text-slate-900 dark:text-white focus:border-amber-500 focus:outline-none"
                 />
               </div>
               <div>
@@ -292,7 +292,7 @@ export const UsersPage: React.FC = () => {
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-600 rounded-lg text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-600 rounded-lg text-slate-900 dark:text-white focus:border-amber-500 focus:outline-none"
                 />
               </div>
               <div>
@@ -300,7 +300,7 @@ export const UsersPage: React.FC = () => {
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
-                  className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-600 rounded-lg text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-600 rounded-lg text-slate-900 dark:text-white focus:border-amber-500 focus:outline-none"
                 >
                   {ROLE_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>{opt.label} - {opt.description}</option>
@@ -313,13 +313,13 @@ export const UsersPage: React.FC = () => {
                   type="text"
                   value={formData.department}
                   onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                  className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-600 rounded-lg text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-600 rounded-lg text-slate-900 dark:text-white focus:border-amber-500 focus:outline-none"
                 />
               </div>
             </div>
             <div className="p-4 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-2">
               <button onClick={() => setShowCreateModal(false)} className="px-4 py-2 text-slate-500 dark:text-slate-400 hover:text-white">Cancel</button>
-              <button onClick={handleCreateUser} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg">Create User</button>
+              <button onClick={handleCreateUser} className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black rounded-lg">Create User</button>
             </div>
           </div>
         </div>
@@ -341,7 +341,7 @@ export const UsersPage: React.FC = () => {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-600 rounded-lg text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-600 rounded-lg text-slate-900 dark:text-white focus:border-amber-500 focus:outline-none"
                 />
               </div>
               <div>
@@ -350,7 +350,7 @@ export const UsersPage: React.FC = () => {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-600 rounded-lg text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-600 rounded-lg text-slate-900 dark:text-white focus:border-amber-500 focus:outline-none"
                 />
               </div>
               <div>
@@ -360,7 +360,7 @@ export const UsersPage: React.FC = () => {
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   placeholder="Enter new password to change"
-                  className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-600 rounded-lg text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-600 rounded-lg text-slate-900 dark:text-white focus:border-amber-500 focus:outline-none"
                 />
               </div>
               <div>
@@ -368,7 +368,7 @@ export const UsersPage: React.FC = () => {
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
-                  className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-600 rounded-lg text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-600 rounded-lg text-slate-900 dark:text-white focus:border-amber-500 focus:outline-none"
                 >
                   {ROLE_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>{opt.label} - {opt.description}</option>
@@ -381,13 +381,13 @@ export const UsersPage: React.FC = () => {
                   type="text"
                   value={formData.department}
                   onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                  className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-600 rounded-lg text-slate-900 dark:text-white focus:border-cyan-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-600 rounded-lg text-slate-900 dark:text-white focus:border-amber-500 focus:outline-none"
                 />
               </div>
             </div>
             <div className="p-4 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-2">
               <button onClick={() => setShowEditModal(false)} className="px-4 py-2 text-slate-500 dark:text-slate-400 hover:text-white">Cancel</button>
-              <button onClick={handleUpdateUser} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg">Save Changes</button>
+              <button onClick={handleUpdateUser} className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black rounded-lg">Save Changes</button>
             </div>
           </div>
         </div>

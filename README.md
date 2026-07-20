@@ -446,6 +446,16 @@ The sandbox agent ships 6 safe educational simulators:
 | `sandbox_operator` | Sandbox console | Sandbox sessions only |
 | `auditor` | Compliance | Audit logs, custody chain, read-only evidence |
 
+### Registration Flow
+
+| Method | Available Roles | Who Can Do It |
+|--------|----------------|---------------|
+| Self-registration (`/register`) | `forensic_analyst`, `admin` | Public |
+| User management panel (`/users`) | All 6 roles | `admin` / `super_admin` only |
+| Role assignment page (`/roles`) | All 6 roles, permission-level control | `super_admin` only |
+
+Self-registration is intentionally limited to 2 roles. A `super_admin` or `admin` promotes users to higher-privilege roles via the admin panel after vetting. The admin panel at `/users` now exposes all 6 roles for user creation and editing.
+
 ---
 
 ## Observability

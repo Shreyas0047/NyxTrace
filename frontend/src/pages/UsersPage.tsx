@@ -14,17 +14,21 @@ interface CreateUserForm {
 }
 
 const ROLE_OPTIONS: { value: UserRole; label: string; description: string }[] = [
-  { value: 'forensic_analyst', label: 'Analyst', description: 'Can view and analyze investigations' },
-  { value: 'forensic_analyst', label: 'Forensic Analyst', description: 'Can perform forensic analysis' },
-  { value: 'admin', label: 'Admin', description: 'Full platform access' },
   { value: 'super_admin', label: 'Super Admin', description: 'System-wide administration' },
+  { value: 'admin', label: 'Admin', description: 'Full platform access' },
+  { value: 'forensic_analyst', label: 'Forensic Analyst', description: 'Perform forensic analysis and investigations' },
+  { value: 'security_reviewer', label: 'Security Reviewer', description: 'Review and validate security findings' },
+  { value: 'sandbox_operator', label: 'Sandbox Operator', description: 'Execute sandbox analysis sessions' },
+  { value: 'auditor', label: 'Auditor', description: 'Read-only access to audit trails and logs' },
 ];
 
 const ROLE_COLORS: Record<string, string> = {
   super_admin: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
   admin: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-  forensic_analyst: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-  analyst: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+  forensic_analyst: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  security_reviewer: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+  sandbox_operator: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
+  auditor: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
 };
 
 export const UsersPage: React.FC = () => {

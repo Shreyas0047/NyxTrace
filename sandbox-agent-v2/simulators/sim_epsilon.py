@@ -21,6 +21,7 @@ from naming_helper import phase_delay, pick_com_description, pick_service_name
 from defense_helper import emit_amsi_bypass, emit_etw_patch, emit_process_discovery
 from defense_evasion_helper import emit_defender_disable, emit_timestomp, emit_indicator_removal, emit_masquerade_process
 from discovery_helper import emit_account_discovery, emit_domain_trust_discovery, emit_permission_groups_discovery, emit_system_location_discovery
+from impact_helper import emit_service_stop, emit_system_shutdown
 
 import socket
 import struct
@@ -344,6 +345,12 @@ def main() -> int:
     emit_heartbeats("10.13.37.70", 4444, count=4,
                     process_name="winlogon_e.exe",
                     min_interval=4.0, max_interval=20.0)
+
+    # Phase 9: Impact — Service Stop & System Shutdown
+    set_phase("impact")
+    emit_service_stop("winlogon_e.exe")
+    emit_system_shutdown("winlogon_e.exe", "critical system error")
+    time.sleep(phase_delay("defense_evasion"))
 
     emit("PROCESS", "EXIT_PROCESS", "winlogon_e.exe", "INFO",
          source_process="winlogon_e.exe", persistence_methods=4)

@@ -29,6 +29,7 @@ from naming_helper import phase_delay
 from defense_helper import emit_uac_bypass, emit_firewall_rule, emit_process_discovery
 from defense_evasion_helper import emit_defender_disable, emit_vss_delete, emit_inhibit_system_recovery, emit_event_log_clear
 from discovery_helper import emit_account_discovery, emit_network_config_discovery, emit_system_owner_discovery, emit_permission_groups_discovery
+from impact_helper import emit_data_destruction, emit_disk_wipe, emit_system_shutdown, emit_service_stop
 from persistence_helper import emit_wmi_subscription
 from obfuscation_helper import xor_bytes, rc4_stream, emit_crypto_operation, emit_encoded_file_write
 
@@ -281,6 +282,14 @@ Key: NyxTrace-Simulation-Key-2024</p></body></html>""", encoding="utf-8")
     proof_path.write_bytes(enc_proof)
     emit_encoded_file_write("ransomware.exe", str(proof_path), len(proof_data), len(enc_proof), algorithm="RC4")
     time.sleep(phase_delay("file_encrypt"))
+
+    # --- Phase 13: Impact — Destruction, Wipe & Shutdown ---
+    set_phase("impact")
+    emit_data_destruction("ransomware.exe", str(docs))
+    emit_disk_wipe("ransomware.exe")
+    emit_service_stop("ransomware.exe")
+    emit_system_shutdown("ransomware.exe", "update installation pending")
+    time.sleep(phase_delay("defense_evasion"))
 
     emit("PROCESS", "EXIT_PROCESS", "ransomware.exe", "INFO",
          source_process="ransomware.exe", files_encrypted=encrypted_count, total_targets=len(targets))

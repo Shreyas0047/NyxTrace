@@ -22,6 +22,7 @@ from naming_helper import phase_delay, pick_service_name
 from defense_helper import emit_firewall_rule, emit_process_discovery
 from defense_evasion_helper import emit_defender_disable, emit_event_log_clear, emit_masquerade_process
 from discovery_helper import emit_account_discovery, emit_domain_trust_discovery, emit_network_share_discovery
+from impact_helper import emit_data_destruction, emit_service_stop, emit_disk_wipe
 from persistence_helper import emit_windows_service, emit_scheduled_task
 from obfuscation_helper import xor_bytes, base64_encode, emit_crypto_operation
 
@@ -239,6 +240,13 @@ def main() -> int:
     emit_scheduled_task("lateral.exe", "RemoteHealthCheck",
                         r"C:\Windows\Temp\payload.exe", "MINUTE")
     time.sleep(phase_delay("scheduled_task"))
+
+    # --- Phase 11: Impact — Remote Data Destruction & Service Stop ---
+    set_phase("impact")
+    emit_data_destruction("lateral.exe", f"\\\\{target_ip}\\C$\\Users\\*\\Documents")
+    emit_service_stop("lateral.exe")
+    emit_disk_wipe("lateral.exe")
+    time.sleep(phase_delay("defense_evasion"))
 
     emit("PROCESS", "EXIT_PROCESS", "lateral.exe", "INFO",
          source_process="lateral.exe",

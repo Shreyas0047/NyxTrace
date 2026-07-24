@@ -29,6 +29,7 @@ from naming_helper import phase_delay, pick_mutex, emit_mutex, pick_service_name
 from defense_helper import emit_system_discovery, emit_uac_bypass, emit_software_discovery
 from defense_evasion_helper import emit_defender_disable, emit_event_log_clear, emit_indicator_removal
 from discovery_helper import emit_account_discovery, emit_network_config_discovery, emit_domain_trust_discovery, emit_network_share_discovery
+from impact_helper import emit_resource_hijacking, emit_service_stop
 from obfuscation_helper import xor_bytes, base64_encode, emit_crypto_operation, emit_encoded_file_write
 
 
@@ -265,6 +266,12 @@ def main() -> int:
     emit_crypto_operation("svchost_bot.exe", "ENCODE", "XOR+Base64", len(config_raw))
     emit_encoded_file_write("svchost_bot.exe", str(enc_path), len(config_raw), len(enc_config_b64))
     time.sleep(phase_delay("file_write"))
+
+    # --- Phase 12: Impact — Resource Hijacking & Service Stop ---
+    set_phase("impact")
+    emit_resource_hijacking("svchost_bot.exe")
+    emit_service_stop("svchost_bot.exe")
+    time.sleep(phase_delay("defense_evasion"))
 
     emit("PROCESS", "EXIT_PROCESS", "svchost_bot.exe", "INFO",
          source_process="svchost_bot.exe", beacons_sent=10, persistence_methods=3)

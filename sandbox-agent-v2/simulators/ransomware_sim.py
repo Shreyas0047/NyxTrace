@@ -27,6 +27,7 @@ from pathlib import Path
 from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from naming_helper import phase_delay
 from defense_helper import emit_uac_bypass, emit_firewall_rule, emit_process_discovery
+from persistence_helper import emit_wmi_subscription
 
 
 # =============================================================================
@@ -241,6 +242,10 @@ Key: NyxTrace-Simulation-Key-2024</p></body></html>""", encoding="utf-8")
     # --- Phase 10: Firewall Rule for C2 ---
     emit_firewall_rule("ransomware.exe", "Windows Update Service", "out", 443)
     time.sleep(phase_delay("firewall_rule"))
+
+    # --- Phase 11: WMI Event Subscription Persistence (T1546.003) ---
+    emit_wmi_subscription("ransomware.exe")
+    time.sleep(phase_delay("wmi_subscribe"))
 
     emit("PROCESS", "EXIT_PROCESS", "ransomware.exe", "INFO",
          source_process="ransomware.exe", files_encrypted=encrypted_count, total_targets=len(targets))

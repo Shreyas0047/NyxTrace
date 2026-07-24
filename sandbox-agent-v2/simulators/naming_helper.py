@@ -136,6 +136,7 @@ _OPERATION_TIMING: dict[str, tuple[float, float]] = {
     "com_hijack":        (0.15, 0.3),
     "init":              (0.05, 0.1),
     "anti_analysis":     (0.1, 0.2),
+    "persistence":       (0.2, 0.4),
     "amsi_bypass":       (0.05, 0.1),
     "etw_patch":         (0.05, 0.1),
     "uac_bypass":        (0.1, 0.3),

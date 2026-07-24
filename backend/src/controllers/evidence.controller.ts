@@ -9,7 +9,6 @@ import fs from 'fs';
 import { evidenceService } from '../services';
 import { AuthenticatedRequest } from '../middleware';
 import { ApiResponse, EvidenceType } from '../types';
-import { Evidence } from '../models';
 import { config } from '../config';
 
 // Configure multer for file uploads
@@ -111,37 +110,22 @@ export class EvidenceController {
   async findAll(req: AuthenticatedRequest, res: Response): Promise<void> {
     const { page = 1, limit = 20, search, type } = req.query as Record<string, any>;
 
-    const query: Record<string, any> = {};
-
-    if (type) {
-      query.type = type;
-    }
-
-    if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-      ];
-    }
-
-    const total = await Evidence.countDocuments(query);
-    const totalPages = Math.ceil(total / Math.min(Number(limit), 100));
-
-    const evidence = await Evidence.find(query)
-      .sort({ createdAt: -1 })
-      .skip((Number(page) - 1) * Number(limit))
-      .limit(Math.min(Number(limit), 100))
-      .lean();
+    const result = await evidenceService.findAll({
+      page: Number(page),
+      limit: Math.min(Number(limit), 100),
+      search: search as string,
+      type: type as EvidenceType,
+    });
 
     const response: ApiResponse = {
       success: true,
       message: 'Evidence retrieved',
-      data: evidence,
+      data: result.evidence,
       meta: {
         page: Number(page),
         limit: Number(limit),
-        total,
-        totalPages,
+        total: result.total,
+        totalPages: result.totalPages,
       },
     };
 

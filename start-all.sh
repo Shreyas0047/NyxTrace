@@ -9,8 +9,9 @@ set -euo pipefail
 #   chmod +x start-all.sh
 #   ./start-all.sh
 #
-# To skip a service, set SKIP_{BACKEND,OLLAMA,AI,SANDBOX,FRONTEND}=1:
+# To skip a service, set SKIP_{BLOCKCHAIN,BACKEND,OLLAMA,AI,SANDBOX,FRONTEND}=1:
 #   SKIP_SANDBOX=1 ./start-all.sh
+#   SKIP_BLOCKCHAIN=1 ./start-all.sh
 
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 LOG_DIR="$ROOT_DIR/logs"
@@ -51,6 +52,38 @@ health_ok() {
   err "$label did not become ready within ${max_wait}s"
   return 1
 }
+
+# ─── Blockchain (Hardhat Node) ────────────────────────────────────────────
+if [ -z "${SKIP_BLOCKCHAIN:-}" ]; then
+  log "Starting Blockchain (Hardhat Node)..."
+  cd "$ROOT_DIR/blockchain"
+  if [ ! -d node_modules ]; then
+    npm install --silent 2>/dev/null
+  fi
+  npx hardhat node > "$LOG_DIR/blockchain.log" 2>&1 &
+  # Health check via JSON-RPC eth_blockNumber
+  BLOCKCHAIN_READY=""
+  for i in $(seq 1 30); do
+    if curl -sf -X POST -H "Content-Type: application/json" \
+      -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
+      http://127.0.0.1:8545 >/dev/null 2>&1; then
+      log "Hardhat node ready on port 8545"
+      BLOCKCHAIN_READY="1"
+      break
+    fi
+    sleep 1
+  done
+  if [ -n "$BLOCKCHAIN_READY" ]; then
+    log "Deploying EvidenceRegistry contract..."
+    npx hardhat run scripts/deploy.ts --network localhost >> "$LOG_DIR/blockchain.log" 2>&1 || \
+      warn "Contract deploy failed — deploy manually: cd blockchain && npx hardhat run scripts/deploy.ts --network localhost"
+  else
+    warn "Hardhat node did not become ready within 30s — blockchain features unavailable"
+  fi
+  cd "$ROOT_DIR"
+else
+  warn "Skipping Blockchain"
+fi
 
 # ─── Backend ─────────────────────────────────────────────────────────────
 if [ -z "${SKIP_BACKEND:-}" ]; then
@@ -155,6 +188,7 @@ log "  Backend:   http://localhost:3000/api/v1"
 log "  AI:        http://localhost:8000"
 log "  Ollama:    http://localhost:11434"
 log "  Sandbox:   http://127.0.0.1:8765"
+log "  Blockchain: http://127.0.0.1:8545"
 log "═══════════════════════════════════════════════════════════════"
 
 wait

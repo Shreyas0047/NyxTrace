@@ -6,6 +6,11 @@
 import axios, { AxiosInstance } from 'axios';
 import { AppError } from '../middleware';
 import { getCorrelationId } from '../middleware/request-context';
+import { spawn } from 'child_process';
+import { join, dirname } from 'path';
+import fs from 'fs';
+import { promisify } from 'util';
+const execAsync = promisify(require('child_process').exec);
 
 export interface RuntimeHealth {
   status: string;
@@ -40,6 +45,7 @@ export interface StartSessionRequest {
 
 let runtimeStarted = false;
 let runtimeCheckInProgress = false;
+let runtimeStarting = false;
 
 export class SandboxRuntimeService {
   private client: AxiosInstance;
@@ -329,6 +335,132 @@ async stopSession(sessionId: string): Promise<RuntimeSession> {
       return response.data;
     } catch (error) {
       throw this.handleError(error);
+    }
+  }
+
+  isRuntimeStarting(): boolean {
+    return runtimeStarting;
+  }
+
+  async startRuntime(): Promise<{ logFile: string; pythonPath: string }> {
+    if (runtimeStarting) {
+      throw new Error('Runtime is already starting. Please wait.');
+    }
+
+    runtimeStarting = true;
+
+    const resetStarting = () => { runtimeStarting = false; };
+    setTimeout(resetStarting, 10000);
+
+    try {
+      let projectRoot = process.env.SANDBOX_PROJECT_ROOT || process.cwd();
+      if (!fs.existsSync(join(projectRoot, 'sandbox-agent-v2'))) {
+        let candidate = process.cwd();
+        for (let i = 0; i < 5; i++) {
+          if (fs.existsSync(join(candidate, 'sandbox-agent-v2'))) {
+            projectRoot = candidate;
+            break;
+          }
+          const parent = dirname(candidate);
+          if (parent === candidate) break;
+          candidate = parent;
+        }
+      }
+      const runtimeFilePath = join(projectRoot, 'sandbox-agent-v2', 'main.py');
+
+      if (!fs.existsSync(runtimeFilePath)) {
+        runtimeStarting = false;
+        throw new Error(`Runtime script not found at: ${runtimeFilePath}`);
+      }
+
+      let pythonPath: string | null = null;
+      const isWin = process.platform === 'win32';
+      const pythonCandidates = [
+        process.env.PYTHON_PATH,
+        'python3',
+        'python',
+        ...(isWin ? ['py'] : []),
+      ].filter(Boolean) as string[];
+
+      for (const candidate of pythonCandidates) {
+        if (!candidate) continue;
+        if (candidate.includes('\\') || candidate.includes('/')) {
+          if (fs.existsSync(candidate)) {
+            pythonPath = candidate;
+            break;
+          }
+        } else {
+          try {
+            const whichCmd = isWin ? 'where' : 'command -v';
+            const { stdout } = await execAsync(`${whichCmd} ${candidate}`);
+            const path = stdout.trim().split('\n')[0];
+            if (path) {
+              pythonPath = path;
+              break;
+            }
+          } catch {
+            continue;
+          }
+        }
+      }
+
+      if (!pythonPath) {
+        runtimeStarting = false;
+        throw new Error(
+          'Python not found. Install Python 3.11+ and add to PATH, or set PYTHON_PATH environment variable.'
+        );
+      }
+
+      const logDir = join(projectRoot, 'sandbox-agent-v2');
+      const logFile = join(logDir, 'runtime.log');
+
+      if (!fs.existsSync(logDir)) {
+        fs.mkdirSync(logDir, { recursive: true });
+      }
+
+      try {
+        if (isWin) {
+          const { stdout: netstatOut } = await execAsync('netstat -ano | findstr :8765');
+          const lines = netstatOut.trim().split('\n').filter((l: string) => l.includes('LISTENING'));
+          for (const line of lines) {
+            const parts = line.trim().split(/\s+/);
+            const pid = parts[parts.length - 1];
+            if (pid && pid !== '0') {
+              try { await execAsync(`taskkill /F /PID ${pid}`); } catch { }
+            }
+          }
+        } else {
+          try { await execAsync('lsof -ti :8765 | xargs -r kill -9'); } catch { }
+        }
+      } catch { }
+
+      const logFd = fs.openSync(logFile, 'a');
+      const child = spawn(pythonPath, ['-u', runtimeFilePath], {
+        detached: true,
+        stdio: ['ignore', logFd, logFd],
+        cwd: join(projectRoot, 'sandbox-agent-v2'),
+        env: { ...process.env, PYTHONPATH: join(projectRoot, 'sandbox-agent-v2') },
+        ...(isWin ? { windowsHide: true } : {}),
+      });
+
+      fs.closeSync(logFd);
+      child.unref();
+
+      child.on('error', (err: Error) => {
+        const logger = require('../config/logger').default;
+        logger.error(`[Sandbox] Runtime spawn error: ${err.message}`);
+      });
+
+      child.on('exit', (code: number | null) => {
+        runtimeStarting = false;
+        const logger = require('../config/logger').default;
+        logger.info(`[Sandbox] Runtime exited with code ${code}`);
+      });
+
+      return { logFile, pythonPath };
+    } catch (error) {
+      runtimeStarting = false;
+      throw error;
     }
   }
 }

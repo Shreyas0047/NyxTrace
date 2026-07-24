@@ -116,6 +116,42 @@ export class EvidenceService {
   }
 
   /**
+   * Get all evidence with pagination, search, and type filters
+   */
+  async findAll(options: {
+    page: number;
+    limit: number;
+    search?: string;
+    type?: EvidenceType;
+  }): Promise<{ evidence: any[]; total: number; totalPages: number }> {
+    const { page, limit, search, type } = options;
+
+    const query: Record<string, any> = {};
+
+    if (type) {
+      query.type = type;
+    }
+
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const total = await Evidence.countDocuments(query);
+    const totalPages = Math.ceil(total / limit);
+
+    const evidence = await Evidence.find(query)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean();
+
+    return { evidence: evidence as any, total, totalPages };
+  }
+
+  /**
    * Get evidence by ID
    */
   async findById(id: string): Promise<any> {

@@ -3,6 +3,9 @@
  * Handles data sync from desktop sandbox agent
  */
 
+import path from 'path';
+import fs from 'fs';
+import logger from '../config/logger';
 import { SandboxSession } from '../models';
 import { TelemetryEvent } from '../models/telemetry-event.model';
 import { SandboxSessionStatus } from '../types';
@@ -179,6 +182,98 @@ export class SandboxSyncService {
       byStatus: byStatus.reduce((acc, item) => ({ ...acc, [item._id]: item.count }), {}),
       avgDuration: avgDuration[0]?.avg || 0,
     };
+  }
+
+  /**
+   * Register a sandbox report on the blockchain after analysis completes.
+   * Implements: Evidence → SHA256 → Blockchain.
+   */
+  async registerSandboxReportOnBlockchain(sessionId: string, userId: string): Promise<void> {
+    const reportPath = path.resolve(process.cwd(), 'uploads', 'reports', `sandbox-report-${sessionId}.json`);
+
+    for (let attempt = 0; attempt < 5; attempt++) {
+      if (fs.existsSync(reportPath)) break;
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+
+    if (!fs.existsSync(reportPath)) {
+      logger.warn(`[Blockchain] Sandbox report not found at ${reportPath}; skipping auto-registration.`);
+      return;
+    }
+
+    const evidenceId = `SANDBOX-${sessionId}`;
+
+    try {
+      const { blockchainVerificationService } = await import('../blockchain');
+      const result = await blockchainVerificationService.registerEvidence(evidenceId, reportPath, userId);
+      logger.info(`[Blockchain] Auto-registered sandbox report ${evidenceId} fingerprint=${result.fingerprint.slice(0, 16)}...`);
+    } catch (err) {
+      logger.warn(`[Blockchain] Auto-registration failed for ${evidenceId}:`, err);
+    }
+  }
+
+  /**
+   * Get session monitoring summary with categorized event counts
+   */
+  async getSessionMonitoring(sessionId: string): Promise<{
+    sessionId: string;
+    totalEvents: number;
+    process: number;
+    file: number;
+    registry: number;
+    network: number;
+    credential: number;
+    severityCounts: Record<string, number>;
+    suspiciousActivities: any[];
+    isActive: boolean;
+  }> {
+    const events = await TelemetryEvent.find({ sessionId }).lean();
+
+    const counts: Record<string, number> = { process: 0, file: 0, registry: 0, network: 0, credential: 0 };
+    const severityCounts: Record<string, number> = { critical: 0, high: 0, medium: 0, low: 0, info: 0 };
+    const suspicious: any[] = [];
+
+    for (const e of events) {
+      const text = `${e.eventType || ''} ${JSON.stringify(e.metadata || {})}`.toLowerCase();
+      const cat =
+        text.includes('registry') ? 'registry' :
+        text.includes('network') || text.includes('connect') || text.includes('dns') ? 'network' :
+        text.includes('credential') || text.includes('password') || text.includes('lsass') ? 'credential' :
+        text.includes('file') || text.includes('write') || text.includes('delete') || text.includes('encrypt') ? 'file' :
+        'process';
+      counts[cat] = (counts[cat] || 0) + 1;
+      const sev = (e as any).severity || 'info';
+      severityCounts[sev] = (severityCounts[sev] || 0) + 1;
+      if (sev === 'critical' || sev === 'high') suspicious.push(e);
+    }
+
+    return {
+      sessionId,
+      totalEvents: events.length,
+      process: counts.process,
+      file: counts.file,
+      registry: counts.registry,
+      network: counts.network,
+      credential: counts.credential,
+      severityCounts,
+      suspiciousActivities: suspicious.slice(0, 50),
+      isActive: false,
+    };
+  }
+
+  /**
+   * Get persisted AI analysis result for a completed session
+   */
+  async getSessionAIAnalysis(sessionId: string): Promise<any> {
+    const session = await SandboxSession.findOne({ sessionId })
+      .select('sessionId aiAnalysis')
+      .lean();
+
+    if (!session) {
+      return null;
+    }
+
+    return (session as any).aiAnalysis || null;
   }
 
   /**

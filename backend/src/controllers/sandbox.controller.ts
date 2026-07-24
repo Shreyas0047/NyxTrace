@@ -4,24 +4,13 @@
  */
 
 import { Response } from 'express';
-import path from 'path';
-import fs from 'fs';
 import logger from '../config/logger';
 import { sandboxSyncService, sandboxRuntimeService, aiAnalysisService } from '../services';
 import { AuthenticatedRequest } from '../middleware';
 import { ApiResponse, SandboxSessionStatus } from '../types';
 import { websocketService } from '../services/websocket.service';
-import { blockchainVerificationService } from '../blockchain';
 import { SandboxSession } from '../models';
-import { TelemetryEvent } from '../models/telemetry-event.model';
 
-/**
- * Simulator display-name mapping.
- *
- * SOURCE OF TRUTH: `sandbox-agent-v2/agent/app.py` (SIMULATORS list) and
- * `sandbox-agent-v2/agent/pipeline.py` (script_map).  Keep these files in
- * sync when adding/renaming simulators.
- */
 const SIMULATOR_DISPLAY_NAMES: Record<string, string> = {
   'system_service_1': 'Sample Alpha',
   'system_service_2': 'Sample Beta',
@@ -37,39 +26,6 @@ const SIMULATOR_DISPLAY_NAMES: Record<string, string> = {
 
 function formatSimulatorName(simulatorId: string): string {
   return SIMULATOR_DISPLAY_NAMES[simulatorId] || simulatorId;
-}
-
-let runtimeStarting = false;
-
-/**
- * Auto-register the sandbox-report.json on the blockchain after analysis completes.
- * Implements the workflow: Evidence → SHA256 → Blockchain.
- * Polls briefly for the report file (the agent writes it after COMPLETE state).
- */
-async function registerSandboxReportOnBlockchain(sessionId: string, userId: string): Promise<void> {
-  // Locate the sandbox-report-<sessionId>.json file
-  const reportPath = path.resolve(process.cwd(), 'uploads', 'reports', `sandbox-report-${sessionId}.json`);
-
-  // The agent writes the file just after COMPLETE; allow a brief window for the write.
-  for (let attempt = 0; attempt < 5; attempt++) {
-    if (fs.existsSync(reportPath)) break;
-    await new Promise((resolve) => setTimeout(resolve, 500));
-  }
-
-  if (!fs.existsSync(reportPath)) {
-    logger.warn(`[Blockchain] Sandbox report not found at ${reportPath}; skipping auto-registration.`);
-    return;
-  }
-
-  // Use sessionId as the evidence ID so it can be looked up later.
-  const evidenceId = `SANDBOX-${sessionId}`;
-
-  try {
-    const result = await blockchainVerificationService.registerEvidence(evidenceId, reportPath, userId);
-    logger.info(`[Blockchain] Auto-registered sandbox report ${evidenceId} fingerprint=${result.fingerprint.slice(0, 16)}...`);
-  } catch (err) {
-    logger.warn(`[Blockchain] Auto-registration failed for ${evidenceId}:`, err);
-  }
 }
 
 export class SandboxController {
@@ -182,10 +138,9 @@ export class SandboxController {
               logger.warn(`Failed to forward events for session ${completedSession.session_id}:`, eventsErr);
             }
 
-            // Workflow: Evidence → SHA256 → Blockchain (only after analysis completes)
             if (status === SandboxSessionStatus.COMPLETED) {
               try {
-                await registerSandboxReportOnBlockchain(completedSession.session_id, req.user?.id || 'system');
+                await sandboxSyncService.registerSandboxReportOnBlockchain(completedSession.session_id, req.user?.id || 'system');
               } catch (blockchainErr) {
                 logger.warn(`Failed to auto-register sandbox report on blockchain for ${completedSession.session_id}:`, blockchainErr);
               }
@@ -443,37 +398,8 @@ export class SandboxController {
    */
   async getSessionMonitoring(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const events = await TelemetryEvent.find({ sessionId: req.params.sessionId }).lean();
-
-      const counts: Record<string, number> = { process: 0, file: 0, registry: 0, network: 0, credential: 0 };
-      const severityCounts: Record<string, number> = { critical: 0, high: 0, medium: 0, low: 0, info: 0 };
-      const suspicious: any[] = [];
-
-      for (const e of events) {
-        const text = `${e.eventType || ''} ${JSON.stringify(e.metadata || {})}`.toLowerCase();
-        const cat =
-          text.includes('registry') ? 'registry' :
-          text.includes('network') || text.includes('connect') || text.includes('dns') ? 'network' :
-          text.includes('credential') || text.includes('password') || text.includes('lsass') ? 'credential' :
-          text.includes('file') || text.includes('write') || text.includes('delete') || text.includes('encrypt') ? 'file' :
-          'process';
-        counts[cat] = (counts[cat] || 0) + 1;
-        const sev = (e as any).severity || 'info';
-        severityCounts[sev] = (severityCounts[sev] || 0) + 1;
-        if (sev === 'critical' || sev === 'high') suspicious.push(e);
-      }
-
-      res.json({
-        success: true,
-        data: {
-          sessionId: req.params.sessionId,
-          totalEvents: events.length,
-          ...counts,
-          severityCounts,
-          suspiciousActivities: suspicious.slice(0, 50),
-          isActive: false,
-        },
-      });
+      const data = await sandboxSyncService.getSessionMonitoring(req.params.sessionId);
+      res.json({ success: true, data });
     } catch (error: any) {
       res.status(500).json({
         success: false,
@@ -488,18 +414,16 @@ export class SandboxController {
    */
   async getSessionAIAnalysis(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const session = await SandboxSession.findOne({ sessionId: req.params.sessionId })
-        .select('sessionId aiAnalysis')
-        .lean();
+      const aiAnalysis = await sandboxSyncService.getSessionAIAnalysis(req.params.sessionId);
 
-      if (!session) {
+      if (aiAnalysis === null) {
         res.status(404).json({ success: false, message: 'Session not found' });
         return;
       }
 
       res.json({
         success: true,
-        data: { aiAnalysis: (session as any).aiAnalysis || null },
+        data: { aiAnalysis },
       });
     } catch (error: any) {
       res.status(500).json({
@@ -633,14 +557,6 @@ export class SandboxController {
    * Start the sandbox runtime service
    */
    async startRuntime(req: AuthenticatedRequest, res: Response): Promise<void> {
-    if (runtimeStarting) {
-      res.status(409).json({
-        success: false,
-        message: 'Runtime is already starting. Please wait.',
-      });
-      return;
-    }
-
     try {
       const isRunning = await sandboxRuntimeService.isAvailable();
       if (isRunning) {
@@ -654,151 +570,18 @@ export class SandboxController {
       // Runtime not available, proceed to start
     }
 
-    const { spawn, exec } = await import('child_process');
-    const { join, dirname } = await import('path');
-    const fs = await import('fs');
-    const util = await import('util');
-    const execPromise = util.promisify(exec);
-
-    // Resolve project root: if SANDBOX_PROJECT_ROOT is set use it,
-    // else walk up from cwd to find the directory containing 'sandbox-agent-v2'
-    let projectRoot = process.env.SANDBOX_PROJECT_ROOT || process.cwd();
-    if (!fs.existsSync(join(projectRoot, 'sandbox-agent-v2'))) {
-      // Walk up directories looking for the sandbox-agent-v2 folder
-      let candidate = process.cwd();
-      for (let i = 0; i < 5; i++) {
-        if (fs.existsSync(join(candidate, 'sandbox-agent-v2'))) {
-          projectRoot = candidate;
-          break;
-        }
-        const parent = dirname(candidate);
-        if (parent === candidate) break;
-        candidate = parent;
-      }
-    }
-    const runtimeFilePath = join(projectRoot, 'sandbox-agent-v2', 'main.py');
-
-    if (!fs.existsSync(runtimeFilePath)) {
-      res.status(404).json({
-        success: false,
-        message: `Runtime script not found at: ${runtimeFilePath}`,
-      });
-      return;
-    }
-
-    let pythonPath: string | null = null;
-
-    const isWin = process.platform === 'win32';
-    const pythonCandidates = [
-      process.env.PYTHON_PATH,
-      'python3',
-      'python',
-      ...(isWin ? ['py'] : []),
-    ].filter(Boolean) as string[];
-
-    for (const candidate of pythonCandidates) {
-      if (!candidate) continue;
-      if (candidate.includes('\\') || candidate.includes('/')) {
-        if (fs.existsSync(candidate)) {
-          pythonPath = candidate;
-          break;
-        }
-      } else {
-        try {
-          const whichCmd = isWin ? 'where' : 'command -v';
-          const { stdout } = await execPromise(`${whichCmd} ${candidate}`);
-          const path = stdout.trim().split('\n')[0];
-          if (path) {
-            pythonPath = path;
-            break;
-          }
-        } catch {
-          continue;
-        }
-      }
-    }
-
-    if (!pythonPath) {
-      res.status(500).json({
-        success: false,
-        message: 'Python not found. Install Python 3.11+ and add to PATH, or set PYTHON_PATH environment variable.',
-        searched: pythonCandidates.filter(Boolean),
-      });
-      return;
-    }
-
     try {
-      runtimeStarting = true;
-      const logDir = join(projectRoot, 'sandbox-agent-v2');
-      const logFile = join(logDir, 'runtime.log');
-
-      if (!fs.existsSync(logDir)) {
-        fs.mkdirSync(logDir, { recursive: true });
-      }
-
-      try {
-        if (isWin) {
-          const { stdout: netstatOut } = await execPromise('netstat -ano | findstr :8765');
-          const lines = netstatOut.trim().split('\n').filter(l => l.includes('LISTENING'));
-          for (const line of lines) {
-            const parts = line.trim().split(/\s+/);
-            const pid = parts[parts.length - 1];
-            if (pid && pid !== '0') {
-              try {
-                await execPromise(`taskkill /F /PID ${pid}`);
-              } catch { /* process may already be dead */ }
-            }
-          }
-        } else {
-          try {
-            await execPromise('lsof -ti :8765 | xargs -r kill -9');
-          } catch { /* port not in use */ }
-        }
-      } catch { /* port detection failed — may not be in use */ }
-
-      // Open log file as file descriptor so child can write to it independently of parent
-      const logFd = fs.openSync(logFile, 'a');
-
-      const child = spawn(pythonPath, [
-        '-u', runtimeFilePath,
-      ], {
-        detached: true,
-        stdio: ['ignore', logFd, logFd],
-        cwd: join(projectRoot, 'sandbox-agent-v2'),
-        env: { ...process.env, PYTHONPATH: join(projectRoot, 'sandbox-agent-v2') },
-        ...(isWin ? { windowsHide: true } : {}),
-      });
-
-      // Close parent's fd; child has its own copy now
-      fs.closeSync(logFd);
-
-      child.unref();
-
-      child.on('error', (err) => {
-        runtimeStarting = false;
-        logger.error(`[Sandbox] Runtime spawn error: ${err.message}`);
-      });
-
-      child.on('exit', (code) => {
-        runtimeStarting = false;
-        logger.info(`[Sandbox] Runtime exited with code ${code}`);
-      });
-
-      setTimeout(() => {
-        runtimeStarting = false;
-      }, 10000);
-
+      const result = await sandboxRuntimeService.startRuntime();
       res.json({
         success: true,
         message: 'Sandbox runtime starting on port 8765...',
-        logFile,
-        pythonPath,
+        logFile: result.logFile,
+        pythonPath: result.pythonPath,
       });
     } catch (error) {
-      runtimeStarting = false;
       res.status(500).json({
         success: false,
-        message: 'Failed to start sandbox runtime',
+        message: error instanceof Error ? error.message : 'Failed to start sandbox runtime',
         error: error instanceof Error ? error.message : 'Unknown error',
       });
     }

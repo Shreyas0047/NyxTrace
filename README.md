@@ -621,6 +621,4 @@ Commit format: `<type>(<scope>): <description>` where types are `feat|fix|chore|
 
 ---
 
-<p align="center">
-  <sub>Built with ❤️ for the cybersecurity community</sub>
-</p>
+

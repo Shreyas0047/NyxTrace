@@ -9,9 +9,17 @@
     "start:ai": "cd ai-service && uvicorn app.main:app --reload --host 127.0.0.1 --port 8000",
     "start:sandbox": "cd sandbox-agent-v2 && python main.py",
     "install:all": "npm install --prefix backend && npm install --prefix frontend && pip install -r ai-service/requirements.txt && pip install -r sandbox-agent-v2/requirements.txt",
-    "test:all": "npm test --prefix backend && npm run build:check --prefix backend && npm run build:check --prefix frontend"
+    "test:all": "npm test --prefix backend && npm run build:check --prefix backend && npm run build:check --prefix frontend",
+    "cli": "tsx cli/cli.ts",
+    "nytx": "tsx cli/cli.ts"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "chalk": "^5.6.2",
+    "commander": "^15.0.0",
+    "figlet": "^1.11.3",
+    "tsx": "^4.23.1"
   }
 }

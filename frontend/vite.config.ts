@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
@@ -15,13 +15,9 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    // Emit sourcemaps so production stack traces can be deminified.
     sourcemap: true,
-    // Heavy pages are now lazy-loaded so the initial chunk should fit
-    // comfortably under this threshold.
     chunkSizeWarningLimit: 600,
   },
-  // Vite 8 uses the Oxc minifier. Strip debug noise from production bundles only.
   oxc:
     mode === 'production'
       ? {
@@ -29,4 +25,10 @@ export default defineConfig(({ mode }) => ({
           drop: ['console', 'debugger'],
         }
       : {},
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.ts',
+    css: false,
+  },
 }))

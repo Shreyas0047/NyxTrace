@@ -8,17 +8,17 @@ import RegisterPage from '../pages/RegisterPage';
 import ForgotPasswordPage from '../pages/ForgotPasswordPage';
 import ManifestoPage from '../pages/ManifestoPage';
 import DiscoverPage from '../pages/DiscoverPage';
-import EnhancedDashboardPage from '../pages/EnhancedDashboardPage';
-import InvestigationsPage from '../pages/InvestigationsPage';
-import AlertsPage from '../pages/AlertsPage';
-import EvidenceExplorerPage from '../pages/EvidenceExplorerPage';
-import LiveTelemetryPage from '../pages/LiveTelemetryPage';
-import BlockchainOperationsPage from '../pages/BlockchainOperationsPage';
-import ThreatIntelligencePage from '../pages/ThreatIntelligencePage';
-import ForensicAnalyticsPage from '../pages/ForensicAnalyticsPage';
-import SettingsPage from '../pages/SettingsPage';
-import ChainOfCustodyPage from '../pages/ChainOfCustodyPage';
-import UsersPage from '../pages/UsersPage';
+const EnhancedDashboardPage = lazy(() => import('../pages/EnhancedDashboardPage'));
+const InvestigationsPage = lazy(() => import('../pages/InvestigationsPage'));
+const AlertsPage = lazy(() => import('../pages/AlertsPage'));
+const EvidenceExplorerPage = lazy(() => import('../pages/EvidenceExplorerPage'));
+const LiveTelemetryPage = lazy(() => import('../pages/LiveTelemetryPage'));
+const BlockchainOperationsPage = lazy(() => import('../pages/BlockchainOperationsPage'));
+const ThreatIntelligencePage = lazy(() => import('../pages/ThreatIntelligencePage'));
+const ForensicAnalyticsPage = lazy(() => import('../pages/ForensicAnalyticsPage'));
+const SettingsPage = lazy(() => import('../pages/SettingsPage'));
+const ChainOfCustodyPage = lazy(() => import('../pages/ChainOfCustodyPage'));
+const UsersPage = lazy(() => import('../pages/UsersPage'));
 
 // Heavy pages — code-split so they download on demand instead of bloating
 // the initial bundle. Each becomes its own chunk.

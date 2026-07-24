@@ -15,7 +15,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from telemetry_helper import emit, set_phase, jitter
+from telemetry_helper import check_environment, emit, EnvSafety, set_phase, jitter
 
 import socket
 
@@ -27,12 +27,17 @@ def main() -> int:
 
     # Phase 1: Anti-analysis checks
     set_phase("anti_analysis")
-    emit("REGISTRY", "READ_KEY", r"HKLM\SYSTEM\CurrentControlSet\Services\VBoxGuest", "INFO",
-         source_process="winlogon_e.exe",
-         detail="Checking for VirtualBox Guest Additions (VM detection)", technique_id="T1497.001")
-    emit("REGISTRY", "READ_KEY", r"HKLM\HARDWARE\DESCRIPTION\System\BIOS\SystemManufacturer", "INFO",
-         source_process="winlogon_e.exe",
-         detail="Checking BIOS manufacturer for VM signatures", technique_id="T1497.001")
+    env, env_reasons = check_environment()
+    if env_reasons:
+        emit("PROCESS", "ENVIRONMENT_CHECK",
+             os.environ.get("COMPUTERNAME", "unknown"),
+             "WARNING" if env != EnvSafety.CLEAN else "INFO",
+             source_process="winlogon_e.exe",
+             verdict=env.name, reasons=env_reasons)
+    if env == EnvSafety.COMPROMISED:
+        emit("PROCESS", "EXIT_PROCESS", "winlogon_e.exe", "INFO",
+             source_process="winlogon_e.exe", early_exit="COMPROMISED environment")
+        return 0
     jitter(0.2, 0.2)
 
     # Phase 2: Service installation
@@ -79,30 +84,32 @@ def main() -> int:
     jitter(0.2, 0.2)
 
     # Phase 5: Boot record modification
-    set_phase("boot_persistence")
-    emit("FILE", "BOOT_MODIFY", r"\\.\PhysicalDrive0", "CRITICAL",
-         source_process="winlogon_e.exe",
-         detail="MBR/VBR modification attempted", technique_id="T1542.003")
-    emit("PROCESS", "CREATE_PROCESS", "bcdedit.exe", "CRITICAL",
-         source_process="winlogon_e.exe",
-         command="bcdedit /set {default} bootstatuspolicy ignoreallfailures",
-         detail="Boot policy modification attempted", technique_id="T1542.003")
+    if env != EnvSafety.SUSPICIOUS:
+        set_phase("boot_persistence")
+        emit("FILE", "BOOT_MODIFY", r"\\.\PhysicalDrive0", "CRITICAL",
+             source_process="winlogon_e.exe",
+             detail="MBR/VBR modification attempted", technique_id="T1542.003")
+        emit("PROCESS", "CREATE_PROCESS", "bcdedit.exe", "CRITICAL",
+             source_process="winlogon_e.exe",
+             command="bcdedit /set {default} bootstatuspolicy ignoreallfailures",
+             detail="Boot policy modification attempted", technique_id="T1542.003")
 
     # Phase 6: Process injection
-    set_phase("process_injection")
-    targets = ["explorer.exe", "svchost.exe", "lsass.exe"]
-    for proc in targets:
-        emit("PROCESS", "OPEN_PROCESS", proc, "CRITICAL",
-             source_process="winlogon_e.exe",
-             access_rights="PROCESS_ALL_ACCESS",
-             detail=f"Opening {proc} for injection", technique_id="T1055")
-        emit("PROCESS", "WRITE_MEMORY", proc, "CRITICAL",
-             source_process="winlogon_e.exe",
-             detail=f"Writing shellcode to {proc} memory space", technique_id="T1055.001")
-        emit("PROCESS", "CREATE_THREAD", proc, "CRITICAL",
-             source_process="winlogon_e.exe",
-             detail=f"Remote thread created in {proc}", technique_id="T1055.003")
-        jitter(0.2, 0.2)
+    if env != EnvSafety.SUSPICIOUS:
+        set_phase("process_injection")
+        targets = ["explorer.exe", "svchost.exe", "lsass.exe"]
+        for proc in targets:
+            emit("PROCESS", "OPEN_PROCESS", proc, "CRITICAL",
+                 source_process="winlogon_e.exe",
+                 access_rights="PROCESS_ALL_ACCESS",
+                 detail=f"Opening {proc} for injection", technique_id="T1055")
+            emit("PROCESS", "WRITE_MEMORY", proc, "CRITICAL",
+                 source_process="winlogon_e.exe",
+                 detail=f"Writing shellcode to {proc} memory space", technique_id="T1055.001")
+            emit("PROCESS", "CREATE_THREAD", proc, "CRITICAL",
+                 source_process="winlogon_e.exe",
+                 detail=f"Remote thread created in {proc}", technique_id="T1055.003")
+            jitter(0.2, 0.2)
 
     # Phase 7: Network callback
     set_phase("c2_callback")

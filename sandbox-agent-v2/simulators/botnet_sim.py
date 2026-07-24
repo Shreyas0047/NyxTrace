@@ -23,7 +23,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from telemetry_helper import emit, set_phase, jitter
+from telemetry_helper import check_environment, emit, EnvSafety, set_phase, jitter
 
 
 # =============================================================================
@@ -50,6 +50,18 @@ def main() -> int:
     set_phase("initialization")
     emit("PROCESS", "CREATE_PROCESS", sys.executable, "WARNING",
          source_process="svchost_bot.exe", pid=os.getpid(), detail="Botnet simulator started")
+
+    env, env_reasons = check_environment()
+    if env_reasons:
+        emit("PROCESS", "ENVIRONMENT_CHECK",
+             os.environ.get("COMPUTERNAME", "unknown"),
+             "WARNING" if env != EnvSafety.CLEAN else "INFO",
+             source_process="svchost_bot.exe",
+             verdict=env.name, reasons=env_reasons)
+    if env == EnvSafety.COMPROMISED:
+        emit("PROCESS", "EXIT_PROCESS", "svchost_bot.exe", "INFO",
+             source_process="svchost_bot.exe", early_exit="COMPROMISED environment")
+        return 0
 
     # --- Phase 1: Persistence via Registry ---
     set_phase("persistence")
@@ -126,26 +138,27 @@ def main() -> int:
         jitter(1.5, 1.0)
 
     # --- Phase 5: Process Hollowing ---
-    set_phase("process_hollowing")
-    target_proc = r"C:\Windows\System32\calc.exe"
-    emit("PROCESS", "CREATE_PROCESS", target_proc, "CRITICAL",
-         source_process="svchost_bot.exe", creation_flags="CREATE_SUSPENDED",
-         detail="Spawning target process for hollowing", technique_id="T1055.012")
-    try:
-        proc = subprocess.Popen(
-            [target_proc], creationflags=subprocess.CREATE_NEW_CONSOLE,
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        emit("PROCESS", "WRITE_MEMORY", target_proc, "CRITICAL",
-             source_process="svchost_bot.exe", target_pid=proc.pid,
-             detail=f"Writing payload to process memory (PID={proc.pid})", technique_id="T1055.001")
-        emit("PROCESS", "CREATE_THREAD", target_proc, "CRITICAL",
-             source_process="svchost_bot.exe", target_pid=proc.pid,
-             detail="Remote thread created — execution hijacked")
-        jitter(1.5, 1.0)
-        proc.terminate()
-    except Exception as e:
-        emit("PROCESS", "CREATE_PROCESS", target_proc, "WARNING",
-             source_process="svchost_bot.exe", error=str(e))
+    if env != EnvSafety.SUSPICIOUS:
+        set_phase("process_hollowing")
+        target_proc = r"C:\Windows\System32\calc.exe"
+        emit("PROCESS", "CREATE_PROCESS", target_proc, "CRITICAL",
+             source_process="svchost_bot.exe", creation_flags="CREATE_SUSPENDED",
+             detail="Spawning target process for hollowing", technique_id="T1055.012")
+        try:
+            proc = subprocess.Popen(
+                [target_proc], creationflags=subprocess.CREATE_NEW_CONSOLE,
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            emit("PROCESS", "WRITE_MEMORY", target_proc, "CRITICAL",
+                 source_process="svchost_bot.exe", target_pid=proc.pid,
+                 detail=f"Writing payload to process memory (PID={proc.pid})", technique_id="T1055.001")
+            emit("PROCESS", "CREATE_THREAD", target_proc, "CRITICAL",
+                 source_process="svchost_bot.exe", target_pid=proc.pid,
+                 detail="Remote thread created — execution hijacked")
+            jitter(1.5, 1.0)
+            proc.terminate()
+        except Exception as e:
+            emit("PROCESS", "CREATE_PROCESS", target_proc, "WARNING",
+                 source_process="svchost_bot.exe", error=str(e))
 
     # --- Phase 6: Bot Configuration Drop ---
     set_phase("config_drop")

@@ -9,12 +9,24 @@ Provides:
 
 from __future__ import annotations
 
+import ctypes
 import json
+import os
 import random
+import shutil
+import subprocess
+import sys
 import time
 import uuid
 from datetime import datetime, timezone
+from enum import IntEnum
 from typing import Optional
+
+try:
+    import winreg
+    _HAS_WINREG = True
+except ImportError:
+    _HAS_WINREG = False
 
 # Session-wide correlation ID (set once per simulator run)
 SESSION_CORRELATION_ID: str = str(uuid.uuid4())
@@ -33,6 +45,167 @@ def set_phase(name: str) -> str:
 def jitter(base: float = 0.1, variance: float = 0.15) -> None:
     """Sleep with randomized jitter for realistic timing."""
     time.sleep(base + random.uniform(0, variance))
+
+
+# =============================================================================
+# ENVIRONMENT DETECTION — anti-analysis gating for simulators
+# =============================================================================
+
+
+class EnvSafety(IntEnum):
+    CLEAN = 0
+    SUSPICIOUS = 1
+    COMPROMISED = 2
+
+
+_DETECTION_WEIGHTS: dict[str, int] = {
+    "debugger_present":        100,
+    "vbox_guest_service":       90,
+    "vbox_guest_additions":     85,
+    "vm_bios_manufacturer":     80,
+    "analysis_tool_running":    50,
+    "sandbox_username":         40,
+    "small_screen":             25,
+    "small_disk":               20,
+    "low_cpu_count":            10,
+}
+
+_SANDBOX_USERNAMES: frozenset[str] = frozenset({
+    "sandbox", "guest", "user", "admin", "test", "vmware", "vbox",
+    "analyst", "malware", "debug", "lab", "sample", "evil",
+})
+
+_ANALYSIS_TOOLS: frozenset[str] = frozenset({
+    "procexp.exe", "procexp64.exe", "procmon.exe", "procmon64.exe",
+    "wireshark.exe", "tshark.exe", "tcpview.exe", "tcpview64.exe",
+    "processhacker.exe", "processhacker64.exe", "ollydbg.exe",
+    "x64dbg.exe", "x32dbg.exe", "windbg.exe", "ida.exe", "ida64.exe",
+    "ghidra.exe", "immunitydbg.exe", "regmon.exe", "filemon.exe",
+    "apimonitor.exe", "apilogger.exe", "petools.exe", "lordpe.exe",
+    "importrec.exe", "dnspy.exe", "ilspy.exe", "de4dot.exe",
+    "vboxservice.exe", "vboxtray.exe",
+    "vmtoolsd.exe", "vmwaretray.exe", "vmwareuser.exe",
+    "qemu-ga.exe",
+})
+
+_VM_BIOS_MARKERS: tuple[str, ...] = (
+    "innotek", "virtualbox", "vbox", "vmware", "qemu",
+    "bochs", "microsoft corporation virtual", "xen",
+)
+
+_COMPROMISED_THRESHOLD: int = 80
+_SUSPICIOUS_THRESHOLD: int = 30
+
+
+def check_environment() -> tuple[EnvSafety, list[str]]:
+    reasons: list[str] = []
+    cumulative: int = 0
+
+    # 1. Debugger check (highest confidence)
+    try:
+        is_debugged = ctypes.windll.kernel32.IsDebuggerPresent()
+        if is_debugged:
+            reasons.append("debugger_present")
+            cumulative += _DETECTION_WEIGHTS["debugger_present"]
+    except Exception:
+        pass
+
+    # 2. VM registry artifacts
+    if _HAS_WINREG:
+        try:
+            key = winreg.OpenKey(
+                winreg.HKEY_LOCAL_MACHINE,
+                r"SYSTEM\CurrentControlSet\Services\VBoxGuest",
+                0, winreg.KEY_READ,
+            )
+            winreg.CloseKey(key)
+            reasons.append("vbox_guest_service")
+            cumulative += _DETECTION_WEIGHTS["vbox_guest_service"]
+        except OSError:
+            pass
+
+        try:
+            key = winreg.OpenKey(
+                winreg.HKEY_LOCAL_MACHINE,
+                r"HARDWARE\DESCRIPTION\System\BIOS",
+                0, winreg.KEY_READ,
+            )
+            manufacturer, _ = winreg.QueryValueEx(key, "SystemManufacturer")
+            winreg.CloseKey(key)
+            if any(m in manufacturer.lower() for m in _VM_BIOS_MARKERS):
+                reasons.append("vm_bios_manufacturer")
+                cumulative += _DETECTION_WEIGHTS["vm_bios_manufacturer"]
+        except OSError:
+            pass
+
+        try:
+            key = winreg.OpenKey(
+                winreg.HKEY_LOCAL_MACHINE,
+                r"SOFTWARE\Oracle\VirtualBox Guest Additions",
+                0, winreg.KEY_READ,
+            )
+            winreg.CloseKey(key)
+            reasons.append("vbox_guest_additions")
+            cumulative += _DETECTION_WEIGHTS["vbox_guest_additions"]
+        except OSError:
+            pass
+
+    # 3. Analysis tools running
+    try:
+        result = subprocess.run(
+            ["tasklist", "/fo", "csv", "/nh"],
+            capture_output=True, text=True, timeout=5,
+            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0,
+        )
+        running_tools = [t for t in _ANALYSIS_TOOLS if t in result.stdout.lower()]
+        if running_tools:
+            reasons.append(f"analysis_tool_running:{','.join(running_tools)}")
+            cumulative += _DETECTION_WEIGHTS["analysis_tool_running"]
+    except Exception:
+        pass
+
+    # 4. Sandbox username
+    try:
+        username = os.environ.get("USERNAME", "").lower()
+        if username in _SANDBOX_USERNAMES:
+            reasons.append("sandbox_username")
+            cumulative += _DETECTION_WEIGHTS["sandbox_username"]
+    except Exception:
+        pass
+
+    # 5. Small screen resolution
+    try:
+        width = ctypes.windll.user32.GetSystemMetrics(0)
+        height = ctypes.windll.user32.GetSystemMetrics(1)
+        if width <= 1024 and height <= 768:
+            reasons.append("small_screen")
+            cumulative += _DETECTION_WEIGHTS["small_screen"]
+    except Exception:
+        pass
+
+    # 6. Small disk
+    try:
+        total, _used, _free = shutil.disk_usage("/")
+        if total < 100 * (1024 ** 3):
+            reasons.append("small_disk")
+            cumulative += _DETECTION_WEIGHTS["small_disk"]
+    except Exception:
+        pass
+
+    # 7. Low CPU count
+    try:
+        cpus = os.cpu_count() or 0
+        if cpus <= 2:
+            reasons.append("low_cpu_count")
+            cumulative += _DETECTION_WEIGHTS["low_cpu_count"]
+    except Exception:
+        pass
+
+    if cumulative >= _COMPROMISED_THRESHOLD:
+        return EnvSafety.COMPROMISED, reasons
+    if cumulative >= _SUSPICIOUS_THRESHOLD:
+        return EnvSafety.SUSPICIOUS, reasons
+    return EnvSafety.CLEAN, reasons
 
 
 # =============================================================================

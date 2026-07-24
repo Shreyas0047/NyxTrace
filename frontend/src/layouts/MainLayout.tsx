@@ -12,6 +12,7 @@ import Header from '../components/layout/Header';
 import { StatusBanner } from '../components/ui/StatusBanner';
 import { useStatusStore } from '../stores/statusStore';
 import { cn } from '../design-system';
+import type { BreadcrumbItem } from '../components/layout/Header';
 import {
   Home,
   LayoutDashboard,
@@ -30,12 +31,6 @@ import {
   Users,
   History,
 } from 'lucide-react';
-
-interface BreadcrumbItem {
-  label: string;
-  path?: string;
-  icon?: React.ComponentType<{ className?: string }>;
-}
 
 const routeBreadcrumbs: Record<string, BreadcrumbItem[]> = {
   '/dashboard': [{ label: 'Dashboard', icon: LayoutDashboard }],

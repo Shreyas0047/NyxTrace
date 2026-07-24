@@ -44,28 +44,16 @@ class RateLimiter:
             return True, 0
 
     async def check(self, key: str) -> Tuple[bool, int]:
+        return await self.is_allowed(key)
+
+    async def cleanup(self) -> None:
         async with self._lock:
             now = time.time()
             cutoff = now - self.window_seconds
-            timestamps = self._buckets.get(key, [])
-
-            while timestamps and timestamps[0] < cutoff:
-                timestamps.pop(0)
-
-            allowed = len(timestamps) < self.max_requests
-            retry_after = 0
-            if not allowed and timestamps:
-                retry_after = int(timestamps[0] + self.window_seconds - now)
-
-            return allowed, max(1, retry_after)
-
-    def cleanup(self) -> None:
-        now = time.time()
-        cutoff = now - self.window_seconds
-        for key in list(self._buckets.keys()):
-            self._buckets[key] = [t for t in self._buckets[key] if t >= cutoff]
-            if not self._buckets[key]:
-                del self._buckets[key]
+            for key in list(self._buckets.keys()):
+                self._buckets[key] = [t for t in self._buckets[key] if t >= cutoff]
+                if not self._buckets[key]:
+                    del self._buckets[key]
 
 
 rate_limiter = RateLimiter(

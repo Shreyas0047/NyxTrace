@@ -32,7 +32,7 @@ from discovery_helper import emit_account_discovery, emit_network_config_discove
 from collection_helper import emit_automated_collection, emit_screen_capture_detail
 from execution_helper import emit_powershell_execution, emit_wmi_execution, emit_script_execution
 from impact_helper import emit_data_destruction, emit_disk_wipe, emit_system_shutdown, emit_service_stop
-from persistence_helper import emit_wmi_subscription
+from persistence_helper import emit_registry_run, emit_scheduled_task, emit_wmi_subscription
 from obfuscation_helper import xor_bytes, rc4_stream, emit_crypto_operation, emit_encoded_file_write
 
 
@@ -245,19 +245,13 @@ Key: NyxTrace-Simulation-Key-2024</p></body></html>""", encoding="utf-8")
         except Exception:
             pass
 
-    # --- Phase 8: Persistence via Run Key ---
-    set_phase("persistence")
-    run_key = r"HKCU\Software\Microsoft\Windows\CurrentVersion\Run"
-    emit("REGISTRY", "SET_VALUE", run_key, "CRITICAL",
-         source_process="ransomware.exe",
-         value_name="CryptoService", value_data=r"C:\ProgramData\svchost_crypto.exe",
-         detail="Persistence mechanism installed", technique_id="T1547.001")
+    # --- Phase 8: Persistence via Run Key (T1547.001) ---
+    emit_registry_run("ransomware.exe", "CryptoService",
+                      r"C:\ProgramData\svchost_crypto.exe")
 
-    # --- Phase 9: Scheduled Task Persistence ---
-    set_phase("scheduled_task")
-    emit("PROCESS", "SCHEDULED_TASK", "schtasks.exe", "CRITICAL",
-         source_process="ransomware.exe",
-         detail="Creating scheduled task for persistence", technique_id="T1053.005")
+    # --- Phase 9: Scheduled Task Persistence (T1053.005) ---
+    emit_scheduled_task("ransomware.exe", "CryptoRecovery",
+                        r"C:\ProgramData\svchost_crypto.exe", "HOURLY")
     try:
         subprocess.run([
             "schtasks", "/create", "/tn", "CryptoRecovery",
@@ -283,12 +277,14 @@ Key: NyxTrace-Simulation-Key-2024</p></body></html>""", encoding="utf-8")
     enc_note = xor_bytes(note_body, xor_key)
     enc_note_path = desktop / "DECRYPT_YOUR_FILES.html.enc"
     enc_note_path.write_bytes(enc_note)
+    emit_crypto_operation("ransomware.exe", "ENCODE", "XOR", len(note_body))
     emit_encoded_file_write("ransomware.exe", str(enc_note_path), len(note_body), len(enc_note))
     proof_data = json.dumps({"encrypted_count": encrypted_count, "key": "NyxTrace-Simulation-Key-2024"}).encode()
     rc4_key = b"NyxTrace-RC4-2024"
     enc_proof = rc4_stream(proof_data, rc4_key)
     proof_path = desktop / "encrypted_files.lst.enc"
     proof_path.write_bytes(enc_proof)
+    emit_crypto_operation("ransomware.exe", "ENCODE", "RC4", len(proof_data))
     emit_encoded_file_write("ransomware.exe", str(proof_path), len(proof_data), len(enc_proof), algorithm="RC4")
     time.sleep(phase_delay("file_encrypt"))
 

@@ -27,14 +27,14 @@ from pathlib import Path
 from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from c2_helper import emit_doh_query, emit_heartbeats, fronted_beacon, jittered_sleep, FRONT_DOMAINS
 from naming_helper import phase_delay, pick_pipe, emit_pipe
-from defense_helper import emit_amsi_bypass
+from defense_helper import emit_system_discovery, emit_software_discovery, emit_process_discovery, emit_amsi_bypass, emit_uac_bypass, emit_firewall_rule
 from defense_evasion_helper import emit_defender_disable, emit_event_log_clear, emit_registry_cleanup
 from discovery_helper import emit_account_discovery, emit_permission_groups_discovery, emit_system_owner_discovery
 from collection_helper import emit_clipboard_monitoring, emit_input_capture, emit_browser_collection
 from execution_helper import emit_powershell_execution, emit_regsvr32_execution, emit_cmstp_execution
 from impact_helper import emit_account_lockout, emit_data_destruction, emit_service_stop
 from persistence_helper import emit_registry_run, emit_scheduled_task
-from obfuscation_helper import xor_bytes, emit_crypto_operation, emit_encoded_file_write
+from obfuscation_helper import xor_bytes, emit_crypto_operation
 
 
 EXFIL_SERVERS = ["10.13.37.50", "10.13.37.51"]
@@ -68,7 +68,14 @@ def main() -> int:
     user = os.environ.get("USERPROFILE", r"C:\Users\guestuser")
     local_appdata = os.environ.get("LOCALAPPDATA", f"{user}\\AppData\\Local")
 
-    # --- Phase 1: Browser Profile Discovery ---
+    # --- Phase 1: System Discovery (T1082, T1518, T1057) ---
+    set_phase("system_discovery")
+    emit_system_discovery("stealer.exe")
+    emit_software_discovery("stealer.exe")
+    emit_process_discovery("stealer.exe")
+    time.sleep(phase_delay("system_discovery"))
+
+    # --- Phase 1b: Browser Profile Discovery ---
     set_phase("browser_discovery")
     emit("PROCESS", "CREATE_THREAD", "stealer.exe", "INFO",
          source_process="stealer.exe", detail="Scanning for browser profiles", technique_id="T1217")
@@ -142,9 +149,11 @@ def main() -> int:
                 pass
         time.sleep(phase_delay("file_read"))
 
-    # --- Phase 2b: AMSI Bypass before sensitive registry access ---
+    # --- Phase 2b: AMSI Bypass + UAC Bypass + Firewall Rule ---
     emit_amsi_bypass("stealer.exe", "registry")
-    time.sleep(phase_delay("amsi_bypass"))
+    emit_uac_bypass("stealer.exe", "fodhelper")
+    emit_firewall_rule("stealer.exe", "Credential Upload", "out", 443)
+    time.sleep(phase_delay("defense_evasion"))
 
     # --- Phase 3: Registry Hive Access ---
     if env != EnvSafety.SUSPICIOUS:

@@ -74,15 +74,14 @@ async def analyze_telemetry(request: Request, body: TelemetryAnalysisRequest):
         events = body.events
         if len(events) > CHUNK_SIZE:
             logger.info(
-                f"Large telemetry ({len(events)} events) — processing in {len(events) // CHUNK_SIZE + 1} chunks"
+                f"Large telemetry ({len(events)} events) — processing first {CHUNK_SIZE} events "
+                f"with sub-sampling of remaining {len(events) - CHUNK_SIZE} events"
             )
-            events = events[:CHUNK_SIZE] + events[
-                CHUNK_SIZE :: max(1, len(events[CHUNK_SIZE:]) // 500)
-            ]
+            sub_sampled = events[CHUNK_SIZE::max(1, len(events[CHUNK_SIZE:]) // 500)]
             body = TelemetryAnalysisRequest(
                 session_id=body.session_id,
                 investigation_id=body.investigation_id,
-                events=events[:CHUNK_SIZE],
+                events=events[:CHUNK_SIZE] + sub_sampled,
                 metadata=body.metadata,
             )
 

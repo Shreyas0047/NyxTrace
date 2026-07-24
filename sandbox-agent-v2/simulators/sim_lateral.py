@@ -19,14 +19,14 @@ from pathlib import Path
 
 from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from naming_helper import phase_delay, pick_service_name
-from defense_helper import emit_firewall_rule, emit_process_discovery
+from defense_helper import emit_firewall_rule, emit_process_discovery, emit_uac_bypass, emit_amsi_bypass, emit_etw_patch
 from defense_evasion_helper import emit_defender_disable, emit_event_log_clear, emit_masquerade_process
 from discovery_helper import emit_account_discovery, emit_domain_trust_discovery, emit_network_share_discovery
 from collection_helper import emit_clipboard_monitoring, emit_automated_collection
 from execution_helper import emit_powershell_execution, emit_wmi_execution, emit_bitsadmin_execution
 from impact_helper import emit_data_destruction, emit_service_stop, emit_disk_wipe
 from persistence_helper import emit_windows_service, emit_scheduled_task
-from obfuscation_helper import xor_bytes, base64_encode, emit_crypto_operation
+from obfuscation_helper import xor_bytes, base64_encode, emit_crypto_operation, emit_encoded_file_write
 
 # Simulated internal network (non-routable)
 INTERNAL_HOSTS = [
@@ -66,7 +66,7 @@ def main() -> int:
     # --- Phase 1a: Execution — Remote Payload Deployment ---
     set_phase("execution")
     emit_powershell_execution("lateral.exe", "lateral_stage.ps1")
-    emit_wmi_execution("lateral.exe", target_ip)
+    emit_wmi_execution("lateral.exe", "localhost")
     emit_bitsadmin_execution("lateral.exe")
     time.sleep(phase_delay("defense_evasion"))
 
@@ -82,6 +82,9 @@ def main() -> int:
     emit_defender_disable("lateral.exe")
     emit_event_log_clear("lateral.exe")
     emit_masquerade_process("lateral.exe")
+    emit_uac_bypass("lateral.exe", "fodhelper")
+    emit_amsi_bypass("lateral.exe", "registry")
+    emit_etw_patch("lateral.exe")
     time.sleep(phase_delay("defense_evasion"))
 
     # --- Phase 2: Network Discovery (host scanning) ---
@@ -156,12 +159,9 @@ def main() -> int:
     enc_creds = xor_bytes(cred_data, xor_key)
     enc_creds_b64 = base64_encode(enc_creds)
     emit_crypto_operation("lateral.exe", "ENCODE", "XOR+Base64", len(cred_data))
-    emit("FILE", "WRITE_ENCODED", "memory:credential_cache", "WARNING",
-         source_process="lateral.exe", algorithm="XOR+Base64",
-         original_size=len(cred_data),
-         encoded_size=len(enc_creds_b64),
-         detail="Harvested credentials obfuscated in memory",
-         technique_id="T1027")
+    emit_encoded_file_write("lateral.exe", "memory:credential_cache",
+                            len(cred_data), len(enc_creds_b64),
+                            algorithm="XOR+Base64")
     time.sleep(phase_delay("file_encrypt"))
 
     # --- Phase 5: Pass-the-Hash ---

@@ -3,13 +3,21 @@
  */
 
 export enum Role {
+  SUPER_ADMIN = 'super_admin',
   ADMIN = 'admin',
   FORENSIC_ANALYST = 'forensic_analyst',
+  INVESTIGATOR = 'investigator',
+  VIEWER = 'viewer',
+  AUDITOR = 'auditor',
 }
 
 export const RoleLabels: Record<Role, string> = {
+  [Role.SUPER_ADMIN]: 'Super Admin',
   [Role.ADMIN]: 'Administrator',
-  [Role.FORENSIC_ANALYST]: 'Analyst',
+  [Role.FORENSIC_ANALYST]: 'Forensic Analyst',
+  [Role.INVESTIGATOR]: 'Investigator',
+  [Role.VIEWER]: 'Viewer',
+  [Role.AUDITOR]: 'Auditor',
 };
 
 export enum Permission {
@@ -88,6 +96,7 @@ export enum Permission {
 }
 
 export const RolePermissions: Record<Role, Permission[]> = {
+  [Role.SUPER_ADMIN]: Object.values(Permission),
   [Role.ADMIN]: Object.values(Permission),
 
   [Role.FORENSIC_ANALYST]: [
@@ -116,6 +125,60 @@ export const RolePermissions: Record<Role, Permission[]> = {
     Permission.ANALYTICS_VIEW,
     Permission.ANALYTICS_EXPORT,
   ],
+
+  [Role.INVESTIGATOR]: [
+    Permission.INVESTIGATIONS_VIEW,
+    Permission.INVESTIGATIONS_VIEW_ALL,
+    Permission.INVESTIGATIONS_CREATE,
+    Permission.INVESTIGATIONS_UPDATE,
+    Permission.EVIDENCE_VIEW,
+    Permission.EVIDENCE_VIEW_ALL,
+    Permission.EVIDENCE_UPLOAD,
+    Permission.EVIDENCE_UPDATE,
+    Permission.ALERTS_VIEW,
+    Permission.ALERTS_ACKNOWLEDGE,
+    Permission.SANDBOX_VIEW,
+    Permission.SANDBOX_EXECUTE,
+    Permission.TELEMETRY_VIEW,
+    Permission.TELEMETRY_ANALYZE,
+    Permission.REPORTS_VIEW,
+    Permission.REPORTS_CREATE,
+    Permission.THREAT_VIEW,
+    Permission.BLOCKCHAIN_VIEW,
+    Permission.ANALYTICS_VIEW,
+  ],
+
+  [Role.VIEWER]: [
+    Permission.INVESTIGATIONS_VIEW,
+    Permission.EVIDENCE_VIEW,
+    Permission.ALERTS_VIEW,
+    Permission.SANDBOX_VIEW,
+    Permission.TELEMETRY_VIEW,
+    Permission.REPORTS_VIEW,
+    Permission.THREAT_VIEW,
+    Permission.BLOCKCHAIN_VIEW,
+    Permission.ANALYTICS_VIEW,
+    Permission.HEALTH_VIEW,
+  ],
+
+  [Role.AUDITOR]: [
+    Permission.INVESTIGATIONS_VIEW,
+    Permission.INVESTIGATIONS_VIEW_ALL,
+    Permission.EVIDENCE_VIEW,
+    Permission.EVIDENCE_VIEW_ALL,
+    Permission.ALERTS_VIEW,
+    Permission.SANDBOX_VIEW,
+    Permission.TELEMETRY_VIEW,
+    Permission.REPORTS_VIEW,
+    Permission.THREAT_VIEW,
+    Permission.BLOCKCHAIN_VIEW,
+    Permission.BLOCKCHAIN_VERIFY,
+    Permission.ANALYTICS_VIEW,
+    Permission.ANALYTICS_EXPORT,
+    Permission.AUDIT_VIEW,
+    Permission.AUDIT_EXPORT,
+    Permission.HEALTH_VIEW,
+  ],
 };
 
 export function hasPermission(userRole: Role, permission: Permission): boolean {
@@ -124,9 +187,25 @@ export function hasPermission(userRole: Role, permission: Permission): boolean {
 }
 
 export function isAdmin(role: Role): boolean {
-  return role === Role.ADMIN;
+  return role === Role.ADMIN || role === Role.SUPER_ADMIN;
 }
 
 export function isAnalyst(role: Role): boolean {
   return role === Role.FORENSIC_ANALYST;
+}
+
+export function isSuperAdmin(role: Role): boolean {
+  return role === Role.SUPER_ADMIN;
+}
+
+export function isInvestigator(role: Role): boolean {
+  return role === Role.INVESTIGATOR;
+}
+
+export function isViewer(role: Role): boolean {
+  return role === Role.VIEWER;
+}
+
+export function isAuditor(role: Role): boolean {
+  return role === Role.AUDITOR;
 }

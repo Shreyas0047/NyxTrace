@@ -9,7 +9,7 @@ import {
 import { useAuthStore } from '../../stores/authStore';
 import ConnectionStatus from './ConnectionStatus';
 
-interface BreadcrumbItem {
+export interface BreadcrumbItem {
   label: string;
   path?: string;
   icon?: React.ComponentType<{ className?: string }>;

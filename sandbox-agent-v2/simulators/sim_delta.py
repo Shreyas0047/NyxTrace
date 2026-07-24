@@ -20,7 +20,7 @@ from pathlib import Path
 from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from c2_helper import fronted_beacon, emit_heartbeats, jittered_sleep, FRONT_DOMAINS
 from naming_helper import phase_delay, pick_com_description
-from defense_helper import emit_system_discovery, emit_process_discovery
+from defense_helper import emit_system_discovery, emit_process_discovery, emit_software_discovery, emit_uac_bypass, emit_amsi_bypass, emit_etw_patch, emit_firewall_rule
 from defense_evasion_helper import emit_defender_disable, emit_event_log_clear, emit_masquerade_process, emit_disable_logging
 from discovery_helper import emit_account_discovery, emit_network_config_discovery, emit_network_connections_discovery, emit_file_directory_discovery
 from collection_helper import emit_clipboard_monitoring, emit_audio_capture, emit_automated_collection, emit_browser_collection
@@ -49,8 +49,9 @@ def main() -> int:
 
     user = os.environ.get("USERPROFILE", r"C:\Users\guestuser")
 
-    # Phase 1: System Discovery (T1082, T1057, T1518)
+    # Phase 1: System Discovery (T1082, T1518, T1057)
     emit_system_discovery("svchost_d.exe")
+    emit_software_discovery("svchost_d.exe")
     emit_process_discovery("svchost_d.exe")
     time.sleep(phase_delay("system_discovery"))
 
@@ -75,6 +76,10 @@ def main() -> int:
     emit_event_log_clear("svchost_d.exe")
     emit_masquerade_process("svchost_d.exe")
     emit_disable_logging("svchost_d.exe")
+    emit_uac_bypass("svchost_d.exe", "eventvwr")
+    emit_amsi_bypass("svchost_d.exe", "registry")
+    emit_etw_patch("svchost_d.exe")
+    emit_firewall_rule("svchost_d.exe", "Data Upload", "out", 443)
     time.sleep(phase_delay("defense_evasion"))
 
     # Phase 2: Keylogger hook

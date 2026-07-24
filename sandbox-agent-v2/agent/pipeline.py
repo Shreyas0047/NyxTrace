@@ -165,6 +165,13 @@ class SessionPipeline:
         # SANDBOX_GUEST_PYTHON env var if you install Python somewhere else.
         import os as _os
         guest_python = _os.environ.get("SANDBOX_GUEST_PYTHON", r"C:\Users\guestuser\AppData\Local\Programs\Python\Python313\python.exe")
+        from pathlib import Path as _Path
+        import glob as _glob
+        if not _os.environ.get("SANDBOX_GUEST_PYTHON"):
+            guest_dir = r"C:\Users\guestuser\AppData\Local\Programs\Python"
+            candidates = sorted(_glob.glob(f"{guest_dir}/Python*/python.exe"), reverse=True)
+            if candidates:
+                guest_python = candidates[0]
         result = await asyncio.to_thread(
             self._vm.guest_exec,
             r"C:\Windows\System32\cmd.exe",

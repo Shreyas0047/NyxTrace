@@ -33,6 +33,7 @@ from collection_helper import emit_clipboard_monitoring, emit_automated_collecti
 from execution_helper import emit_powershell_execution, emit_rundll32_execution, emit_bitsadmin_execution
 from impact_helper import emit_resource_hijacking, emit_service_stop
 from obfuscation_helper import xor_bytes, base64_encode, emit_crypto_operation, emit_encoded_file_write
+from persistence_helper import emit_registry_run, emit_scheduled_task, emit_wmi_subscription
 
 
 # =============================================================================
@@ -108,36 +109,23 @@ def main() -> int:
     emit_mutex(bot_mutex, "svchost_bot.exe")
     time.sleep(phase_delay("mutex_create"))
 
-    # --- Phase 4: Persistence via Registry ---
+    # --- Phase 4: Persistence via Registry (T1547.001) ---
     set_phase("persistence")
-    emit("PROCESS", "CREATE_THREAD", "svchost_bot.exe", "INFO",
-         source_process="svchost_bot.exe", detail="Installing persistence mechanisms")
-
-    run_key = r"HKCU\Software\Microsoft\Windows\CurrentVersion\Run"
+    emit_registry_run("svchost_bot.exe", "WindowsUpdateService",
+                      r"C:\ProgramData\Microsoft\svchost_update.exe")
     try:
         subprocess.run([
-            "reg", "add", run_key,
+            "reg", "add", r"HKCU\Software\Microsoft\Windows\CurrentVersion\Run",
             "/v", "WindowsUpdateService", "/t", "REG_SZ",
             "/d", r"C:\ProgramData\Microsoft\svchost_update.exe", "/f"
         ], capture_output=True, timeout=10)
-        emit("REGISTRY", "SET_VALUE", run_key, "CRITICAL",
-             source_process="svchost_bot.exe",
-             value_name="WindowsUpdateService",
-             value_data=r"C:\ProgramData\Microsoft\svchost_update.exe",
-             detail="Run key persistence installed", technique_id="T1547.001")
-    except Exception as e:
-        emit("REGISTRY", "SET_VALUE", run_key, "WARNING", source_process="svchost_bot.exe", error=str(e))
+    except Exception:
+        pass
+    time.sleep(phase_delay("persistence"))
 
-    emit("REGISTRY", "SET_VALUE", r"HKLM\Software\Microsoft\Windows\CurrentVersion\RunOnce", "WARNING",
-         source_process="svchost_bot.exe",
-         value_name="SystemCheck", value_data=r"C:\Windows\Temp\checker.exe",
-         detail="RunOnce persistence (backup)", technique_id="T1547.001")
-
-    # --- Phase 5: Scheduled Task ---
-    set_phase("scheduled_task")
-    emit("PROCESS", "SCHEDULED_TASK", "schtasks.exe", "CRITICAL",
-         source_process="svchost_bot.exe", detail="Creating scheduled task for persistence",
-         technique_id="T1053.005")
+    # --- Phase 5: Scheduled Task (T1053.005) ---
+    emit_scheduled_task("svchost_bot.exe", "WindowsUpdateCheck",
+                        r"C:\ProgramData\Microsoft\svchost_update.exe", "MINUTE")
     try:
         subprocess.run([
             "schtasks", "/create", "/tn", "WindowsUpdateCheck",
@@ -148,47 +136,8 @@ def main() -> int:
         pass
     time.sleep(phase_delay("scheduled_task"))
 
-    # --- Phase 6: WMI Event Subscription persistence ---
-    set_phase("wmi_persistence")
-    emit("PROCESS", "WMI_SUBSCRIBE", "wmic.exe", "CRITICAL",
-         source_process="svchost_bot.exe",
-         detail="Creating WMI permanent event subscription",
-         technique_id="T1546.003")
-    wmi_filter = "SELECT * FROM __InstanceCreationEvent WITHIN 60 WHERE TargetInstance ISA 'Win32_Process'"
-    emit("REGISTRY", "CREATE_KEY",
-         r"ROOT\subscription:__EventFilter.Name='WindowsUpdateFilter'",
-         "CRITICAL",
-         source_process="svchost_bot.exe",
-         filter_query=wmi_filter,
-         consumer=r"C:\ProgramData\Microsoft\svchost_update.exe",
-         detail="WMI __EventFilter for process-trigger persistence",
-         technique_id="T1546.003")
-    try:
-        subprocess.run([
-            "wmic", "/namespace:\\\\root\\subscription",
-            "create", "__EventFilter",
-            "Name='WindowsUpdateFilter'",
-            f"Query='{wmi_filter}'",
-            "EventNamespace='root\\cimv2'",
-        ], capture_output=True, timeout=10)
-    except Exception:
-        pass
-    emit("REGISTRY", "SET_VALUE",
-         r"ROOT\subscription:CommandLineEventConsumer.Name='WindowsUpdateConsumer'",
-         "CRITICAL",
-         source_process="svchost_bot.exe",
-         command_template=r"C:\ProgramData\Microsoft\svchost_update.exe",
-         detail="WMI CommandLineEventConsumer bound to filter",
-         technique_id="T1546.003")
-    try:
-        subprocess.run([
-            "wmic", "/namespace:\\\\root\\subscription",
-            "create", "CommandLineEventConsumer",
-            "Name='WindowsUpdateConsumer'",
-            "CommandLineTemplate='C:\\ProgramData\\Microsoft\\svchost_update.exe'",
-        ], capture_output=True, timeout=10)
-    except Exception:
-        pass
+    # --- Phase 6: WMI Event Subscription persistence (T1546.003) ---
+    emit_wmi_subscription("svchost_bot.exe")
     time.sleep(phase_delay("wmi_subscribe"))
 
     # --- Phase 7: DNS Beaconing + DoH ---

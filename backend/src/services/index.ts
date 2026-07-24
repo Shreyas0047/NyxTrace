@@ -1,8 +1,3 @@
-/**
- * Services Index
- * Central export for all services
- */
-
 export { authService } from './auth.service';
 export { userService } from './user.service';
 export { investigationService } from './investigation.service';
@@ -22,3 +17,13 @@ export { analysisService } from './analysis.service';
 export { analysisRouterService } from './analysis-router.service';
 export { knowledgeService } from './knowledge.service';
 export { configService } from './config.service';
+export { healthMonitor as healthService } from './health.service';
+export { verificationQueue as queueService } from './queue.service';
+export { sendOTP as otpService, verifyOTP, sendPasswordResetOTP, verifyPasswordResetOTP } from './otp.service';
+export { chainOfCustodyService as custodyService } from './custody.service';
+export { resilienceService } from './resilience.service';
+export { websocketService } from './websocket.service';
+export { threatIntelligenceService } from './threat-intelligence.service';
+export { behavioralAnalyticsService } from './behavioral-analytics.service';
+export { investigationCorrelationService } from './investigation-correlation.service';
+export { indexManager as databaseOptimizationService } from './database-optimization.service';

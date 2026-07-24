@@ -10,8 +10,16 @@ interface ToastMessage {
 
 const toastListeners: Array<(msg: ToastMessage) => void> = [];
 
+function generateId(): string {
+  try {
+    return crypto.randomUUID();
+  } catch {
+    return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  }
+}
+
 export function toast(message: string, variant: ToastVariant = 'info') {
-  const id = crypto.randomUUID();
+  const id = generateId();
   const msg: ToastMessage = { id, message, variant };
   toastListeners.forEach(fn => fn(msg));
 }

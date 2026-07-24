@@ -1,8 +1,3 @@
-/**
- * Controllers Index
- * Central export for all controllers
- */
-
 export { authController } from './auth.controller';
 export { userController } from './user.controller';
 export { investigationController } from './investigation.controller';
@@ -19,3 +14,7 @@ export { analysisController } from './analysis.controller';
 export { knowledgeController } from './knowledge.controller';
 export { rolesController } from './roles.controller';
 export { configController } from './config.controller';
+export { alertController } from './alerts.controller';
+export { analyticsController } from './analytics.controller';
+export { custodyController } from './custody.controller';
+export { threatIntelligenceController } from './threat.controller';

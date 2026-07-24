@@ -24,6 +24,8 @@ class AnalysisCache:
         self._cache: OrderedDict[str, tuple[float, Dict[str, Any]]] = OrderedDict()
 
     def _make_key(self, session_id: str, events: list) -> str:
+        if not events:
+            return hashlib.sha256(session_id.encode()).hexdigest()
         raw = f"{session_id}:{json.dumps(events, sort_keys=True, default=str)}"
         return hashlib.sha256(raw.encode()).hexdigest()
 

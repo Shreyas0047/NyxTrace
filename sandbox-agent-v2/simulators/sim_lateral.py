@@ -14,9 +14,11 @@ import random
 import socket
 import subprocess
 import sys
+import time
 from pathlib import Path
 
-from telemetry_helper import check_environment, emit, EnvSafety, set_phase, jitter
+from telemetry_helper import check_environment, emit, EnvSafety, set_phase
+from naming_helper import phase_delay
 
 # Simulated internal network (non-routable)
 INTERNAL_HOSTS = [
@@ -70,7 +72,7 @@ def main() -> int:
             # Simulated — mark some as "alive" anyway for telemetry
             if random.random() < 0.6:
                 alive_hosts.append((ip, hostname))
-        jitter(0.2, 0.3)
+        time.sleep(phase_delay("port_scan"))
 
     emit("NETWORK", "DNS_QUERY", "10.0.0.0/24", "INFO",
          source_process="lateral.exe",
@@ -93,7 +95,7 @@ def main() -> int:
                  source_process="lateral.exe", protocol="SMB",
                  hostname=hostname, share=share,
                  detail=f"Enumerating share: \\\\{hostname}\\{share}", technique_id="T1135")
-        jitter(0.4, 0.5)
+        time.sleep(phase_delay("smb_connect"))
 
     # --- Phase 3: Credential Harvesting for PTH ---
     set_phase("credential_harvest")
@@ -101,7 +103,7 @@ def main() -> int:
          source_process="lateral.exe",
          detail="Dumping NTLM hashes from memory (sekurlsa::logonpasswords)",
          technique_id="T1003.001")
-    jitter(0.5, 0.5)
+    time.sleep(phase_delay("keylogger"))
 
     ntlm_hash = "aad3b435b51404eeaad3b435b51404ee:8846f7eaee8fb117ad06bdd830b7586c"
     emit("PROCESS", "CREATE_THREAD", "lateral.exe", "CRITICAL",
@@ -125,7 +127,7 @@ def main() -> int:
             s.close()
         except (ConnectionRefusedError, OSError, socket.timeout):
             pass
-        jitter(0.3, 0.4)
+        time.sleep(phase_delay("smb_connect"))
         emit("NETWORK", "SMB_CONNECT", f"\\\\{target_ip}\\ADMIN$", "CRITICAL",
              source_process="lateral.exe", protocol="SMB",
              detail=f"Authenticated access to ADMIN$ on {target_host}",
@@ -148,7 +150,7 @@ def main() -> int:
              source_process="lateral.exe",
              detail=f"Starting remote service on {target_host}",
              technique_id="T1569.002")
-        jitter(0.3, 0.3)
+        time.sleep(phase_delay("service_create"))
 
     if env != EnvSafety.SUSPICIOUS:
         set_phase("wmi_execution")
@@ -161,7 +163,7 @@ def main() -> int:
              command=f"wmic /node:{second_target[0]} process call create 'cmd.exe /c whoami > C:\\temp\\out.txt'",
              detail=f"Remote command execution via WMI on {second_target[1]}",
              technique_id="T1047")
-        jitter(0.4, 0.4)
+        time.sleep(phase_delay("wmi_exec"))
 
     # --- Phase 7: Payload Copy to Remote Host ---
     if env != EnvSafety.SUSPICIOUS:

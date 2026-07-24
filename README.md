@@ -63,7 +63,8 @@
 | 1 — Anti-Analysis Gating | Complete | Environment-aware behavior gating (debugger, VM, analysis tools detection) |
 | 2 — Real Process Injection | Complete | ctypes-based `CreateRemoteThread` + `WriteProcessMemory` into suspended `calc.exe` with benign MessageBoxW shellcode |
 | 3 — Network Beaconing | Complete | Domain fronting (Host header manipulation), DNS-over-HTTPS simulation, jittered exponential-backoff heartbeats |
-| 4+ — Artifact Naming, Timing, Persistence, etc. | Pending | Follow-up phases covering all 12 realism dimensions |
+| 4 — Artifact Naming, Timing, Persistence | Complete | Realistic mutex/pipe/service names (T1036), operation-appropriate timing, WMI event subscription (T1546.003), COM hijacking (T1574.002) |
+| 5+ — Bootkit, Driver, etc. | Pending | Follow-up phases covering remaining realism dimensions |
 
 ---
 
@@ -493,6 +494,34 @@ A shared `c2_helper.py` module provides four realistic C2 traffic primitives use
 | `sim_epsilon.py` | `c2_callback` | Replaced single socket connect with fronted beacon + DoH query + 4-part heartbeat chain (4–20s intervals) |
 
 All source IPs remain in non-routable `10.0.0.0/8` ranges; all payloads are benign metadata JSON.
+
+### Simulator Realism — Phase 4 (Artifact Naming, Timing, Persistence)
+
+A shared `naming_helper.py` module provides realistic artifact naming and operation-appropriate timing:
+
+- **`pick_mutex()` / `pick_pipe()`** — realistic mutex/pipe names from known malware families (Stuxnet, WannaCry, TrickBot, etc.) plus randomized generated names with company-prefixed convention
+- **`pick_service_name()` / `pick_com_description()`** — convincing service names and COM object descriptions for persistence primitives
+- **`phase_delay(operation)`** — operation-specific timing maps (0.05–2.0s ranges) replacing uniform `jitter()` calls
+
+**New persistence phases added:**
+
+| Simulator | Phase | Technique | Detail |
+|-----------|-------|-----------|--------|
+| `botnet_sim.py` | Mutex | T1036 | Creates Global\MSCTF.CacheMutex (Stuxnet-style) then deletes it |
+| `botnet_sim.py` | WMI Persistence | T1546.003 | Event filter + consumer + binding via `__EventFilter`, `CommandLineEventConsumer`, `__FilterToConsumerBinding` |
+| `credential_stealer_sim.py` | Pipe | T1036 | Creates `\\.\pipe\lsass` with impersonation to simulate named pipe hijack |
+| `sim_epsilon.py` | COM Hijacking | T1574.002 | Writes CLSID reg key under `HKCU\Software\Classes\CLSID` with InprocServer32 + TreatAs pointing to simulated payload DLL |
+
+**Timing (`jitter()` → `phase_delay()`):**
+
+| Simulator | Phases Updated |
+|-----------|---------------|
+| `botnet_sim.py` | mutex, download, process_inject, dns_beacon, http_beacon |
+| `credential_stealer_sim.py` | keylogger, clipboard, dropper, exfiltration |
+| `sim_delta.py` | all phases (enumeration, exfiltration) |
+| `sim_epsilon.py` | anti_analysis, service_persistence, hidden_files, process_inject |
+| `ransomware_sim.py` | file_create, file_encrypt |
+| `sim_lateral.py` | port_scan, smb_connect, credential_harvest, pth_auth, service_create, wmi_exec |
 
 ---
 

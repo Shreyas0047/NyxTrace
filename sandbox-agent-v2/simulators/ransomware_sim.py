@@ -24,7 +24,8 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from telemetry_helper import check_environment, emit, EnvSafety, set_phase, jitter
+from telemetry_helper import check_environment, emit, EnvSafety, set_phase
+from naming_helper import phase_delay
 
 
 # =============================================================================
@@ -138,7 +139,7 @@ def main() -> int:
         path.write_text(content)
         targets.append(path)
         emit("FILE", "CREATE_FILE", str(path), "INFO", source_process="ransomware.exe", size=len(content))
-        jitter(0.03, 0.05)
+        time.sleep(phase_delay("file_create"))
 
     # --- Phase 2: Encrypt files ---
     set_phase("encryption")
@@ -159,7 +160,7 @@ def main() -> int:
                  original_size=original_size, encrypted_size=encrypted_path.stat().st_size)
         except Exception as e:
             emit("FILE", "WRITE_FILE", str(path), "WARNING", source_process="ransomware.exe", error=str(e))
-        jitter(0.08, 0.12)
+        time.sleep(phase_delay("file_encrypt"))
 
     # --- Phase 3: Shadow copy deletion ---
     if env != EnvSafety.SUSPICIOUS:

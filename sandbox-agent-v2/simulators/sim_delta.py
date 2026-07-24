@@ -14,10 +14,12 @@ import random
 import shutil
 import socket
 import sys
+import time
 from pathlib import Path
 
-from telemetry_helper import check_environment, emit, EnvSafety, set_phase, jitter
+from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from c2_helper import fronted_beacon, emit_heartbeats, jittered_sleep, FRONT_DOMAINS
+from naming_helper import phase_delay
 
 
 def main() -> int:
@@ -48,7 +50,7 @@ def main() -> int:
         emit("REGISTRY", "SET_VALUE", r"HKCU\Software\Microsoft\Input\Settings", "WARNING",
              source_process="svchost_d.exe", value_name="KeyCapture",
              detail="Keyboard capture configuration written")
-        jitter(0.3, 0.4)
+        time.sleep(phase_delay("keylogger"))
 
     # Phase 2: Screenshot capture
     set_phase("screen_capture")
@@ -60,7 +62,7 @@ def main() -> int:
         emit("FILE", "SCREEN_CAPTURE", str(shot), "WARNING",
              source_process="svchost_d.exe", size=1024,
              detail=f"Screenshot captured #{i+1}", technique_id="T1113")
-        jitter(0.2, 0.2)
+        time.sleep(phase_delay("screenshot"))
 
     # Phase 3: Clipboard monitoring
     if env != EnvSafety.SUSPICIOUS:
@@ -69,7 +71,7 @@ def main() -> int:
              source_process="svchost_d.exe",
              detail="Clipboard monitor active (OpenClipboard hook)", technique_id="T1115")
         (screenshots_dir / "clipboard.log").write_text("clipboard_data_placeholder")
-        jitter(0.2, 0.2)
+        time.sleep(phase_delay("keylogger"))
 
     # Phase 4: Sensitive file scanning
     set_phase("file_discovery")
@@ -86,7 +88,7 @@ def main() -> int:
                 emit("FILE", "READ_FILE", str(f), "WARNING",
                      source_process="svchost_d.exe", size=f.stat().st_size,
                      detail=f"Sensitive file indexed: {f.name}")
-        jitter(0.15, 0.15)
+        time.sleep(phase_delay("file_scan"))
 
     # Phase 5: Data staging
     set_phase("staging")

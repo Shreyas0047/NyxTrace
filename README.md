@@ -56,6 +56,15 @@
 - HttpOnly cookie auth (JWT in localStorage, migration planned)
 - Full test coverage (scaffolding exists, follow-up project)
 
+### Simulator Realism Roadmap
+
+| Phase | Status | Scope |
+|-------|--------|-------|
+| 1 — Anti-Analysis Gating | Complete | Environment-aware behavior gating (debugger, VM, analysis tools detection) |
+| 2 — Real Process Injection | Complete | ctypes-based `CreateRemoteThread` + `WriteProcessMemory` into suspended `calc.exe` with benign MessageBoxW shellcode |
+| 3 — Network Beaconing | Pending | Jittered sleep, domain fronting patterns, DNS-over-HTTPS |
+| 4+ — Artifact Naming, Timing, Persistence, etc. | Pending | Follow-up phases covering all 12 realism dimensions |
+
 ---
 
 ## Architecture
@@ -434,6 +443,33 @@ The sandbox agent ships 6 pre-scripted educational attack scenarios that simulat
 | `system-service-lateral` | Network discovery, SMB enumeration, pass-the-hash, remote execution |
 
 These scenarios are designed to teach forensic analysis patterns — identifying registry persistence, tracing network connections, detecting credential access — without requiring live malware samples. The telemetry format is identical to what real analysis tools produce, so the AI classification, chain of custody, and reporting pipelines work identically whether the data comes from a scenario or a real sandbox execution.
+
+### Simulator Realism — Phase 1 (Anti-Analysis Gating)
+
+All 6 simulators now incorporate environment-aware behavior gating via `check_environment()` in `telemetry_helper.py`:
+
+| Verdict | Behavior |
+|---------|----------|
+| `CLEAN` | Full simulation — all phases execute normally |
+| `SUSPICIOUS` | Noisy/high-risk phases are skipped (process injection, SAM/LSA reads, exfiltration, boot modification, keylogger hook, clipboard monitoring, pass-the-hash, remote service creation, WMI execution) |
+| `COMPROMISED` | Simulator exits early with no malicious activity |
+
+Detection checks include: debugger presence, VM artifacts (registry, disk, BIOS), analysis tool processes, unusual screen resolution, small disk size, and low CPU core count. This allows the sandbox to train EDR/analyst responses to malware that adapts its behavior based on the environment.
+
+### Simulator Realism — Phase 2 (Real Process Injection)
+
+Phase 6 of `sim_epsilon.py` (process injection) now performs actual ctypes-based Windows API injection rather than emitting telemetry alone:
+
+| Step | API | Detail |
+|------|-----|--------|
+| 1 | `CreateProcessW` | Spawn `calc.exe` with `CREATE_SUSPENDED` |
+| 2 | `VirtualAllocEx` | Allocate `PAGE_EXECUTE_READWRITE` memory in target |
+| 3 | `WriteProcessMemory` | Write benign x64 shellcode (MessageBoxW call) |
+| 4 | `CreateRemoteThread` | Execute shellcode in target process |
+| 5 | `ResumeThread` | Resume main thread after shellcode completes |
+| 6 | `TerminateProcess` | Clean up the injected process |
+
+The shellcode calls `MessageBoxW(0, "Process Injection Test", "NyxTrace", 0)` — entirely benign. The MessageBoxW address is resolved at runtime via `GetProcAddress` from the injecting process (Python), embedded into the shellcode before writing. All emit telemetry calls for `OPEN_PROCESS`, `WRITE_MEMORY`, and `CREATE_THREAD` are preserved so the EDR analysis pipeline sees the same forensic signals it would from a real injection.
 
 ---
 

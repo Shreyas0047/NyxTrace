@@ -21,6 +21,7 @@ from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from naming_helper import phase_delay, pick_service_name
 from defense_helper import emit_firewall_rule, emit_process_discovery
 from persistence_helper import emit_windows_service, emit_scheduled_task
+from obfuscation_helper import xor_bytes, base64_encode, emit_crypto_operation
 
 # Simulated internal network (non-routable)
 INTERNAL_HOSTS = [
@@ -116,6 +117,26 @@ def main() -> int:
          source_process="lateral.exe",
          detail=f"NTLM hash captured: Administrator:{ntlm_hash[:20]}...",
          technique_id="T1003.001")
+
+    # --- Phase 4b: Data Obfuscation (T1027) ---
+    set_phase("data_obfuscation")
+    xor_key = b"NyxTrace-Lateral-Key-2024"
+    cred_data = json.dumps({
+        "hash": ntlm_hash,
+        "username": "Administrator",
+        "domain": os.environ.get("USERDOMAIN", "WORKGROUP"),
+        "technique": "T1003.001"
+    }).encode()
+    enc_creds = xor_bytes(cred_data, xor_key)
+    enc_creds_b64 = base64_encode(enc_creds)
+    emit_crypto_operation("lateral.exe", "ENCODE", "XOR+Base64", len(cred_data))
+    emit("FILE", "WRITE_ENCODED", "memory:credential_cache", "WARNING",
+         source_process="lateral.exe", algorithm="XOR+Base64",
+         original_size=len(cred_data),
+         encoded_size=len(enc_creds_b64),
+         detail="Harvested credentials obfuscated in memory",
+         technique_id="T1027")
+    time.sleep(phase_delay("file_encrypt"))
 
     # --- Phase 5: Pass-the-Hash ---
     if env != EnvSafety.SUSPICIOUS:

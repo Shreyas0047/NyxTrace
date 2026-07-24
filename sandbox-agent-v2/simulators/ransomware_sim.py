@@ -28,6 +28,7 @@ from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from naming_helper import phase_delay
 from defense_helper import emit_uac_bypass, emit_firewall_rule, emit_process_discovery
 from persistence_helper import emit_wmi_subscription
+from obfuscation_helper import xor_bytes, rc4_stream, emit_crypto_operation, emit_encoded_file_write
 
 
 # =============================================================================
@@ -246,6 +247,22 @@ Key: NyxTrace-Simulation-Key-2024</p></body></html>""", encoding="utf-8")
     # --- Phase 11: WMI Event Subscription Persistence (T1546.003) ---
     emit_wmi_subscription("ransomware.exe")
     time.sleep(phase_delay("wmi_subscribe"))
+
+    # --- Phase 12: Data Obfuscation (T1027) ---
+    set_phase("data_obfuscation")
+    note_body = note_path.read_bytes()
+    xor_key = b"NyxTrace-Ransom-Key-2024"
+    enc_note = xor_bytes(note_body, xor_key)
+    enc_note_path = desktop / "DECRYPT_YOUR_FILES.html.enc"
+    enc_note_path.write_bytes(enc_note)
+    emit_encoded_file_write("ransomware.exe", str(enc_note_path), len(note_body), len(enc_note))
+    proof_data = json.dumps({"encrypted_count": encrypted_count, "key": "NyxTrace-Simulation-Key-2024"}).encode()
+    rc4_key = b"NyxTrace-RC4-2024"
+    enc_proof = rc4_stream(proof_data, rc4_key)
+    proof_path = desktop / "encrypted_files.lst.enc"
+    proof_path.write_bytes(enc_proof)
+    emit_encoded_file_write("ransomware.exe", str(proof_path), len(proof_data), len(enc_proof), algorithm="RC4")
+    time.sleep(phase_delay("file_encrypt"))
 
     emit("PROCESS", "EXIT_PROCESS", "ransomware.exe", "INFO",
          source_process="ransomware.exe", files_encrypted=encrypted_count, total_targets=len(targets))

@@ -22,6 +22,7 @@ from c2_helper import fronted_beacon, emit_heartbeats, jittered_sleep, FRONT_DOM
 from naming_helper import phase_delay, pick_com_description
 from defense_helper import emit_system_discovery, emit_process_discovery
 from persistence_helper import emit_registry_run, emit_com_hijack
+from obfuscation_helper import xor_bytes, emit_crypto_operation, emit_encoded_file_write
 
 
 def main() -> int:
@@ -103,6 +104,21 @@ def main() -> int:
     staging.write_text(f"harvested_files={found}\nscreenshots=3\nclipboard=captured\n")
     emit("FILE", "CREATE_FILE", str(staging), "CRITICAL",
          source_process="svchost_d.exe", detail="Harvested data staged for exfil")
+
+    # --- Phase 6b: Data Obfuscation (T1027) ---
+    set_phase("data_obfuscation")
+    xor_key = b"NyxTrace-Delta-Key-2024"
+    if staging.exists():
+        raw = staging.read_bytes()
+        encoded = xor_bytes(raw, xor_key)
+        staging.write_bytes(encoded)
+        emit_encoded_file_write("svchost_d.exe", str(staging), len(raw), len(encoded))
+    for shot in screenshots_dir.glob("*.bmp"):
+        raw = shot.read_bytes()
+        encoded = xor_bytes(raw, xor_key)
+        shot.write_bytes(encoded)
+        emit_crypto_operation("svchost_d.exe", "ENCODE", "XOR", len(raw))
+    time.sleep(phase_delay("file_encrypt"))
 
     # Phase 7: Exfiltration (domain-fronted)
     if env != EnvSafety.SUSPICIOUS:

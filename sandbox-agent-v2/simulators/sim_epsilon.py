@@ -23,6 +23,7 @@ from defense_helper import emit_amsi_bypass, emit_etw_patch, emit_process_discov
 import socket
 import struct
 import time
+from obfuscation_helper import xor_bytes, rc4_stream, base64_encode, emit_crypto_operation, emit_encoded_file_write
 
 def _gen_clsid() -> str:
     """Generate a random GUID without dashes for CLSID registry key."""
@@ -138,6 +139,24 @@ def main() -> int:
     emit("FILE", "CREATE_FILE", str(config), "WARNING",
          source_process="winlogon_e.exe", detail="Persistence config written")
     time.sleep(phase_delay("file_write"))
+
+    # --- Phase 5b: Data Obfuscation (T1027) ---
+    set_phase("data_obfuscation")
+    xor_key = b"NyxTrace-Epsilon-Key-2024"
+    if config.exists():
+        raw = config.read_bytes()
+        enc_config = xor_bytes(raw, xor_key)
+        enc_config_b64 = base64_encode(enc_config)
+        config_path_enc = hidden_dir / "persist.dat.enc"
+        config_path_enc.write_text(enc_config_b64)
+        emit_encoded_file_write("winlogon_e.exe", str(config_path_enc), len(raw), len(enc_config_b64))
+    if hijack_dll.exists():
+        dll_raw = hijack_dll.read_bytes()
+        rc4_key = b"NyxTrace-RC4-Epsilon"
+        enc_dll = rc4_stream(dll_raw, rc4_key)
+        hijack_dll.write_bytes(enc_dll)
+        emit_crypto_operation("winlogon_e.exe", "ENCODE", "RC4", len(dll_raw), technique_id="T1573.002")
+    time.sleep(phase_delay("file_encrypt"))
 
     # Phase 6: Boot record modification
     if env != EnvSafety.SUSPICIOUS:

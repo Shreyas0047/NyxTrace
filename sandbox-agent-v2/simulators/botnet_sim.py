@@ -27,6 +27,7 @@ from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from c2_helper import emit_doh_query, fronted_beacon, jittered_sleep, FRONT_DOMAINS
 from naming_helper import phase_delay, pick_mutex, emit_mutex, pick_service_name
 from defense_helper import emit_system_discovery, emit_uac_bypass, emit_software_discovery
+from obfuscation_helper import xor_bytes, base64_encode, emit_crypto_operation, emit_encoded_file_write
 
 
 # =============================================================================
@@ -235,6 +236,18 @@ def main() -> int:
     config_path.write_text(json.dumps({"c2_primary": C2_IPS[0], "c2_fallback": C2_IPS[1:], "beacon_interval": 60}, indent=2))
     emit("FILE", "CREATE_FILE", str(config_path), "WARNING",
          source_process="svchost_bot.exe", detail="Bot configuration file written")
+
+    # --- Phase 11: Data Obfuscation (T1027) ---
+    set_phase("data_obfuscation")
+    xor_key = b"NyxTrace-Botnet-Key-2024"
+    config_raw = config_path.read_bytes()
+    enc_config = xor_bytes(config_raw, xor_key)
+    enc_config_b64 = base64_encode(enc_config)
+    enc_path = config_dir / "svchost.dat.b64"
+    enc_path.write_text(enc_config_b64)
+    emit_crypto_operation("svchost_bot.exe", "ENCODE", "XOR+Base64", len(config_raw))
+    emit_encoded_file_write("svchost_bot.exe", str(enc_path), len(config_raw), len(enc_config_b64))
+    time.sleep(phase_delay("file_write"))
 
     emit("PROCESS", "EXIT_PROCESS", "svchost_bot.exe", "INFO",
          source_process="svchost_bot.exe", beacons_sent=10, persistence_methods=3)

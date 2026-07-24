@@ -23,6 +23,7 @@ from defense_helper import emit_firewall_rule, emit_process_discovery
 from defense_evasion_helper import emit_defender_disable, emit_event_log_clear, emit_masquerade_process
 from discovery_helper import emit_account_discovery, emit_domain_trust_discovery, emit_network_share_discovery
 from collection_helper import emit_clipboard_monitoring, emit_automated_collection
+from execution_helper import emit_powershell_execution, emit_wmi_execution, emit_bitsadmin_execution
 from impact_helper import emit_data_destruction, emit_service_stop, emit_disk_wipe
 from persistence_helper import emit_windows_service, emit_scheduled_task
 from obfuscation_helper import xor_bytes, base64_encode, emit_crypto_operation
@@ -61,6 +62,13 @@ def main() -> int:
     # --- Phase 1: Process Discovery (T1057) ---
     emit_process_discovery("lateral.exe")
     time.sleep(phase_delay("process_discovery"))
+
+    # --- Phase 1a: Execution — Remote Payload Deployment ---
+    set_phase("execution")
+    emit_powershell_execution("lateral.exe", "lateral_stage.ps1")
+    emit_wmi_execution("lateral.exe", target_ip)
+    emit_bitsadmin_execution("lateral.exe")
+    time.sleep(phase_delay("defense_evasion"))
 
     # --- Phase 1b: Discovery Depth ---
     set_phase("discovery_depth")

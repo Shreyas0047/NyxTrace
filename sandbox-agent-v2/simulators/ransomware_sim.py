@@ -30,6 +30,7 @@ from defense_helper import emit_uac_bypass, emit_firewall_rule, emit_process_dis
 from defense_evasion_helper import emit_defender_disable, emit_vss_delete, emit_inhibit_system_recovery, emit_event_log_clear
 from discovery_helper import emit_account_discovery, emit_network_config_discovery, emit_system_owner_discovery, emit_permission_groups_discovery
 from collection_helper import emit_automated_collection, emit_screen_capture_detail
+from execution_helper import emit_powershell_execution, emit_wmi_execution, emit_script_execution
 from impact_helper import emit_data_destruction, emit_disk_wipe, emit_system_shutdown, emit_service_stop
 from persistence_helper import emit_wmi_subscription
 from obfuscation_helper import xor_bytes, rc4_stream, emit_crypto_operation, emit_encoded_file_write
@@ -135,6 +136,13 @@ def main() -> int:
     # --- Phase 1: Process Discovery ---
     emit_process_discovery("ransomware.exe")
     time.sleep(phase_delay("process_discovery"))
+
+    # --- Phase 1a: Execution — Payload Deployment ---
+    set_phase("execution")
+    emit_powershell_execution("ransomware.exe", "crypto_drop.ps1")
+    emit_wmi_execution("ransomware.exe", "localhost")
+    emit_script_execution("ransomware.exe", "vbs")
+    time.sleep(phase_delay("defense_evasion"))
 
     # --- Phase 1b: Discovery Depth ---
     set_phase("discovery_depth")

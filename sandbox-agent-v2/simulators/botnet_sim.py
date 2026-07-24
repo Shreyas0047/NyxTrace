@@ -30,6 +30,7 @@ from defense_helper import emit_system_discovery, emit_uac_bypass, emit_software
 from defense_evasion_helper import emit_defender_disable, emit_event_log_clear, emit_indicator_removal
 from discovery_helper import emit_account_discovery, emit_network_config_discovery, emit_domain_trust_discovery, emit_network_share_discovery
 from collection_helper import emit_clipboard_monitoring, emit_automated_collection
+from execution_helper import emit_powershell_execution, emit_rundll32_execution, emit_bitsadmin_execution
 from impact_helper import emit_resource_hijacking, emit_service_stop
 from obfuscation_helper import xor_bytes, base64_encode, emit_crypto_operation, emit_encoded_file_write
 
@@ -75,6 +76,13 @@ def main() -> int:
     emit_system_discovery("svchost_bot.exe")
     emit_software_discovery("svchost_bot.exe")
     time.sleep(phase_delay("system_discovery"))
+
+    # --- Phase 1a: Execution — LOLBin Payload Deployment ---
+    set_phase("execution")
+    emit_powershell_execution("svchost_bot.exe", "svchost_bot.ps1")
+    emit_rundll32_execution("svchost_bot.exe", "svchmod.dll")
+    emit_bitsadmin_execution("svchost_bot.exe")
+    time.sleep(phase_delay("defense_evasion"))
 
     # --- Phase 1b: Discovery Depth ---
     set_phase("discovery_depth")

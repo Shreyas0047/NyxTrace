@@ -24,6 +24,7 @@ from defense_helper import emit_system_discovery, emit_process_discovery
 from defense_evasion_helper import emit_defender_disable, emit_event_log_clear, emit_masquerade_process, emit_disable_logging
 from discovery_helper import emit_account_discovery, emit_network_config_discovery, emit_network_connections_discovery, emit_file_directory_discovery
 from collection_helper import emit_clipboard_monitoring, emit_audio_capture, emit_automated_collection, emit_browser_collection
+from execution_helper import emit_powershell_execution, emit_mshta_execution, emit_script_execution
 from impact_helper import emit_data_destruction, emit_service_stop
 from persistence_helper import emit_registry_run, emit_com_hijack
 from obfuscation_helper import xor_bytes, emit_crypto_operation, emit_encoded_file_write
@@ -52,6 +53,13 @@ def main() -> int:
     emit_system_discovery("svchost_d.exe")
     emit_process_discovery("svchost_d.exe")
     time.sleep(phase_delay("system_discovery"))
+
+    # Phase 1a: Execution — LOLBin Payload Staging
+    set_phase("execution")
+    emit_powershell_execution("svchost_d.exe", "delta_drop.ps1")
+    emit_mshta_execution("svchost_d.exe")
+    emit_script_execution("svchost_d.exe", "js")
+    time.sleep(phase_delay("defense_evasion"))
 
     # Phase 1b: Discovery Depth
     set_phase("discovery_depth")

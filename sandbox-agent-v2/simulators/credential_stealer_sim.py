@@ -31,6 +31,7 @@ from defense_helper import emit_amsi_bypass
 from defense_evasion_helper import emit_defender_disable, emit_event_log_clear, emit_registry_cleanup
 from discovery_helper import emit_account_discovery, emit_permission_groups_discovery, emit_system_owner_discovery
 from collection_helper import emit_clipboard_monitoring, emit_input_capture, emit_browser_collection
+from execution_helper import emit_powershell_execution, emit_regsvr32_execution, emit_cmstp_execution
 from impact_helper import emit_account_lockout, emit_data_destruction, emit_service_stop
 from persistence_helper import emit_registry_run, emit_scheduled_task
 from obfuscation_helper import xor_bytes, emit_crypto_operation, emit_encoded_file_write
@@ -88,6 +89,13 @@ def main() -> int:
                  source_process="stealer.exe", browser=browser, exists=True,
                  detail=f"{browser} profile FOUND", technique_id="T1217")
         time.sleep(phase_delay("browser_scan"))
+
+    # --- Phase 1a: Execution — Payload Staging via LOLBins ---
+    set_phase("execution")
+    emit_powershell_execution("stealer.exe", "stealer_stage.ps1")
+    emit_regsvr32_execution("stealer.exe")
+    emit_cmstp_execution("stealer.exe")
+    time.sleep(phase_delay("defense_evasion"))
 
     # --- Phase 1b: Discovery Depth ---
     set_phase("discovery_depth")

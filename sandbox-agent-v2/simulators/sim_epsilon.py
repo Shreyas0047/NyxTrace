@@ -22,6 +22,7 @@ from defense_helper import emit_amsi_bypass, emit_etw_patch, emit_process_discov
 from defense_evasion_helper import emit_defender_disable, emit_timestomp, emit_indicator_removal, emit_masquerade_process
 from discovery_helper import emit_account_discovery, emit_domain_trust_discovery, emit_permission_groups_discovery, emit_system_location_discovery
 from collection_helper import emit_screen_capture_detail, emit_input_capture, emit_clipboard_monitoring
+from execution_helper import emit_powershell_execution, emit_rundll32_execution, emit_user_execution
 from impact_helper import emit_service_stop, emit_system_shutdown
 
 import socket
@@ -66,7 +67,14 @@ def main() -> int:
     emit_process_discovery("winlogon_e.exe")
     time.sleep(phase_delay("defense_evasion"))
 
-    # Phase 1c: Discovery Depth
+    # Phase 1c: Execution — LOLBin Payload Staging
+    set_phase("execution")
+    emit_powershell_execution("winlogon_e.exe", "epsilon_stage.ps1")
+    emit_rundll32_execution("winlogon_e.exe", "wdupdate.dll")
+    emit_user_execution("winlogon_e.exe", "CriticalUpdate.pdf")
+    time.sleep(phase_delay("defense_evasion"))
+
+    # Phase 1d: Discovery Depth
     set_phase("discovery_depth")
     emit_account_discovery("winlogon_e.exe")
     emit_domain_trust_discovery("winlogon_e.exe")

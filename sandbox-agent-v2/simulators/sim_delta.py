@@ -23,6 +23,7 @@ from naming_helper import phase_delay, pick_com_description
 from defense_helper import emit_system_discovery, emit_process_discovery
 from defense_evasion_helper import emit_defender_disable, emit_event_log_clear, emit_masquerade_process, emit_disable_logging
 from discovery_helper import emit_account_discovery, emit_network_config_discovery, emit_network_connections_discovery, emit_file_directory_discovery
+from collection_helper import emit_clipboard_monitoring, emit_audio_capture, emit_automated_collection, emit_browser_collection
 from impact_helper import emit_data_destruction, emit_service_stop
 from persistence_helper import emit_registry_run, emit_com_hijack
 from obfuscation_helper import xor_bytes, emit_crypto_operation, emit_encoded_file_write
@@ -178,7 +179,15 @@ def main() -> int:
     emit_com_hijack("svchost_d.exe", com_desc)
     time.sleep(phase_delay("com_hijack"))
 
-    # Phase 10: Impact — Data Destruction & Service Stop
+    # Phase 10: Collection — Clipboard, Audio, Browser & Automated Collection
+    set_phase("collection")
+    emit_clipboard_monitoring("svchost_d.exe")
+    emit_audio_capture("svchost_d.exe", 60)
+    emit_browser_collection("svchost_d.exe")
+    emit_automated_collection("svchost_d.exe")
+    time.sleep(phase_delay("defense_evasion"))
+
+    # Phase 11: Impact — Data Destruction & Service Stop
     set_phase("impact")
     emit_data_destruction("svchost_d.exe", "%USERPROFILE%\\Documents")
     emit_service_stop("svchost_d.exe")

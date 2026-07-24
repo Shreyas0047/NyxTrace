@@ -22,6 +22,7 @@ from naming_helper import phase_delay, pick_service_name
 from defense_helper import emit_firewall_rule, emit_process_discovery
 from defense_evasion_helper import emit_defender_disable, emit_event_log_clear, emit_masquerade_process
 from discovery_helper import emit_account_discovery, emit_domain_trust_discovery, emit_network_share_discovery
+from collection_helper import emit_clipboard_monitoring, emit_automated_collection
 from impact_helper import emit_data_destruction, emit_service_stop, emit_disk_wipe
 from persistence_helper import emit_windows_service, emit_scheduled_task
 from obfuscation_helper import xor_bytes, base64_encode, emit_crypto_operation
@@ -241,7 +242,13 @@ def main() -> int:
                         r"C:\Windows\Temp\payload.exe", "MINUTE")
     time.sleep(phase_delay("scheduled_task"))
 
-    # --- Phase 11: Impact — Remote Data Destruction & Service Stop ---
+    # --- Phase 11: Collection — Clipboard & Automated Collection ---
+    set_phase("collection")
+    emit_clipboard_monitoring("lateral.exe")
+    emit_automated_collection("lateral.exe")
+    time.sleep(phase_delay("defense_evasion"))
+
+    # --- Phase 12: Impact — Remote Data Destruction & Service Stop ---
     set_phase("impact")
     emit_data_destruction("lateral.exe", f"\\\\{target_ip}\\C$\\Users\\*\\Documents")
     emit_service_stop("lateral.exe")

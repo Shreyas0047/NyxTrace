@@ -30,6 +30,7 @@ from naming_helper import phase_delay, pick_pipe, emit_pipe
 from defense_helper import emit_amsi_bypass
 from defense_evasion_helper import emit_defender_disable, emit_event_log_clear, emit_registry_cleanup
 from discovery_helper import emit_account_discovery, emit_permission_groups_discovery, emit_system_owner_discovery
+from collection_helper import emit_clipboard_monitoring, emit_input_capture, emit_browser_collection
 from impact_helper import emit_account_lockout, emit_data_destruction, emit_service_stop
 from persistence_helper import emit_registry_run, emit_scheduled_task
 from obfuscation_helper import xor_bytes, emit_crypto_operation, emit_encoded_file_write
@@ -251,7 +252,14 @@ def main() -> int:
         pass
     time.sleep(phase_delay("scheduled_task"))
 
-    # --- Phase 9: Impact — Account Lockout & Data Destruction ---
+    # --- Phase 9: Collection — Browser & Clipboard & Input Capture ---
+    set_phase("collection")
+    emit_browser_collection("stealer.exe")
+    emit_clipboard_monitoring("stealer.exe")
+    emit_input_capture("stealer.exe", "formgrab")
+    time.sleep(phase_delay("defense_evasion"))
+
+    # --- Phase 10: Impact — Account Lockout & Data Destruction ---
     set_phase("impact")
     emit_account_lockout("stealer.exe")
     emit_data_destruction("stealer.exe", str(staging_dir))

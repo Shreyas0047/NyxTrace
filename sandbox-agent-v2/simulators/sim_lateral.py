@@ -19,6 +19,7 @@ from pathlib import Path
 
 from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from naming_helper import phase_delay
+from defense_helper import emit_firewall_rule, emit_process_discovery
 
 # Simulated internal network (non-routable)
 INTERNAL_HOSTS = [
@@ -51,7 +52,11 @@ def main() -> int:
              source_process="lateral.exe", early_exit="COMPROMISED environment")
         return 0
 
-    # --- Phase 1: Network Discovery (host scanning) ---
+    # --- Phase 1: Process Discovery (T1057) ---
+    emit_process_discovery("lateral.exe")
+    time.sleep(phase_delay("process_discovery"))
+
+    # --- Phase 2: Network Discovery (host scanning) ---
     set_phase("network_discovery")
     emit("PROCESS", "CREATE_THREAD", "lateral.exe", "INFO",
          source_process="lateral.exe",
@@ -78,7 +83,7 @@ def main() -> int:
          source_process="lateral.exe",
          detail=f"Discovery complete: {len(alive_hosts)} hosts found", technique_id="T1018")
 
-    # --- Phase 2: SMB Share Enumeration ---
+    # --- Phase 3: SMB Share Enumeration ---
     set_phase("smb_enumeration")
     emit("PROCESS", "CREATE_THREAD", "lateral.exe", "INFO",
          source_process="lateral.exe",
@@ -97,7 +102,7 @@ def main() -> int:
                  detail=f"Enumerating share: \\\\{hostname}\\{share}", technique_id="T1135")
         time.sleep(phase_delay("smb_connect"))
 
-    # --- Phase 3: Credential Harvesting for PTH ---
+    # --- Phase 4: Credential Harvesting for PTH ---
     set_phase("credential_harvest")
     emit("PROCESS", "CREATE_PROCESS", "mimikatz.exe", "CRITICAL",
          source_process="lateral.exe",
@@ -111,7 +116,7 @@ def main() -> int:
          detail=f"NTLM hash captured: Administrator:{ntlm_hash[:20]}...",
          technique_id="T1003.001")
 
-    # --- Phase 4: Pass-the-Hash ---
+    # --- Phase 5: Pass-the-Hash ---
     if env != EnvSafety.SUSPICIOUS:
         set_phase("pass_the_hash")
         target_ip, target_host = alive_hosts[0] if alive_hosts else ("10.0.0.10", "DC01")
@@ -173,6 +178,10 @@ def main() -> int:
              source_process="lateral.exe", size=4096,
              detail=f"Payload deployed to {target_host} via SMB",
              technique_id="T1570")
+
+    # --- Phase 8: Firewall Rule for Lateral Movement ---
+    emit_firewall_rule("lateral.exe", "Remote Admin Access", "in", 445)
+    time.sleep(phase_delay("firewall_rule"))
 
     emit("PROCESS", "EXIT_PROCESS", "lateral.exe", "INFO",
          source_process="lateral.exe",

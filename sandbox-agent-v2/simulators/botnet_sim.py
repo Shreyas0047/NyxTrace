@@ -26,6 +26,7 @@ from pathlib import Path
 from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from c2_helper import emit_doh_query, fronted_beacon, jittered_sleep, FRONT_DOMAINS
 from naming_helper import phase_delay, pick_mutex, emit_mutex, pick_service_name
+from defense_helper import emit_system_discovery, emit_uac_bypass, emit_software_discovery
 
 
 # =============================================================================
@@ -65,12 +66,21 @@ def main() -> int:
              source_process="svchost_bot.exe", early_exit="COMPROMISED environment")
         return 0
 
-    # --- Phase 1: Mutex creation ---
+    # --- Phase 1: System Discovery (T1082, T1518) ---
+    emit_system_discovery("svchost_bot.exe")
+    emit_software_discovery("svchost_bot.exe")
+    time.sleep(phase_delay("system_discovery"))
+
+    # --- Phase 2: UAC bypass (T1548.002) ---
+    emit_uac_bypass("svchost_bot.exe", "fodhelper")
+    time.sleep(phase_delay("uac_bypass"))
+
+    # --- Phase 3: Mutex creation ---
     bot_mutex = pick_mutex()
     emit_mutex(bot_mutex, "svchost_bot.exe")
     time.sleep(phase_delay("mutex_create"))
 
-    # --- Phase 2: Persistence via Registry ---
+    # --- Phase 4: Persistence via Registry ---
     set_phase("persistence")
     emit("PROCESS", "CREATE_THREAD", "svchost_bot.exe", "INFO",
          source_process="svchost_bot.exe", detail="Installing persistence mechanisms")
@@ -95,7 +105,7 @@ def main() -> int:
          value_name="SystemCheck", value_data=r"C:\Windows\Temp\checker.exe",
          detail="RunOnce persistence (backup)", technique_id="T1547.001")
 
-    # --- Phase 2: Scheduled Task ---
+    # --- Phase 5: Scheduled Task ---
     set_phase("scheduled_task")
     emit("PROCESS", "SCHEDULED_TASK", "schtasks.exe", "CRITICAL",
          source_process="svchost_bot.exe", detail="Creating scheduled task for persistence",
@@ -110,7 +120,7 @@ def main() -> int:
         pass
     time.sleep(phase_delay("scheduled_task"))
 
-    # --- Phase 2b: WMI Event Subscription persistence ---
+    # --- Phase 6: WMI Event Subscription persistence ---
     set_phase("wmi_persistence")
     emit("PROCESS", "WMI_SUBSCRIBE", "wmic.exe", "CRITICAL",
          source_process="svchost_bot.exe",
@@ -153,7 +163,7 @@ def main() -> int:
         pass
     time.sleep(phase_delay("wmi_subscribe"))
 
-    # --- Phase 3: DNS Beaconing + DoH ---
+    # --- Phase 7: DNS Beaconing + DoH ---
     set_phase("dns_beacon")
     emit("PROCESS", "CREATE_THREAD", "svchost_bot.exe", "INFO",
          source_process="svchost_bot.exe", detail="Starting DNS beaconing to C2 domains")
@@ -169,7 +179,7 @@ def main() -> int:
         emit_doh_query(domain, process_name="svchost_bot.exe")
         time.sleep(phase_delay("doh_query"))
 
-    # --- Phase 4: HTTP C2 Beaconing with domain fronting ---
+    # --- Phase 8: HTTP C2 Beaconing with domain fronting ---
     set_phase("http_beacon")
     for i in range(6):
         ip = random.choice(C2_IPS)
@@ -194,7 +204,7 @@ def main() -> int:
         else:
             jittered_sleep(1.5, 1.0)
 
-    # --- Phase 5: Process Hollowing ---
+    # --- Phase 9: Process Hollowing ---
     if env != EnvSafety.SUSPICIOUS:
         set_phase("process_hollowing")
         target_proc = r"C:\Windows\System32\calc.exe"
@@ -217,7 +227,7 @@ def main() -> int:
             emit("PROCESS", "CREATE_PROCESS", target_proc, "WARNING",
                  source_process="svchost_bot.exe", error=str(e))
 
-    # --- Phase 6: Bot Configuration Drop ---
+    # --- Phase 10: Bot Configuration Drop ---
     set_phase("config_drop")
     config_dir = Path(os.environ.get("APPDATA", r"C:\Users\guestuser\AppData\Roaming")) / "Microsoft" / "SystemConfig"
     config_dir.mkdir(parents=True, exist_ok=True)

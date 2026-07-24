@@ -27,6 +27,7 @@ from pathlib import Path
 from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from c2_helper import emit_doh_query, emit_heartbeats, fronted_beacon, jittered_sleep, FRONT_DOMAINS
 from naming_helper import phase_delay, pick_pipe, emit_pipe
+from defense_helper import emit_amsi_bypass
 
 
 EXFIL_SERVERS = ["10.13.37.50", "10.13.37.51"]
@@ -112,6 +113,10 @@ def main() -> int:
             except Exception:
                 pass
         time.sleep(phase_delay("file_read"))
+
+    # --- Phase 2b: AMSI Bypass before sensitive registry access ---
+    emit_amsi_bypass("stealer.exe", "registry")
+    time.sleep(phase_delay("amsi_bypass"))
 
     # --- Phase 3: Registry Hive Access ---
     if env != EnvSafety.SUSPICIOUS:

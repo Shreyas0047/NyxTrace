@@ -62,7 +62,7 @@
 |-------|--------|-------|
 | 1 — Anti-Analysis Gating | Complete | Environment-aware behavior gating (debugger, VM, analysis tools detection) |
 | 2 — Real Process Injection | Complete | ctypes-based `CreateRemoteThread` + `WriteProcessMemory` into suspended `calc.exe` with benign MessageBoxW shellcode |
-| 3 — Network Beaconing | Pending | Jittered sleep, domain fronting patterns, DNS-over-HTTPS |
+| 3 — Network Beaconing | Complete | Domain fronting (Host header manipulation), DNS-over-HTTPS simulation, jittered exponential-backoff heartbeats |
 | 4+ — Artifact Naming, Timing, Persistence, etc. | Pending | Follow-up phases covering all 12 realism dimensions |
 
 ---
@@ -470,6 +470,29 @@ Phase 6 of `sim_epsilon.py` (process injection) now performs actual ctypes-based
 | 6 | `TerminateProcess` | Clean up the injected process |
 
 The shellcode calls `MessageBoxW(0, "Process Injection Test", "NyxTrace", 0)` — entirely benign. The MessageBoxW address is resolved at runtime via `GetProcAddress` from the injecting process (Python), embedded into the shellcode before writing. All emit telemetry calls for `OPEN_PROCESS`, `WRITE_MEMORY`, and `CREATE_THREAD` are preserved so the EDR analysis pipeline sees the same forensic signals it would from a real injection.
+
+### Simulator Realism — Phase 3 (Network Beaconing)
+
+A shared `c2_helper.py` module provides four realistic C2 traffic primitives used across all 4 network-capable simulators:
+
+| Primitive | Function | Detail |
+|-----------|----------|--------|
+| Domain Fronting | `fronted_beacon()` | Connects to sinkhole IP but sets HTTP `Host` header to a trusted CDN domain (e.g. `www.google-analytics.com`, `cdn.example-cdn.com`), mimicking malware that hides behind CDN infrastructure |
+| DNS-over-HTTPS | `emit_doh_query()` | Sends a TCP connection to the DoH resolver sinkhole with an HTTP POST mimicking RFC 8484 `application/dns-message` upload, evading plaintext DNS monitoring |
+| Jittered Sleep | `jittered_sleep()` | Triangular jitter around base interval (± jitter) — substitutes for fixed `time.sleep()` calls |
+| Exponential Backoff | `backoff_sleep()` | Full-jitter exponential backoff `U(0, min(cap, base×2^attempt))` — used when a C2 endpoint is unreachable |
+| Heartbeat Chain | `emit_heartbeats()` | Sends N staggered heartbeats with random intervals between `min_interval` and `max_interval`, each carrying a unique session ID |
+
+**Simulators updated:**
+
+| Simulator | Phase(s) | Improvement |
+|-----------|----------|-------------|
+| `botnet_sim.py` | `dns_beacon`, `http_beacon` | Added `emit_doh_query()` to DNS phase; replaced raw TCP beacon with `fronted_beacon()` + `DOMAIN_FRONT` telemetry for all 6 HTTP beacons |
+| `credential_stealer_sim.py` | `dropper`, `exfiltration` | Dropper now uses `fronted_beacon()` with `DOMAIN_FRONT` telemetry + DoH query; exfiltration per-file uses per-file front domain + trailing `emit_heartbeats()` |
+| `sim_delta.py` | `exfiltration` | Replaced raw `socket.connect()` with `fronted_beacon()` + `DOMAIN_FRONT` telemetry; trailing `emit_heartbeats()` with 8–20s jitter |
+| `sim_epsilon.py` | `c2_callback` | Replaced single socket connect with fronted beacon + DoH query + 4-part heartbeat chain (4–20s intervals) |
+
+All source IPs remain in non-routable `10.0.0.0/8` ranges; all payloads are benign metadata JSON.
 
 ---
 

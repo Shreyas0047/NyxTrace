@@ -20,6 +20,7 @@ from pathlib import Path
 from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from naming_helper import phase_delay, pick_service_name
 from defense_helper import emit_firewall_rule, emit_process_discovery
+from discovery_helper import emit_account_discovery, emit_domain_trust_discovery, emit_network_share_discovery
 from persistence_helper import emit_windows_service, emit_scheduled_task
 from obfuscation_helper import xor_bytes, base64_encode, emit_crypto_operation
 
@@ -57,6 +58,13 @@ def main() -> int:
     # --- Phase 1: Process Discovery (T1057) ---
     emit_process_discovery("lateral.exe")
     time.sleep(phase_delay("process_discovery"))
+
+    # --- Phase 1b: Discovery Depth ---
+    set_phase("discovery_depth")
+    emit_account_discovery("lateral.exe")
+    emit_domain_trust_discovery("lateral.exe")
+    emit_network_share_discovery("lateral.exe")
+    time.sleep(phase_delay("system_discovery"))
 
     # --- Phase 2: Network Discovery (host scanning) ---
     set_phase("network_discovery")

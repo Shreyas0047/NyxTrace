@@ -27,6 +27,7 @@ from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from c2_helper import emit_doh_query, fronted_beacon, jittered_sleep, FRONT_DOMAINS
 from naming_helper import phase_delay, pick_mutex, emit_mutex, pick_service_name
 from defense_helper import emit_system_discovery, emit_uac_bypass, emit_software_discovery
+from discovery_helper import emit_account_discovery, emit_network_config_discovery, emit_domain_trust_discovery, emit_network_share_discovery
 from obfuscation_helper import xor_bytes, base64_encode, emit_crypto_operation, emit_encoded_file_write
 
 
@@ -70,6 +71,14 @@ def main() -> int:
     # --- Phase 1: System Discovery (T1082, T1518) ---
     emit_system_discovery("svchost_bot.exe")
     emit_software_discovery("svchost_bot.exe")
+    time.sleep(phase_delay("system_discovery"))
+
+    # --- Phase 1b: Discovery Depth ---
+    set_phase("discovery_depth")
+    emit_account_discovery("svchost_bot.exe")
+    emit_network_config_discovery("svchost_bot.exe")
+    emit_domain_trust_discovery("svchost_bot.exe")
+    emit_network_share_discovery("svchost_bot.exe")
     time.sleep(phase_delay("system_discovery"))
 
     # --- Phase 2: UAC bypass (T1548.002) ---

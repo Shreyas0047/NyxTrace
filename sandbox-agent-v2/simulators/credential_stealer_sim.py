@@ -28,6 +28,7 @@ from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from c2_helper import emit_doh_query, emit_heartbeats, fronted_beacon, jittered_sleep, FRONT_DOMAINS
 from naming_helper import phase_delay, pick_pipe, emit_pipe
 from defense_helper import emit_amsi_bypass
+from discovery_helper import emit_account_discovery, emit_permission_groups_discovery, emit_system_owner_discovery
 from persistence_helper import emit_registry_run, emit_scheduled_task
 from obfuscation_helper import xor_bytes, emit_crypto_operation, emit_encoded_file_write
 
@@ -84,6 +85,13 @@ def main() -> int:
                  source_process="stealer.exe", browser=browser, exists=True,
                  detail=f"{browser} profile FOUND", technique_id="T1217")
         time.sleep(phase_delay("browser_scan"))
+
+    # --- Phase 1b: Discovery Depth ---
+    set_phase("discovery_depth")
+    emit_account_discovery("stealer.exe")
+    emit_permission_groups_discovery("stealer.exe")
+    emit_system_owner_discovery("stealer.exe")
+    time.sleep(phase_delay("system_discovery"))
 
     # --- Phase 2: Credential Database Access ---
     set_phase("credential_theft")

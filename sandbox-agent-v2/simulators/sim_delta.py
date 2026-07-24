@@ -21,6 +21,7 @@ from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from c2_helper import fronted_beacon, emit_heartbeats, jittered_sleep, FRONT_DOMAINS
 from naming_helper import phase_delay, pick_com_description
 from defense_helper import emit_system_discovery, emit_process_discovery
+from discovery_helper import emit_account_discovery, emit_network_config_discovery, emit_network_connections_discovery, emit_file_directory_discovery
 from persistence_helper import emit_registry_run, emit_com_hijack
 from obfuscation_helper import xor_bytes, emit_crypto_operation, emit_encoded_file_write
 
@@ -47,6 +48,14 @@ def main() -> int:
     # Phase 1: System Discovery (T1082, T1057, T1518)
     emit_system_discovery("svchost_d.exe")
     emit_process_discovery("svchost_d.exe")
+    time.sleep(phase_delay("system_discovery"))
+
+    # Phase 1b: Discovery Depth
+    set_phase("discovery_depth")
+    emit_account_discovery("svchost_d.exe")
+    emit_network_config_discovery("svchost_d.exe")
+    emit_network_connections_discovery("svchost_d.exe")
+    emit_file_directory_discovery("svchost_d.exe", "%USERPROFILE%\\Documents")
     time.sleep(phase_delay("system_discovery"))
 
     # Phase 2: Keylogger hook

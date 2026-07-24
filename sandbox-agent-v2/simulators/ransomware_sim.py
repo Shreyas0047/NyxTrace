@@ -27,6 +27,7 @@ from pathlib import Path
 from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from naming_helper import phase_delay
 from defense_helper import emit_uac_bypass, emit_firewall_rule, emit_process_discovery
+from defense_evasion_helper import emit_defender_disable, emit_vss_delete, emit_inhibit_system_recovery, emit_event_log_clear
 from discovery_helper import emit_account_discovery, emit_network_config_discovery, emit_system_owner_discovery, emit_permission_groups_discovery
 from persistence_helper import emit_wmi_subscription
 from obfuscation_helper import xor_bytes, rc4_stream, emit_crypto_operation, emit_encoded_file_write
@@ -140,6 +141,14 @@ def main() -> int:
     emit_system_owner_discovery("ransomware.exe")
     emit_permission_groups_discovery("ransomware.exe")
     time.sleep(phase_delay("system_discovery"))
+
+    # --- Phase 1c: Defense Evasion Depth ---
+    set_phase("defense_evasion_depth")
+    emit_defender_disable("ransomware.exe")
+    emit_vss_delete("ransomware.exe")
+    emit_inhibit_system_recovery("ransomware.exe")
+    emit_event_log_clear("ransomware.exe")
+    time.sleep(phase_delay("defense_evasion"))
 
     # --- Phase 2: UAC bypass ---
     emit_uac_bypass("ransomware.exe", "eventvwr")

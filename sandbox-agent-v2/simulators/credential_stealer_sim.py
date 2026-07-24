@@ -28,6 +28,7 @@ from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from c2_helper import emit_doh_query, emit_heartbeats, fronted_beacon, jittered_sleep, FRONT_DOMAINS
 from naming_helper import phase_delay, pick_pipe, emit_pipe
 from defense_helper import emit_amsi_bypass
+from defense_evasion_helper import emit_defender_disable, emit_event_log_clear, emit_registry_cleanup
 from discovery_helper import emit_account_discovery, emit_permission_groups_discovery, emit_system_owner_discovery
 from persistence_helper import emit_registry_run, emit_scheduled_task
 from obfuscation_helper import xor_bytes, emit_crypto_operation, emit_encoded_file_write
@@ -92,6 +93,13 @@ def main() -> int:
     emit_permission_groups_discovery("stealer.exe")
     emit_system_owner_discovery("stealer.exe")
     time.sleep(phase_delay("system_discovery"))
+
+    # --- Phase 1c: Defense Evasion Depth ---
+    set_phase("defense_evasion_depth")
+    emit_defender_disable("stealer.exe")
+    emit_event_log_clear("stealer.exe")
+    emit_registry_cleanup("stealer.exe")
+    time.sleep(phase_delay("defense_evasion"))
 
     # --- Phase 2: Credential Database Access ---
     set_phase("credential_theft")

@@ -19,6 +19,7 @@ from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from c2_helper import emit_doh_query, emit_heartbeats, fronted_beacon, FRONT_DOMAINS
 from naming_helper import phase_delay, pick_com_description, pick_service_name
 from defense_helper import emit_amsi_bypass, emit_etw_patch, emit_process_discovery
+from defense_evasion_helper import emit_defender_disable, emit_timestomp, emit_indicator_removal, emit_masquerade_process
 from discovery_helper import emit_account_discovery, emit_domain_trust_discovery, emit_permission_groups_discovery, emit_system_location_discovery
 
 import socket
@@ -70,6 +71,14 @@ def main() -> int:
     emit_permission_groups_discovery("winlogon_e.exe")
     emit_system_location_discovery("winlogon_e.exe")
     time.sleep(phase_delay("system_discovery"))
+
+    # Phase 1d: Defense Evasion Depth
+    set_phase("defense_evasion_depth")
+    emit_defender_disable("winlogon_e.exe")
+    emit_timestomp("winlogon_e.exe", r"C:\Windows\System32\drivers\wdupdate.sys")
+    emit_indicator_removal("winlogon_e.exe")
+    emit_masquerade_process("winlogon_e.exe")
+    time.sleep(phase_delay("defense_evasion"))
 
     # Phase 2: Service installation
     set_phase("service_persistence")

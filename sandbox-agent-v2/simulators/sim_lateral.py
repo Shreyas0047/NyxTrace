@@ -20,6 +20,7 @@ from pathlib import Path
 from telemetry_helper import check_environment, emit, EnvSafety, set_phase
 from naming_helper import phase_delay, pick_service_name
 from defense_helper import emit_firewall_rule, emit_process_discovery
+from defense_evasion_helper import emit_defender_disable, emit_event_log_clear, emit_masquerade_process
 from discovery_helper import emit_account_discovery, emit_domain_trust_discovery, emit_network_share_discovery
 from persistence_helper import emit_windows_service, emit_scheduled_task
 from obfuscation_helper import xor_bytes, base64_encode, emit_crypto_operation
@@ -65,6 +66,13 @@ def main() -> int:
     emit_domain_trust_discovery("lateral.exe")
     emit_network_share_discovery("lateral.exe")
     time.sleep(phase_delay("system_discovery"))
+
+    # --- Phase 1c: Defense Evasion Depth ---
+    set_phase("defense_evasion_depth")
+    emit_defender_disable("lateral.exe")
+    emit_event_log_clear("lateral.exe")
+    emit_masquerade_process("lateral.exe")
+    time.sleep(phase_delay("defense_evasion"))
 
     # --- Phase 2: Network Discovery (host scanning) ---
     set_phase("network_discovery")

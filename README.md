@@ -1,8 +1,7 @@
+# NyxTrace
+
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/NyxTrace-2.0.0-amber?style=for-the-badge&labelColor=1a1a1a&color=f59e0b">
-    <img src="https://img.shields.io/badge/NyxTrace-2.0.0-amber?style=for-the-badge&labelColor=ffffff&color=f59e0b" alt="NyxTrace v2.0.0">
-  </picture>
+  <img src="docs/readme-hero.svg" alt="NyxTrace AI-powered digital forensics workflow" width="100%">
 </p>
 
 <p align="center">
@@ -620,5 +619,4 @@ Commit format: `<type>(<scope>): <description>` where types are `feat|fix|chore|
 [MIT](LICENSE) — Copyright (c) 2026 NyxTrace
 
 ---
-
 

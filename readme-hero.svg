@@ -1,0 +1,349 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="620" viewBox="0 0 1440 620" role="img" aria-labelledby="title desc">
+  <title id="title">NyxTrace — AI-powered digital forensics</title>
+  <desc id="desc">An animated forensic trace moves from live telemetry through AI analysis into blockchain-verified evidence.</desc>
+
+  <defs>
+    <linearGradient id="backdrop" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#070706"/>
+      <stop offset=".48" stop-color="#0d0c0a"/>
+      <stop offset="1" stop-color="#12100c"/>
+    </linearGradient>
+
+    <radialGradient id="amber-haze" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#f59e0b" stop-opacity=".15"/>
+      <stop offset=".58" stop-color="#f59e0b" stop-opacity=".035"/>
+      <stop offset="1" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
+
+    <radialGradient id="blue-haze" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#60a5fa" stop-opacity=".11"/>
+      <stop offset="1" stop-color="#60a5fa" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="trace-gradient" x1="760" y1="0" x2="1325" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f59e0b"/>
+      <stop offset=".5" stop-color="#60a5fa"/>
+      <stop offset="1" stop-color="#34d399"/>
+    </linearGradient>
+
+    <linearGradient id="wordmark-gradient" x1="96" y1="210" x2="590" y2="390" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fffaf0"/>
+      <stop offset=".7" stop-color="#e8e2d6"/>
+      <stop offset="1" stop-color="#a8a294"/>
+    </linearGradient>
+
+    <pattern id="dot-grid" width="36" height="36" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="1" fill="#f5f0e6" opacity=".065"/>
+    </pattern>
+
+    <pattern id="micro-grid" width="12" height="12" patternUnits="userSpaceOnUse">
+      <path d="M12 0H0V12" fill="none" stroke="#f5f0e6" stroke-opacity=".035" stroke-width=".5"/>
+    </pattern>
+
+    <filter id="soft-glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="strong-glow" x="-120%" y="-120%" width="340%" height="340%">
+      <feGaussianBlur stdDeviation="11" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0  0 .7 0 0 0  0 0 .2 0 0  0 0 0 .85 0"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <clipPath id="frame-clip">
+      <rect x="18" y="18" width="1404" height="584" rx="28"/>
+    </clipPath>
+
+    <style>
+      .display { font-family: "Space Grotesk", "Segoe UI", system-ui, sans-serif; }
+      .body { font-family: "DM Sans", "Segoe UI", system-ui, sans-serif; }
+      .mono { font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace; }
+      .hairline { vector-effect: non-scaling-stroke; }
+
+      .trace {
+        stroke-dasharray: 12 18;
+        animation: trace-flow 4.8s linear infinite;
+      }
+
+      .trace-fast {
+        stroke-dasharray: 4 13;
+        animation: trace-flow 2.7s linear infinite;
+      }
+
+      .scan {
+        animation: scan-pass 5s cubic-bezier(.65, 0, .35, 1) infinite;
+      }
+
+      .packet {
+        animation: packet-run 5s cubic-bezier(.55, 0, .25, 1) infinite;
+      }
+
+      .packet-b { animation-delay: -2.5s; }
+
+      .pulse {
+        transform-box: fill-box;
+        transform-origin: center;
+        animation: node-pulse 3.2s ease-in-out infinite;
+      }
+
+      .pulse-delay { animation-delay: -1.6s; }
+
+      .orbit {
+        transform-box: fill-box;
+        transform-origin: center;
+        animation: orbit-turn 22s linear infinite;
+      }
+
+      .reveal-1 { animation: reveal 7s ease-in-out infinite; }
+      .reveal-2 { animation: reveal 7s ease-in-out -4.5s infinite; }
+
+      .verified {
+        transform-box: fill-box;
+        transform-origin: center;
+        animation: verified-breathe 3.6s ease-in-out infinite;
+      }
+
+      @keyframes trace-flow {
+        to { stroke-dashoffset: -60; }
+      }
+
+      @keyframes scan-pass {
+        0%, 10% { transform: translateX(-90px); opacity: 0; }
+        18% { opacity: .8; }
+        58% { opacity: .8; }
+        72%, 100% { transform: translateX(520px); opacity: 0; }
+      }
+
+      @keyframes packet-run {
+        0%, 8% { transform: translate(0, 0); opacity: 0; }
+        16% { opacity: 1; }
+        44% { transform: translate(138px, -56px); opacity: 1; }
+        70% { transform: translate(282px, 4px); opacity: 1; }
+        88%, 100% { transform: translate(416px, -38px); opacity: 0; }
+      }
+
+      @keyframes node-pulse {
+        0%, 100% { transform: scale(.88); opacity: .45; }
+        50% { transform: scale(1.16); opacity: .95; }
+      }
+
+      @keyframes orbit-turn {
+        to { transform: rotate(360deg); }
+      }
+
+      @keyframes reveal {
+        0%, 18%, 100% { opacity: .2; }
+        35%, 70% { opacity: 1; }
+      }
+
+      @keyframes verified-breathe {
+        0%, 100% { transform: scale(.96); filter: drop-shadow(0 0 2px rgba(52,211,153,.2)); }
+        50% { transform: scale(1.04); filter: drop-shadow(0 0 9px rgba(52,211,153,.45)); }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .trace, .trace-fast, .scan, .packet, .pulse, .orbit, .reveal-1, .reveal-2, .verified {
+          animation: none !important;
+        }
+        .scan { opacity: .22; transform: translateX(210px); }
+        .packet { opacity: .85; transform: translate(282px, 4px); }
+      }
+    </style>
+  </defs>
+
+  <g clip-path="url(#frame-clip)">
+    <rect x="18" y="18" width="1404" height="584" rx="28" fill="url(#backdrop)"/>
+    <rect x="18" y="18" width="1404" height="584" rx="28" fill="url(#dot-grid)"/>
+    <ellipse cx="1085" cy="310" rx="440" ry="380" fill="url(#amber-haze)"/>
+    <ellipse cx="1250" cy="218" rx="330" ry="250" fill="url(#blue-haze)"/>
+
+    <!-- restrained topographic traces -->
+    <g fill="none" stroke="#f5f0e6" stroke-opacity=".035" class="hairline">
+      <path d="M-30 472C142 400 259 524 430 470S738 390 912 458s324 85 552 5"/>
+      <path d="M-40 498C143 427 256 549 438 497s301-80 486-10 315 75 554 6"/>
+      <path d="M-32 524C166 452 278 573 452 521s296-72 482-6 328 66 545 7"/>
+    </g>
+
+    <!-- header rail -->
+    <g class="mono">
+      <circle cx="76" cy="70" r="4" fill="#34d399"/>
+      <circle cx="76" cy="70" r="8" fill="none" stroke="#34d399" stroke-opacity=".28" class="pulse"/>
+      <text x="91" y="75" fill="#a8a294" font-size="11" letter-spacing="2.2">FORENSIC SYSTEM / ONLINE</text>
+      <text x="1363" y="75" fill="#6c675c" font-size="11" text-anchor="end" letter-spacing="1.5">CASE TRACE · 0x7F2A</text>
+      <path d="M66 98H1374" stroke="#f5f0e6" stroke-opacity=".08" class="hairline"/>
+      <path d="M66 98H226" stroke="#f59e0b" stroke-opacity=".9" class="hairline"/>
+    </g>
+
+    <!-- left editorial lockup -->
+    <g>
+      <g transform="translate(84 148)">
+        <rect width="188" height="28" rx="14" fill="#f59e0b" fill-opacity=".08" stroke="#f59e0b" stroke-opacity=".24"/>
+        <path d="M16 14h8m-4-4v8" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round"/>
+        <text x="35" y="18.5" fill="#fbbf24" font-size="10" font-weight="600" letter-spacing="1.8" class="mono">DIGITAL FORENSICS</text>
+      </g>
+
+      <text x="78" y="280" fill="url(#wordmark-gradient)" font-size="92" font-weight="650" letter-spacing="-5.2" class="display">NyxTrace</text>
+      <text x="84" y="327" fill="#a8a294" font-size="19" font-weight="450" letter-spacing=".5" class="body">
+        Turn volatile telemetry into evidence that holds.
+      </text>
+
+      <g transform="translate(84 374)" class="mono">
+        <g>
+          <text x="0" y="12" fill="#6c675c" font-size="9" letter-spacing="1.8">01</text>
+          <text x="0" y="39" fill="#f0ede4" font-size="12" letter-spacing="1">TRACE</text>
+          <path d="M0 52H115" stroke="#f59e0b" stroke-opacity=".55"/>
+          <text x="0" y="73" fill="#7b7568" font-size="9.5">LIVE TELEMETRY</text>
+        </g>
+        <g transform="translate(148)">
+          <text x="0" y="12" fill="#6c675c" font-size="9" letter-spacing="1.8">02</text>
+          <text x="0" y="39" fill="#f0ede4" font-size="12" letter-spacing="1">CORRELATE</text>
+          <path d="M0 52H115" stroke="#60a5fa" stroke-opacity=".55"/>
+          <text x="0" y="73" fill="#7b7568" font-size="9.5">AI ANALYSIS</text>
+        </g>
+        <g transform="translate(296)">
+          <text x="0" y="12" fill="#6c675c" font-size="9" letter-spacing="1.8">03</text>
+          <text x="0" y="39" fill="#f0ede4" font-size="12" letter-spacing="1">PROVE</text>
+          <path d="M0 52H115" stroke="#34d399" stroke-opacity=".55"/>
+          <text x="0" y="73" fill="#7b7568" font-size="9.5">CHAIN INTEGRITY</text>
+        </g>
+      </g>
+
+      <g transform="translate(84 514)" class="mono">
+        <rect width="448" height="42" rx="8" fill="#171510" stroke="#f5f0e6" stroke-opacity=".09"/>
+        <circle cx="21" cy="21" r="3.5" fill="#f59e0b"/>
+        <text x="35" y="25" fill="#a8a294" font-size="10" letter-spacing=".7">AI-POWERED · BLOCKCHAIN-ANCHORED · SANDBOX-SAFE</text>
+      </g>
+    </g>
+
+    <!-- right forensic instrument panel -->
+    <g transform="translate(664 120)">
+      <rect width="704" height="430" rx="20" fill="#0a0a08" fill-opacity=".72" stroke="#f5f0e6" stroke-opacity=".1"/>
+      <rect x="1" y="1" width="702" height="428" rx="19" fill="url(#micro-grid)" opacity=".7"/>
+
+      <g class="mono">
+        <text x="24" y="32" fill="#a8a294" font-size="10" letter-spacing="1.7">EVIDENCE CORRELATION MAP</text>
+        <text x="680" y="32" fill="#6c675c" font-size="9" text-anchor="end" letter-spacing="1.3">LIVE / 60 FPS</text>
+        <path d="M24 48H680" stroke="#f5f0e6" stroke-opacity=".08"/>
+      </g>
+
+      <!-- graph connections -->
+      <g fill="none" class="hairline">
+        <path d="M104 242C173 242 187 158 265 158S378 210 430 179 513 114 591 135" stroke="#3a3730"/>
+        <path d="M104 242C190 242 189 300 284 300s93-82 174-61 84 84 147 82" stroke="#3a3730"/>
+        <path d="M265 158L284 300M430 179L458 239M591 135L605 321" stroke="#29251c"/>
+        <path d="M104 242C173 242 187 158 265 158S378 210 430 179 513 114 591 135" stroke="url(#trace-gradient)" stroke-width="1.5" class="trace"/>
+        <path d="M104 242C190 242 189 300 284 300s93-82 174-61 84 84 147 82" stroke="url(#trace-gradient)" stroke-opacity=".65" class="trace-fast"/>
+      </g>
+
+      <!-- moving scan beam -->
+      <g class="scan">
+        <rect x="64" y="70" width="2" height="282" fill="#f59e0b" opacity=".55"/>
+        <rect x="55" y="70" width="20" height="282" fill="#f59e0b" opacity=".025"/>
+      </g>
+
+      <!-- source artifact -->
+      <g transform="translate(104 242)">
+        <circle r="42" fill="#171510" stroke="#f59e0b" stroke-opacity=".3"/>
+        <circle r="31" fill="#f59e0b" fill-opacity=".06" stroke="#f59e0b" stroke-opacity=".15" stroke-dasharray="2 5"/>
+        <path d="M-13-14h17l9 9v20a4 4 0 0 1-4 4h-22a4 4 0 0 1-4-4v-25a4 4 0 0 1 4-4Z" fill="none" stroke="#fbbf24" stroke-width="1.6"/>
+        <path d="M4-14v9h9M-9 4h14M-9 10H2" fill="none" stroke="#fbbf24" stroke-opacity=".75" stroke-width="1.4" stroke-linecap="round"/>
+        <circle r="50" fill="none" stroke="#f59e0b" stroke-opacity=".12" class="pulse"/>
+        <text x="0" y="70" fill="#fbbf24" text-anchor="middle" font-size="9" letter-spacing="1.6" class="mono">ARTIFACT</text>
+        <text x="0" y="85" fill="#6c675c" text-anchor="middle" font-size="8.5" class="mono">SHA-256</text>
+      </g>
+
+      <!-- analysis node -->
+      <g transform="translate(430 179)">
+        <circle r="49" fill="#11100d" stroke="#60a5fa" stroke-opacity=".32"/>
+        <circle r="37" fill="#60a5fa" fill-opacity=".055" stroke="#60a5fa" stroke-opacity=".15" stroke-dasharray="3 6"/>
+        <g fill="none" stroke="#93c5fd" stroke-width="1.5" stroke-linecap="round">
+          <circle r="9"/>
+          <path d="M0-19v6M0 13v6M-19 0h6M13 0h6M-13.5-13.5l4.5 4.5M9 9l4.5 4.5M13.5-13.5 9-9M-9 9l-4.5 4.5"/>
+          <path d="M-4 1l3 3 6-8"/>
+        </g>
+        <g class="orbit" fill="#60a5fa">
+          <circle cx="0" cy="-43" r="2.5"/>
+          <circle cx="38" cy="20" r="1.8" opacity=".65"/>
+          <circle cx="-36" cy="24" r="1.8" opacity=".65"/>
+        </g>
+        <text x="0" y="73" fill="#93c5fd" text-anchor="middle" font-size="9" letter-spacing="1.6" class="mono">CORRELATE</text>
+        <text x="0" y="88" fill="#6c675c" text-anchor="middle" font-size="8.5" class="mono">LLM + HEURISTICS</text>
+      </g>
+
+      <!-- verified evidence node -->
+      <g transform="translate(605 321)">
+        <circle r="45" fill="#11100d" stroke="#34d399" stroke-opacity=".35"/>
+        <circle r="33" fill="#34d399" fill-opacity=".06" stroke="#34d399" stroke-opacity=".18"/>
+        <g class="verified">
+          <path d="M0-17 16-10v12c0 11-7 18-16 23C-9 20-16 13-16 2v-12Z" fill="#34d399" fill-opacity=".08" stroke="#6ee7b7" stroke-width="1.6"/>
+          <path d="m-7 2 5 5L9-5" fill="none" stroke="#6ee7b7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+        <text x="0" y="68" fill="#6ee7b7" text-anchor="middle" font-size="9" letter-spacing="1.6" class="mono">ANCHORED</text>
+        <text x="0" y="83" fill="#6c675c" text-anchor="middle" font-size="8.5" class="mono">EVIDENCE REGISTRY</text>
+      </g>
+
+      <!-- secondary evidence nodes -->
+      <g class="mono">
+        <g transform="translate(265 158)">
+          <circle r="6" fill="#0a0a08" stroke="#f59e0b"/>
+          <circle r="14" fill="none" stroke="#f59e0b" stroke-opacity=".18" class="pulse pulse-delay"/>
+          <text x="0" y="-17" fill="#7b7568" text-anchor="middle" font-size="8">PROCESS</text>
+        </g>
+        <g transform="translate(284 300)">
+          <circle r="6" fill="#0a0a08" stroke="#fb7185"/>
+          <circle r="14" fill="none" stroke="#fb7185" stroke-opacity=".16" class="pulse"/>
+          <text x="0" y="25" fill="#7b7568" text-anchor="middle" font-size="8">ANOMALY</text>
+        </g>
+        <g transform="translate(458 239)">
+          <circle r="5" fill="#60a5fa"/>
+          <text x="14" y="4" fill="#7b7568" font-size="8">T1059</text>
+        </g>
+        <g transform="translate(591 135)">
+          <circle r="6" fill="#0a0a08" stroke="#60a5fa"/>
+          <text x="0" y="-17" fill="#7b7568" text-anchor="middle" font-size="8">MITRE MAP</text>
+        </g>
+      </g>
+
+      <!-- animated trace packets -->
+      <g transform="translate(104 242)">
+        <g class="packet" filter="url(#soft-glow)">
+          <circle r="4" fill="#fbbf24"/>
+          <circle r="9" fill="#f59e0b" opacity=".12"/>
+        </g>
+        <g class="packet packet-b" filter="url(#soft-glow)">
+          <circle r="3" fill="#93c5fd"/>
+          <circle r="8" fill="#60a5fa" opacity=".12"/>
+        </g>
+      </g>
+
+      <!-- evidence ledger strip -->
+      <g transform="translate(24 380)" class="mono">
+        <rect width="656" height="30" rx="7" fill="#171510" stroke="#f5f0e6" stroke-opacity=".07"/>
+        <text x="14" y="19.5" fill="#6c675c" font-size="8.5">BLOCK</text>
+        <text x="64" y="19.5" fill="#f0ede4" font-size="8.5">#18421</text>
+        <path d="M117 8v14" stroke="#3a3730"/>
+        <text x="132" y="19.5" fill="#6c675c" font-size="8.5">HASH</text>
+        <text x="173" y="19.5" fill="#a8a294" font-size="8.5" class="reveal-1">7f2a9c…e841</text>
+        <path d="M274 8v14" stroke="#3a3730"/>
+        <text x="289" y="19.5" fill="#6c675c" font-size="8.5">CUSTODY</text>
+        <text x="351" y="19.5" fill="#a8a294" font-size="8.5" class="reveal-2">INTACT</text>
+        <g transform="translate(576 15)">
+          <rect x="-4" y="-9" width="65" height="18" rx="9" fill="#34d399" fill-opacity=".08" stroke="#34d399" stroke-opacity=".2"/>
+          <circle cx="6" r="2.5" fill="#34d399"/>
+          <text x="14" y="3" fill="#6ee7b7" font-size="8">VERIFIED</text>
+        </g>
+      </g>
+    </g>
+  </g>
+
+  <rect x="18.5" y="18.5" width="1403" height="583" rx="27.5" fill="none" stroke="#f5f0e6" stroke-opacity=".13" class="hairline"/>
+  <path d="M46 18.5H232" stroke="#f59e0b" stroke-opacity=".55" class="hairline"/>
+  <path d="M1208 601.5H1394" stroke="#34d399" stroke-opacity=".35" class="hairline"/>
+</svg>

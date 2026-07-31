@@ -58,7 +58,7 @@ def emit_crypto_operation(
     emit("PROCESS", "CRYPTO_OPERATION", process_name, "WARNING",
          source_process=process_name,
          algorithm=algorithm,
-         operation=operation,
+         crypto_operation=operation,
          data_size=data_size,
          detail=detail or f"{algorithm} {operation} on {data_size} bytes",
          technique_id=technique_id)

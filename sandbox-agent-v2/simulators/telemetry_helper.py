@@ -101,6 +101,12 @@ def check_environment() -> tuple[EnvSafety, list[str]]:
     reasons: list[str] = []
     cumulative: int = 0
 
+    # The sandbox agent sets this when launching simulators in the guest VM.
+    # The escape check is a realism feature — it must not abort a simulator
+    # that was deliberately started inside the sandbox.
+    if os.environ.get("NYXTRACE_DISABLE_ANTI_VM") == "1":
+        return EnvSafety.CLEAN, []
+
     # 1. Debugger check (highest confidence)
     try:
         is_debugged = ctypes.windll.kernel32.IsDebuggerPresent()

@@ -317,7 +317,7 @@ class VMManager:
     # GUEST EXECUTION (EXECUTE phase)
     # =========================================================================
 
-    def guest_exec(self, exe: str, args: list[str] | None = None, timeout: int = 300, cwd: str | None = None) -> ExecResult:
+    def guest_exec(self, exe: str, args: list[str] | None = None, timeout: int = 300, cwd: str | None = None, env: dict[str, str] | None = None) -> ExecResult:
         """Run a command inside the guest VM. Returns the ExecResult regardless
         of exit code so the caller can parse stdout (e.g. simulator telemetry)
         even when the guest process exits non-zero. Only raises if VBoxManage
@@ -331,6 +331,9 @@ class VMManager:
             "--wait-stdout",
             "--wait-stderr",
         ]
+        if env:
+            for name, value in env.items():
+                cmd.append(f"--putenv={name}={value}")
         if cwd:
             cmd.append(f"--cwd={cwd}")
         if args:

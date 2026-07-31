@@ -178,6 +178,7 @@ class SessionPipeline:
             ["/c", guest_python, guest_script],
             timeout=300,
             cwd=GUEST_SIMULATORS,
+            env={"NYXTRACE_DISABLE_ANTI_VM": "1"},
         )
 
         # --- OBSERVE ---
@@ -187,6 +188,9 @@ class SessionPipeline:
 
         if result.code != 0:
             log.warning("Simulator exited with code %d: %s", result.code, result.stderr[:200])
+            self._emit_log("WARNING", f"Simulator exited with code {result.code}", sid)
+            if result.stderr.strip():
+                self._emit_log("ERROR", f"Simulator stderr: {result.stderr.strip()[:500]}", sid)
 
         # --- COMPLETE ---
         session.transition(SessionState.COMPLETED)
@@ -223,10 +227,12 @@ class SessionPipeline:
 
         self._vm.ensure_guest_dir(GUEST_SIMULATORS)
 
-        # Always copy the shared telemetry helper
-        helper_path = self._simulators_dir / "telemetry_helper.py"
-        if helper_path.exists():
-            self._vm.copy_to_guest(str(helper_path), f"{GUEST_SIMULATORS}\\telemetry_helper.py")
+        # Stage every simulator helper module (c2_helper, naming_helper,
+        # defense_helper, ...) — all simulators import them, and the pipeline
+        # used to copy only telemetry_helper.py, crashing every simulator in
+        # the guest with ModuleNotFoundError (no telemetry collected).
+        for helper in sorted(self._simulators_dir.glob("*_helper.py")):
+            self._vm.copy_to_guest(str(helper), f"{GUEST_SIMULATORS}\\{helper.name}")
 
         guest_dest = f"{GUEST_SIMULATORS}\\{filename}"
         self._vm.copy_to_guest(str(host_path), guest_dest)

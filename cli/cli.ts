@@ -74,8 +74,8 @@ const SERVICES: ServiceConfig[] = [
     name: 'ai-service',
     displayName: 'AI Service',
     cwd: 'ai-service',
-    command: 'uvicorn',
-    args: ['app.main:app', '--reload', '--host', '127.0.0.1', '--port', '8000'],
+    command: join(ROOT_DIR, 'ai-service', '.venv', 'bin', 'python'),
+    args: ['-m', 'uvicorn', 'app.main:app', '--reload', '--host', '127.0.0.1', '--port', '8000'],
     healthUrl: 'http://localhost:8000/health',
     env: {},
   },
@@ -116,7 +116,17 @@ function addPid(name: string, pid: number): void {
 }
 
 function getRunningNames(): string[] {
-  return readPids().map((p) => p.name);
+  const pids = readPids();
+  const alive = pids.filter((p) => {
+    try {
+      process.kill(p.pid, 0);
+      return true;
+    } catch {
+      return false;
+    }
+  });
+  if (alive.length !== pids.length) savePids(alive);
+  return alive.map((p) => p.name);
 }
 
 function healthCheck(service: ServiceConfig, timeout = 5000): Promise<boolean> {

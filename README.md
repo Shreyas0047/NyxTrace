@@ -353,7 +353,7 @@ All under `/api/v1/blockchain`:
 | POST | `/auth/logout` | Authenticated | Revoke refresh token |
 | GET | `/auth/me` | Authenticated | Current user profile |
 | GET | `/users` | admin+ | List all users |
-| PATCH | `/users/:id` | admin+ | Update user role/status |
+
 
 ### Investigations & Evidence
 

@@ -7,6 +7,7 @@ import { documentAnalysisService } from '../document_analysis';
 import { urlIntelligenceService } from '../url_intelligence';
 import { iocExtractionService } from '../ioc_extraction';
 import { threatIntelligenceService } from './threat-intelligence.service';
+import { aiAnalysisService } from './ai-analysis.service';
 import { IOCTypes, IOCSeverity } from '../models/threat.model';
 import { AppError } from '../middleware';
 import logger from '../config/logger';
@@ -75,7 +76,25 @@ export class AnalysisService {
     // Persist extracted IOCs to the IOC collection so they appear in Threat Intel
     await this.persistIocs(result.extractedIocs || [], ext === '.pdf' ? 'pdf_analysis' : 'docx_analysis');
 
-    return { analysisId, ...result, report: report.toJSON() };
+    // Optional LLM-enhanced second opinion (non-blocking, heuristic verdict stands)
+    const aiInsights = await this.enhanceWithLlm('document', {
+      analysisId,
+      filename,
+      fileType: ext.slice(1),
+      extractedText: result.extracted_text || '',
+      findings: result.findings || [],
+      embeddedUrls: result.embedded_urls || [],
+      macroRisk: result.macro_risk || null,
+      threatScore: result.threat_score || 0,
+      threatLevel: result.threat_level || 'unknown',
+      predictedThreat: result.predicted_threat || 'unknown',
+    });
+    if (aiInsights && report) {
+      report.set('aiInsights', aiInsights);
+      await report.save().catch((err: any) => logger.warn(`[Analysis] Failed to persist aiInsights: ${err?.message}`));
+    }
+
+    return { analysisId, ...result, aiInsights, report: report.toJSON() };
   }
 
   async analyzeUrl(url: string): Promise<any> {
@@ -128,7 +147,25 @@ export class AnalysisService {
       );
     }
 
-    return { analysisId, ...result, report: report.toJSON() };
+    // Optional LLM-enhanced second opinion (non-blocking, heuristic verdict stands)
+    const aiInsights = await this.enhanceWithLlm('url', {
+      analysisId,
+      url,
+      hostname: result.parsed?.hostname || '',
+      tld: result.parsed?.tld || '',
+      isIpBased: result.parsed?.is_ip_based || false,
+      heuristicsTriggered: result.heuristics_triggered || [],
+      indicators: result.indicators || [],
+      riskScore: result.risk_score || 0,
+      riskLevel: result.risk_level || 'unknown',
+      phishingProbability: result.phishing_probability || 0,
+    });
+    if (aiInsights && report) {
+      report.set('aiInsights', aiInsights);
+      await report.save().catch((err: any) => logger.warn(`[Analysis] Failed to persist aiInsights: ${err?.message}`));
+    }
+
+    return { analysisId, ...result, aiInsights, report: report.toJSON() };
   }
 
   async getAnalysisById(analysisId: string): Promise<any> {
@@ -352,6 +389,33 @@ export class AnalysisService {
     if (l === 'medium' || l === 'suspicious') return 'medium';
     if (l === 'low') return 'low';
     return 'info';
+  }
+
+  /**
+   * Call the AI service for an optional LLM-enhanced second opinion on
+   * document/URL analysis. Non-blocking: any failure returns null and the
+   * heuristic verdict stands unchanged. Returns null when the AI service
+   * is down or the LLM is disabled/unavailable (llm_available=false).
+   */
+  private async enhanceWithLlm(
+    kind: 'document' | 'url',
+    payload: any,
+  ): Promise<any> {
+    try {
+      const insights = kind === 'document'
+        ? await aiAnalysisService.analyzeDocument(payload)
+        : await aiAnalysisService.analyzeUrl(payload);
+
+      if (insights && insights.llm_available) {
+        logger.info(`[Analysis] LLM enhancement complete for ${kind} analysis ${payload.analysisId}`);
+        return insights;
+      }
+      logger.debug(`[Analysis] LLM enhancement unavailable for ${kind} analysis ${payload.analysisId}`);
+      return null;
+    } catch (err: any) {
+      logger.warn(`[Analysis] LLM enhancement skipped for ${kind} analysis: ${err?.message}`);
+      return null;
+    }
   }
 }
 

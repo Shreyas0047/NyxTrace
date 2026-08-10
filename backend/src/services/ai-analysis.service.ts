@@ -7,6 +7,7 @@ import axios, { AxiosInstance } from 'axios';
 import { config } from '../config';
 import { AppError } from '../middleware';
 import { websocketService } from './websocket.service';
+import logger from '../config/logger';
 
 export interface TelemetryEvent {
   timestamp: string;
@@ -57,6 +58,32 @@ export interface InvestigationSummaryRequest {
   reports: any[];
   alerts: any[];
   timeline: any[];
+}
+
+export interface DocumentInsightsRequest {
+  analysisId: string;
+  filename: string;
+  fileType: string;
+  extractedText: string;
+  findings: Array<{ type?: string; severity?: string; description?: string; score?: number }>;
+  embeddedUrls: string[];
+  macroRisk?: Record<string, any> | null;
+  threatScore: number;
+  threatLevel: string;
+  predictedThreat: string;
+}
+
+export interface UrlInsightsRequest {
+  analysisId: string;
+  url: string;
+  hostname: string;
+  tld: string;
+  isIpBased: boolean;
+  heuristicsTriggered: string[];
+  indicators: Array<{ type?: string; description?: string; score?: number }>;
+  riskScore: number;
+  riskLevel: string;
+  phishingProbability: number;
 }
 
 export class AIAnalysisService {
@@ -175,6 +202,52 @@ export class AIAnalysisService {
         return { executive_summary: 'AI service unavailable — summary deferred.', key_findings: [], recommendations: ['Retry when AI service recovers.'], confidence: 0 };
       }
       throw new AppError('Failed to generate summary', 500, 'SUMMARIZATION_FAILED');
+    }
+  }
+
+  /**
+   * LLM-enhanced second opinion for heuristic document analysis.
+   * Non-blocking enhancer — returns null when the AI service is down or
+   * the LLM is unavailable; never throws.
+   */
+  async analyzeDocument(insightsRequest: DocumentInsightsRequest): Promise<any> {
+    try {
+      const response = await this.client.post('/api/v1/analyze/document', insightsRequest);
+      if (!response.data || !response.data.success) return null;
+      return response.data.data || null;
+    } catch (error) {
+      if (axios.isAxiosError(error) && (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT' || error.code === 'ECONNABORTED')) {
+        logger.info('[AI] Document LLM enhancement skipped — AI service unavailable');
+        return null;
+      }
+      if (axios.isAxiosError(error) && error.response) {
+        logger.warn(`[AI] Document LLM enhancement failed (HTTP ${error.response.status})`);
+        return null;
+      }
+      return null;
+    }
+  }
+
+  /**
+   * LLM-enhanced second opinion for heuristic URL analysis.
+   * Non-blocking enhancer — returns null when the AI service is down or
+   * the LLM is unavailable; never throws.
+   */
+  async analyzeUrl(insightsRequest: UrlInsightsRequest): Promise<any> {
+    try {
+      const response = await this.client.post('/api/v1/analyze/url', insightsRequest);
+      if (!response.data || !response.data.success) return null;
+      return response.data.data || null;
+    } catch (error) {
+      if (axios.isAxiosError(error) && (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT' || error.code === 'ECONNABORTED')) {
+        logger.info('[AI] URL LLM enhancement skipped — AI service unavailable');
+        return null;
+      }
+      if (axios.isAxiosError(error) && error.response) {
+        logger.warn(`[AI] URL LLM enhancement failed (HTTP ${error.response.status})`);
+        return null;
+      }
+      return null;
     }
   }
 

@@ -164,7 +164,7 @@ Route modules mounted under `/api/v1`:
 | `/reports` | Forensic report generation and export |
 | `/logs` | Audit log viewer |
 | `/alerts` | Alert management |
-| `/analysis` | Document/URL analysis |
+| `/analysis` | Document/URL analysis (heuristic + optional LLM enhancement) |
 | `/knowledge-base` | Knowledge article CRUD |
 | `/roles` | RBAC role/permission enumeration |
 | `/config` | Dynamic runtime configuration |
@@ -200,7 +200,7 @@ Zustand stores: `authStore`, `blockchainStore` (40+ actions), `evidenceStore`, `
 | Metric | Value |
 |--------|-------|
 | **Source files** | 35 |
-| **Endpoints** | 5 (analysis, enrichment, summarization, reporting, health) |
+| **Endpoints** | 7 (telemetry, forensic report, document + URL LLM enhancement, alert enrichment, investigation summary, executive report, health) |
 | **Modules** | 6 (telemetry analysis, threat classification, severity scoring, anomaly detection, feature extraction, summarization) |
 | **LLM integration** | Dual-path: heuristic pipeline (default) or Llama 3.2 router |
 | **Tests** | 3 files, 25 tests (pytest + pytest-asyncio) |
@@ -218,6 +218,13 @@ LLM Router (when `AI_LLM_ENABLED=true` + `AI_LLM_PRIMARY_PATH=true`):
 - Returns classification, MITRE mapping, attack chain, severity, narrative
 - Temperature 0.1, max 2000 response tokens, max 50 events in prompt
 - Falls back to heuristic pipeline on network error or invalid JSON
+
+Document & URL LLM Enhancement (`AI_LLM_ENABLED=true` only — enhancer, never replaces):
+- PDF/DOCX and URL analyses run their heuristics first; the LLM then adds a **second opinion** — executive narrative, classification opinion, suggested MITRE techniques, and recommendations
+- The heuristic verdict (score/level) is never overridden — the LLM output is purely supplemental
+- Non-blocking: when Ollama is unreachable or returns invalid JSON, the analysis completes normally with heuristic results and no `aiInsights`
+- Insights are persisted on the `AnalysisReport` (`aiInsights` field) and rendered as an "AI Assessment" card on the Threat Intelligence page
+- Endpoints: `POST /api/v1/analyze/document`, `POST /api/v1/analyze/url` (always 200; `llm_available=false` when the LLM is disabled)
 
 ### Blockchain (Solidity + Hardhat)
 
@@ -414,7 +421,7 @@ All under `/api/v1/blockchain`:
 
 | Requirement | Version | Notes |
 |-------------|---------|-------|
-| Node.js | 18+ | Backend + frontend |
+| Node.js | 20.11+ | Backend + frontend + CLI (services work on 18+, `nyx.cmd` CLI needs 20.11+) |
 | npm | 9+ | Bundled with Node |
 | Python | 3.11+ | AI service + sandbox agent |
 | MongoDB | 7.0 | Local or Atlas |
@@ -437,6 +444,69 @@ cd frontend
 npm install
 npm run dev              # http://localhost:5173
 ```
+
+### Windows
+
+```bat
+git clone <repo-url> nyxtrace
+cd nyxtrace
+
+REM CLI dependencies (required before running nyx.cmd)
+npm install
+
+REM Backend
+cd backend
+npm install
+copy .env.example .env
+cd ..
+
+REM Frontend
+cd frontend
+npm install
+cd ..
+
+REM AI service
+cd ai-service
+python -m venv .venv
+.venv\Scripts\pip install -r requirements.txt
+cd ..
+
+REM Sandbox agent
+cd sandbox-agent-v2
+python -m venv .venv
+.venv\Scripts\pip install -r requirements.txt
+cd ..
+
+REM Blockchain (optional — for on-chain evidence anchoring)
+cd blockchain
+npm install
+cd ..
+```
+
+Then start everything from the repo root:
+
+```bat
+nyx.cmd
+```
+
+PowerShell alternative (`start-all.ps1` is blocked by the default ExecutionPolicy unless bypassed):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File start-all.ps1
+```
+
+To start without a specific service (e.g. sandbox requires a VirtualBox VM):
+
+```bat
+npm run nytx -- start --skip sandbox
+```
+
+Windows-specific notes:
+
+- **MongoDB** — install as a Windows service (or use Atlas); the backend retries the connection 5× before exiting.
+- **Ollama (optional)** — install Ollama for Windows, then `ollama pull llama3.2`; the CLI auto-detects Ollama and enables LLM enhancements.
+- **VirtualBox** — only needed for sandbox execution; `VBoxManage.exe` is auto-detected under the Oracle/VirtualBox install paths.
+- On a fresh clone, `nyx.cmd` auto-installs the root CLI dependencies on first run if `node_modules` is missing.
 
 ### One-Command Startup
 

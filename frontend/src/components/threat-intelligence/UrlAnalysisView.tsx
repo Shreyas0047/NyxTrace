@@ -34,6 +34,7 @@ import { cn } from '../../design-system';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { IocPanel, type ExtractedIOC } from './IocPanel';
+import AiInsightsCard from './AiInsightsCard';
 import { useThreatIntelStore } from '../../stores/threatIntelStore';
 import type { AnalysisFinding } from '../../types';
 
@@ -763,6 +764,9 @@ export function UrlAnalysisView(_props: UrlAnalysisViewProps) {
                 color="text-amber-400"
               />
             </div>
+
+            {/* --- AI Assessment (LLM second opinion) --- */}
+            <AiInsightsCard insights={analysis.aiInsights} />
 
             {/* --- URL Reputation & Details Section --- */}
             {reputation && (

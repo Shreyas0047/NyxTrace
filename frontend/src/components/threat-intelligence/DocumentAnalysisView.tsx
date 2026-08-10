@@ -37,6 +37,7 @@ import { cn } from '../../design-system';
 import { Card, CardContent, CardHeader } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { IocPanel } from './IocPanel';
+import AiInsightsCard from './AiInsightsCard';
 import { useThreatIntelStore } from '../../stores/threatIntelStore';
 import type { AnalysisFinding, DocumentSection } from '../../types';
 
@@ -966,7 +967,10 @@ export function DocumentAnalysisView({ className }: DocumentAnalysisViewProps) {
                 {/* 2. Summary Card */}
                 <AnalysisSummaryCard analysis={currentAnalysis} />
 
-                {/* 3. Findings */}
+                {/* 3. AI Assessment (LLM second opinion) */}
+                <AiInsightsCard insights={currentAnalysis.aiInsights} />
+
+                {/* 4. Findings */}
                 {currentAnalysis.findings && currentAnalysis.findings.length > 0 && (
                   <FindingsSection findings={currentAnalysis.findings} />
                 )}

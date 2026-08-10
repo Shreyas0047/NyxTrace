@@ -4,11 +4,13 @@ import chalk from 'chalk';
 import figlet from 'figlet';
 import { spawn, execSync } from 'child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync, createWriteStream, openSync } from 'fs';
-import { join, resolve } from 'path';
+import { join, resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import http from 'http';
 import * as readline from 'readline';
 
-const ROOT_DIR = resolve(import.meta.dirname, '..');
+const IS_WIN = process.platform === 'win32';
+const ROOT_DIR = resolve(import.meta.dirname ?? dirname(fileURLToPath(import.meta.url)), '..');
 const LOG_DIR = join(ROOT_DIR, 'logs');
 const PIDS_FILE = join(LOG_DIR, '.pids.json');
 
@@ -74,7 +76,9 @@ const SERVICES: ServiceConfig[] = [
     name: 'ai-service',
     displayName: 'AI Service',
     cwd: 'ai-service',
-    command: join(ROOT_DIR, 'ai-service', '.venv', 'bin', 'python'),
+    command: IS_WIN
+      ? join(ROOT_DIR, 'ai-service', '.venv', 'Scripts', 'python.exe')
+      : join(ROOT_DIR, 'ai-service', '.venv', 'bin', 'python'),
     args: ['-m', 'uvicorn', 'app.main:app', '--reload', '--host', '127.0.0.1', '--port', '8000'],
     healthUrl: 'http://localhost:8000/health',
     env: {},
@@ -83,7 +87,7 @@ const SERVICES: ServiceConfig[] = [
     name: 'sandbox',
     displayName: 'Sandbox Agent',
     cwd: 'sandbox-agent-v2',
-    command: 'python3',
+    command: IS_WIN ? 'python' : 'python3',
     args: ['main.py'],
     healthUrl: 'http://127.0.0.1:8765/health',
   },
@@ -185,6 +189,15 @@ function showBanner(): void {
 }
 
 async function stopProcess(pid: number, label: string): Promise<void> {
+  if (IS_WIN) {
+    try {
+      execSync(`taskkill /F /T /PID ${pid}`, { stdio: 'ignore' });
+      log(label, chalk.green('stopped'));
+      return;
+    } catch {
+      // PID already gone — fall through to the signal-based path
+    }
+  }
   try {
     process.kill(pid, 'SIGTERM');
   } catch {

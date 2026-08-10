@@ -596,6 +596,17 @@ export interface SessionComparison {
 }
 
 // Threat Intelligence Types
+export interface AiInsights {
+  llm_available: boolean;
+  provider?: string | null;
+  model?: string | null;
+  executive_summary?: string | null;
+  classification_opinion?: string | null;
+  mitre_techniques?: string[];
+  recommendations?: string[];
+  llm_confidence?: number | null;
+}
+
 export interface ThreatIntelAnalysis {
   id: string;
   type: 'document' | 'url' | 'ioc_collection';
@@ -614,6 +625,7 @@ export interface ThreatIntelAnalysis {
   sections?: DocumentSection[];
   urlReputation?: UrlReputation;
   rawText?: string;
+  aiInsights?: AiInsights;
   analyzedAt: string;
   error?: string;
 }

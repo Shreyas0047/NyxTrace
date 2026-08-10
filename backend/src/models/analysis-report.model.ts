@@ -17,6 +17,7 @@ export interface IAnalysisReport {
   heuristicsTriggered: string[];
   recommendations: string[];
   summary: string;
+  aiInsights?: Record<string, any> | null;
   metadata: Record<string, any>;
   analyzedBy: string;
   analysisTimestamp: Date;
@@ -86,6 +87,10 @@ const analysisReportSchema = new Schema({
   }],
   summary: {
     type: String,
+  },
+  aiInsights: {
+    type: Schema.Types.Mixed,
+    default: null,
   },
   metadata: {
     type: Schema.Types.Mixed,

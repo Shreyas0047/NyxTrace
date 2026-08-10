@@ -300,3 +300,109 @@ async def analyze_forensic_report(request: Request, report_data: ForensicReportR
     except Exception as e:
         logger.error(f"Report analysis error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+
+
+class DocumentInsightsRequest(BaseModel):
+    analysisId: str = ""
+    filename: str = ""
+    fileType: str = "pdf"
+    extractedText: str = ""
+    findings: List[Dict[str, Any]] = Field(default_factory=list)
+    embeddedUrls: List[str] = Field(default_factory=list)
+    macroRisk: Optional[Dict[str, Any]] = None
+    threatScore: float = 0.0
+    threatLevel: str = "unknown"
+    predictedThreat: str = ""
+
+
+class UrlInsightsRequest(BaseModel):
+    analysisId: str = ""
+    url: str = ""
+    hostname: str = ""
+    tld: str = ""
+    isIpBased: bool = False
+    heuristicsTriggered: List[str] = Field(default_factory=list)
+    indicators: List[Dict[str, Any]] = Field(default_factory=list)
+    riskScore: float = 0.0
+    riskLevel: str = "unknown"
+    phishingProbability: float = 0.0
+
+
+@router.post("/analyze/document", response_model=AnalysisResponse)
+async def analyze_document_insights(request: Request, body: DocumentInsightsRequest):
+    """
+    LLM-enhanced second opinion for heuristic document analysis.
+
+    Optional enhancer: requires AI_LLM_ENABLED=true. Never overrides the
+    heuristic verdict; always returns 200 with llm_available=false when the
+    LLM is disabled, unreachable, or fails.
+    """
+    client_ip = _get_client_ip(request)
+    allowed, retry_after = await rate_limiter.check(client_ip)
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Rate limit exceeded. Retry after {retry_after} seconds.",
+            headers={"Retry-After": str(retry_after)},
+        )
+
+    from app.modules.document_llm import generate_document_insights
+
+    insights = await generate_document_insights(
+        filename=body.filename,
+        file_type=body.fileType,
+        extracted_text=body.extractedText,
+        findings=body.findings,
+        embedded_urls=body.embeddedUrls,
+        macro_risk=body.macroRisk,
+        threat_score=body.threatScore,
+        threat_level=body.threatLevel,
+        predicted_threat=body.predictedThreat,
+    )
+
+    message = (
+        "Document LLM enhancement complete"
+        if insights["llm_available"]
+        else "Document LLM enhancement unavailable — heuristic result stands"
+    )
+    return AnalysisResponse(success=True, message=message, data=insights)
+
+
+@router.post("/analyze/url", response_model=AnalysisResponse)
+async def analyze_url_insights(request: Request, body: UrlInsightsRequest):
+    """
+    LLM-enhanced second opinion for heuristic URL analysis.
+
+    Optional enhancer: requires AI_LLM_ENABLED=true. Never overrides the
+    heuristic verdict; always returns 200 with llm_available=false when the
+    LLM is disabled, unreachable, or fails.
+    """
+    client_ip = _get_client_ip(request)
+    allowed, retry_after = await rate_limiter.check(client_ip)
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Rate limit exceeded. Retry after {retry_after} seconds.",
+            headers={"Retry-After": str(retry_after)},
+        )
+
+    from app.modules.document_llm import generate_url_insights
+
+    insights = await generate_url_insights(
+        url=body.url,
+        hostname=body.hostname,
+        tld=body.tld,
+        is_ip_based=body.isIpBased,
+        heuristics=body.heuristicsTriggered,
+        indicators=body.indicators,
+        risk_score=body.riskScore,
+        risk_level=body.riskLevel,
+        phishing_probability=body.phishingProbability,
+    )
+
+    message = (
+        "URL LLM enhancement complete"
+        if insights["llm_available"]
+        else "URL LLM enhancement unavailable — heuristic result stands"
+    )
+    return AnalysisResponse(success=True, message=message, data=insights)

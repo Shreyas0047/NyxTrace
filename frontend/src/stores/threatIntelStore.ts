@@ -43,6 +43,7 @@ function normalizeAnalysis(raw: any): ThreatIntelAnalysis {
     })),
     sections: data.metadata?.sections || [],
     urlReputation: data.metadata?.urlReputation || data.urlReputation,
+    aiInsights: data.aiInsights || undefined,
     analyzedAt: data.analysisTimestamp || data.createdAt || new Date().toISOString(),
   };
 }

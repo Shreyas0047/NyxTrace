@@ -426,13 +426,13 @@ async stopSession(sessionId: string): Promise<RuntimeSession> {
             const parts = line.trim().split(/\s+/);
             const pid = parts[parts.length - 1];
             if (pid && pid !== '0') {
-              try { await execAsync(`taskkill /F /PID ${pid}`); } catch { }
+              try { await execAsync(`taskkill /F /PID ${pid}`); } catch { /* process may already be gone */ }
             }
           }
         } else {
-          try { await execAsync('lsof -ti :8765 | xargs -r kill -9'); } catch { }
+          try { await execAsync('lsof -ti :8765 | xargs -r kill -9'); } catch { /* process may already be gone */ }
         }
-      } catch { }
+      } catch { /* port may be free */ }
 
       const logFd = fs.openSync(logFile, 'a');
       const child = spawn(pythonPath, ['-u', runtimeFilePath], {

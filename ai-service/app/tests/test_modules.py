@@ -122,5 +122,5 @@ class TestRateLimiter:
         rate_limiter.window_seconds = 0.01
         await rate_limiter.is_allowed("test-cleanup")
         time.sleep(0.02)
-        rate_limiter.cleanup()
+        await rate_limiter.cleanup()
         assert "test-cleanup" not in rate_limiter._buckets

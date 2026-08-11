@@ -47,9 +47,11 @@ async def generate_executive_report(request: Request, report_request: ExecutiveR
     try:
         logger.info("Generating executive report")
 
-        events = report_request.get("events", [])
-        investigation_title = report_request.get("title", "Forensic Investigation")
-        investigation_id = report_request.get("investigation_id", "unknown")
+        data = report_request.model_dump()
+
+        events = data.get("events", [])
+        investigation_title = data.get("title", "Forensic Investigation")
+        investigation_id = data.get("investigation_id", "unknown")
 
         if not events:
             return AnalysisResponse(

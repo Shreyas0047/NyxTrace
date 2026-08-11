@@ -22,9 +22,9 @@ log = logging.getLogger("agent.vm")
 
 # Config — overridable via environment for non-default deployments
 VM_NAME = os.environ.get("SANDBOX_VM_NAME", "ForensicsSandbox")
-SNAPSHOT = os.environ.get("SANDBOX_VM_SNAPSHOT", "CleanBaselinePython")
+SNAPSHOT = os.environ.get("SANDBOX_VM_SNAPSHOT", "CleanBaselinePythonFixed")
 GUEST_USER = os.environ.get("SANDBOX_GUEST_USER", "guestuser")
-GUEST_PASS = os.environ.get("SANDBOX_GUEST_PASS", "guest")
+GUEST_PASS = os.environ.get("SANDBOX_GUEST_PASS", "Guest#2026")
 GUEST_BASE = r"C:\sandbox"
 GUEST_SIMULATORS = r"C:\sandbox\simulators"
 GUEST_MARKER = r"C:\sandbox\guest.marker"
@@ -108,9 +108,28 @@ class VMManager:
     @staticmethod
     def _is_transient(stderr: str) -> bool:
         markers = ("E_ACCESSDENIED", "not ready", "locked by a session",
-                   "lock request pending", "is not running")
+                   "lock request pending", "is not running",
+                   "the session is not locked")
         s = stderr.lower()
         return any(m.lower() in s for m in markers)
+
+    @staticmethod
+    def _is_teardown_noise(stderr: str) -> bool:
+        """True when VBoxManage failed only during its own post-run cleanup.
+
+        After the guest process exits, `guestcontrol run` calls Close() and
+        UnlockMachine() on the guest-control session. On some VirtualBox
+        versions (7.2.x) the session is already unlocked at that point, so
+        VBoxManage exits 1 with these NS_ERROR_UNEXPECTED messages — even
+        though the guest process completed successfully and its stdout was
+        fully captured. The simulator's own exit code is 0; this noise must
+        not be reported as a simulator failure."""
+        s = stderr.lower()
+        return (
+            "the session is not locked" in s
+            and "unlockmachine" in s
+            and "vboxmanageguestctrl.cpp" in s
+        )
 
     # =========================================================================
     # PROCESS CLEANUP
@@ -346,6 +365,12 @@ class VMManager:
                 full_cmd, capture_output=True, text=True,
                 timeout=timeout + 30, creationflags=_NO_WINDOW,
             )
+            if proc.returncode != 0 and self._is_teardown_noise(proc.stderr):
+                log.info(
+                    "guest_exec: VBoxManage post-run teardown warning (exit=%d) ignored "
+                    "— guest process finished and stdout captured", proc.returncode,
+                )
+                return ExecResult(0, proc.stdout, "")
             return ExecResult(proc.returncode, proc.stdout, proc.stderr)
         except subprocess.TimeoutExpired:
             raise VMError(f"guest_exec host-side timeout after {timeout + 30}s")

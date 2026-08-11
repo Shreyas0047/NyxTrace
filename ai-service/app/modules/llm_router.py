@@ -170,8 +170,16 @@ def _events_to_text(events: list) -> str:
 def _anomalies_to_text(anomalies: list) -> str:
     if not anomalies:
         return "No anomalies detected."
+
+    def _field(anomaly, name: str, default: str) -> str:
+        if isinstance(anomaly, dict):
+            value = anomaly.get(name, default)
+        else:
+            value = getattr(anomaly, name, default)
+        return str(getattr(value, "value", value))
+
     return "\n".join(
-        f"- [{a.get('severity', 'info')}] {a.get('type', 'unknown')}: {a.get('description', '')}"
+        f"- [{_field(a, 'severity', 'info')}] {_field(a, 'type', 'unknown')}: {_field(a, 'description', '')}"
         for a in anomalies[:10]
     )
 

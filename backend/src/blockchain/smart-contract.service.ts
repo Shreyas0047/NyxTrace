@@ -113,6 +113,7 @@ export class SmartContractService {
   private evidenceContract: ethers.Contract | null = null;
   private auditContract: ethers.Contract | null = null;
   private initialized: boolean = false;
+  private retryTimer: NodeJS.Timeout | null = null;
 
   /**
    * Initialize smart contract services
@@ -126,31 +127,68 @@ export class SmartContractService {
     }
 
     try {
-      // Initialize provider
-      this.provider = new ethers.JsonRpcProvider(blockchainConfig.rpcUrl);
-
-      // Verify connection
-      const network = await this.provider.getNetwork();
-      logger.info(`[SmartContract] Connected to network: ${network.name}`);
-
-      // Create signer if private key is available (required for write operations)
-      const { walletConfig } = await import('./config');
-      if (walletConfig.privateKey) {
-        this.signer = new ethers.Wallet(walletConfig.privateKey, this.provider);
-        logger.info(`[SmartContract] Signer initialized: ${this.signer.address}`);
-      } else {
-        logger.warn('[SmartContract] No private key configured — running in read-only mode');
-      }
-
-      // Initialize contracts if addresses are configured
-      if (blockchainConfig.contractAddress) {
-        this.initializeContracts();
-      }
-
-      this.initialized = true;
+      await this.connect();
     } catch (error) {
       logger.warn('[SmartContract] Failed to initialize:', error);
-      logger.warn('[SmartContract] Running in offline mode');
+      logger.warn('[SmartContract] Running in offline mode - will keep retrying in the background');
+      this.scheduleRetry();
+    }
+  }
+
+  /**
+   * Establish the provider connection, signer, and contract instances.
+   */
+  private async connect(): Promise<void> {
+    // Initialize provider
+    this.provider = new ethers.JsonRpcProvider(blockchainConfig.rpcUrl);
+
+    // Verify connection
+    const network = await this.provider.getNetwork();
+    logger.info(`[SmartContract] Connected to network: ${network.name}`);
+
+    // Create signer if private key is available (required for write operations)
+    const { walletConfig } = await import('./config');
+    if (walletConfig.privateKey) {
+      this.signer = new ethers.Wallet(walletConfig.privateKey, this.provider);
+      logger.info(`[SmartContract] Signer initialized: ${this.signer.address}`);
+    } else {
+      logger.warn('[SmartContract] No private key configured — running in read-only mode');
+    }
+
+    // Initialize contracts if addresses are configured
+    if (blockchainConfig.contractAddress) {
+      this.initializeContracts();
+    }
+
+    this.initialized = true;
+  }
+
+  /**
+   * Keep re-attempting the connection in the background so a node that comes
+   * up after the backend (or a transient network blip) is picked up without
+   * requiring a backend restart.
+   */
+  private scheduleRetry(): void {
+    if (this.retryTimer) return;
+    this.retryTimer = setInterval(async () => {
+      if (this.initialized) {
+        this.clearRetry();
+        return;
+      }
+      try {
+        await this.connect();
+        this.clearRetry();
+      } catch (error) {
+        logger.warn('[SmartContract] Background reconnect attempt failed:', (error as Error).message);
+      }
+    }, 15000);
+    this.retryTimer.unref();
+  }
+
+  private clearRetry(): void {
+    if (this.retryTimer) {
+      clearInterval(this.retryTimer);
+      this.retryTimer = null;
     }
   }
 

@@ -50,9 +50,10 @@ async def enrich_alert(request: Request, alert_data: AlertEnrichmentRequest):
         )
 
     try:
-        logger.info(f"Enriching alert: {alert_data.get('alert_id', 'unknown')}")
+        data = alert_data.model_dump()
+        logger.info(f"Enriching alert: {data.get('alert_id', 'unknown')}")
 
-        raw_events = alert_data.get("events", [])
+        raw_events = data.get("events", [])
         events = []
         for ev in raw_events:
             events.append(
@@ -64,8 +65,8 @@ async def enrich_alert(request: Request, alert_data: AlertEnrichmentRequest):
                 )
             )
 
-        iocs = alert_data.get("iocIndicators", alert_data.get("indicators", []))
-        description = alert_data.get("description", "")
+        iocs = data.get("iocIndicators") or data.get("indicators") or []
+        description = data.get("description", "")
 
         if events:
             features = feature_extractor.extract_features(events)
@@ -94,7 +95,7 @@ async def enrich_alert(request: Request, alert_data: AlertEnrichmentRequest):
                 recommendations.append("Continue monitoring for additional suspicious activity")
 
             enriched_alert = {
-                "alert_id": alert_data.get("alert_id"),
+                "alert_id": data.get("alert_id"),
                 "ai_severity_assessment": severity_result.level.value,
                 "severity_score": severity_result.score,
                 "threat_classification": primary.category.value if primary else "normal",
@@ -116,7 +117,7 @@ async def enrich_alert(request: Request, alert_data: AlertEnrichmentRequest):
             )
 
             enriched_alert = {
-                "alert_id": alert_data.get("alert_id"),
+                "alert_id": data.get("alert_id"),
                 "ai_severity_assessment": level,
                 "severity_score": score,
                 "threat_classification": "suspicious_behavior" if ioc_count > 0 else "normal",

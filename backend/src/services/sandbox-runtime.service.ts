@@ -113,6 +113,18 @@ export class SandboxRuntimeService {
         const session = await this.getSession(sessionId);
         const state = session.state.toUpperCase();
 
+        // Poll success = agent is alive — refresh lastHeartbeat so the
+        // stale-session sweeper never falsely fails a running session.
+        try {
+          const { SandboxSession } = await import('../models');
+          await SandboxSession.updateOne(
+            { sessionId },
+            { $set: { lastHeartbeat: new Date() } },
+          );
+        } catch {
+          // Non-fatal — sweeper reconciliation is best-effort
+        }
+
         // Emit intermediate state changes via WebSocket so frontend stays in sync
         if (session.state !== lastState) {
           lastState = session.state;

@@ -10,6 +10,7 @@ import { Web3Transaction, SmartContractCall } from './types';
 export class BlockchainService {
   private provider: any = null;
   private initialized: boolean = false;
+  private retryTimer: NodeJS.Timeout | null = null;
 
   /**
    * Initialize Web3 provider
@@ -22,20 +23,57 @@ export class BlockchainService {
     }
 
     try {
-      // Dynamic import of ethers.js to support optional blockchain
-      const { ethers } = await import('ethers');
-
-      // Create RPC provider
-      this.provider = new ethers.JsonRpcProvider(blockchainConfig.rpcUrl);
-
-      // Verify connection
-      const network = await this.provider.getNetwork();
-      logger.info(`[Blockchain] Connected to network: ${network.name} (Chain ID: ${network.chainId})`);
-
-      this.initialized = true;
+      await this.connect();
     } catch (error) {
       logger.warn('[Blockchain] Failed to initialize Web3 provider:', error);
-      logger.warn('[Blockchain] Running in offline mode - local verification only');
+      logger.warn('[Blockchain] Running in offline mode - will keep retrying in the background');
+      this.scheduleRetry();
+    }
+  }
+
+  /**
+   * Establish the provider connection and verify the network.
+   */
+  private async connect(): Promise<void> {
+    // Dynamic import of ethers.js to support optional blockchain
+    const { ethers } = await import('ethers');
+
+    // Create RPC provider
+    const provider = new ethers.JsonRpcProvider(blockchainConfig.rpcUrl);
+
+    // Verify connection
+    const network = await provider.getNetwork();
+    this.provider = provider;
+    this.initialized = true;
+    logger.info(`[Blockchain] Connected to network: ${network.name} (Chain ID: ${network.chainId})`);
+  }
+
+  /**
+   * Keep re-attempting the connection in the background so a node that comes
+   * up after the backend (or a transient network blip) is picked up without
+   * requiring a backend restart.
+   */
+  private scheduleRetry(): void {
+    if (this.retryTimer) return;
+    this.retryTimer = setInterval(async () => {
+      if (this.initialized) {
+        this.clearRetry();
+        return;
+      }
+      try {
+        await this.connect();
+        this.clearRetry();
+      } catch (error) {
+        logger.warn('[Blockchain] Background reconnect attempt failed:', (error as Error).message);
+      }
+    }, 15000);
+    this.retryTimer.unref();
+  }
+
+  private clearRetry(): void {
+    if (this.retryTimer) {
+      clearInterval(this.retryTimer);
+      this.retryTimer = null;
     }
   }
 

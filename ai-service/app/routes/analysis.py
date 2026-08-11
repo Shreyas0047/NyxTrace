@@ -224,6 +224,8 @@ async def analyze_forensic_report(request: Request, report_data: ForensicReportR
 
         logger.info(f"Starting report analysis for investigation: {investigation_id}")
 
+        report_data = report_data.model_dump()
+
         raw_events = report_data.get("events", [])
         events = []
         for ev in raw_events:
@@ -236,7 +238,7 @@ async def analyze_forensic_report(request: Request, report_data: ForensicReportR
                 )
             )
 
-        iocs = report_data.get("iocIndicators", report_data.get("iocs", []))
+        iocs = report_data.get("iocIndicators") or report_data.get("iocs") or []
 
         if not events and not iocs:
             return AnalysisResponse(
@@ -251,34 +253,105 @@ async def analyze_forensic_report(request: Request, report_data: ForensicReportR
 
         if events:
             features = feature_extractor.extract_features(events)
+            anomalies = anomaly_detector.detect_anomalies(events, features)
             classifications = threat_classifier.classify(features)
-            severity_result = severity_scorer.calculate_severity(features, classifications, 0)
-            primary = threat_classifier.get_primary_threat(classifications)
-            primary_threat_cat = primary.category if primary else ThreatCategory.NORMAL
 
-            report_summary = ai_summarizer.generate_summary(
-                features=features,
-                severity_score=severity_result.score,
-                severity_level=severity_result.level,
-                classifications=classifications,
-                anomalies=[],
-                session_id=investigation_id or "report",
-            )
+            events_raw = [
+                {"type": e.type, "source": e.source, "details": e.details, "timestamp": e.timestamp}
+                for e in events
+            ]
 
-            analysis_result = {
-                "investigation_id": investigation_id,
-                "severity_score": severity_result.score,
-                "severity_level": severity_result.level.value,
-                "primary_threat": primary_threat_cat.value,
-                "classifications": {k.value: v for k, v in classifications.items()}
-                if classifications
-                else {},
-                "findings_summary": report_summary.executive_summary,
-                "key_findings": report_summary.key_findings,
-                "threat_indicators": iocs,
-                "recommendations": report_summary.recommendations,
-                "confidence": report_summary.confidence,
-            }
+            llm_result = await analyze_with_llm(features, events_raw, anomalies)
+
+            if llm_result:
+                suspicious_events = min(
+                    features.suspicious_processes
+                    + features.file_modifications
+                    + len(features.suspicious_extensions)
+                    + features.credential_access_indicators
+                    + len(features.persistence_keys),
+                    len(events),
+                )
+
+                anomaly_list = [
+                    {
+                        "type": a.type,
+                        "description": a.description,
+                        "severity": a.severity.value,
+                        "deviation_score": a.deviation_score,
+                    }
+                    for a in anomalies
+                ]
+
+                primary_threat = ""
+                if llm_result.threat_classification:
+                    primary_threat = max(
+                        llm_result.threat_classification,
+                        key=llm_result.threat_classification.get,
+                    )
+
+                analysis_result = {
+                    "investigation_id": investigation_id,
+                    "analysis_timestamp": datetime.now(timezone.utc).isoformat(),
+                    "total_events": len(events),
+                    "suspicious_events": suspicious_events,
+                    "threat_classification": llm_result.threat_classification or "",
+                    "primary_threat": primary_threat or "normal",
+                    "severity_score": llm_result.severity_score or 0.0,
+                    "severity_level": llm_result.severity_level or "low",
+                    "classifications": {k.value: v for k, v in classifications.items()}
+                    if classifications
+                    else {},
+                    "anomalies": anomaly_list,
+                    "behavioral_summary": llm_result.behavioral_summary or "",
+                    "findings_summary": llm_result.executive_summary
+                    or llm_result.behavioral_summary
+                    or "",
+                    "recommendations": llm_result.recommendations or [],
+                    "confidence": llm_result.confidence or 0.0,
+                    "mitre_mapping": llm_result.mitre_mapping or [],
+                    "attack_chain": llm_result.attack_chain or [],
+                    "anti_forensics_detected": llm_result.anti_forensics_detected or False,
+                    "anti_forensics_indicators": llm_result.anti_forensics_indicators or [],
+                    "reconstruction_summary": llm_result.reconstruction_summary or "",
+                    "predicted_next_step": llm_result.predicted_next_step or "",
+                    "stealth_rating": llm_result.stealth_rating or "low",
+                    "executive_summary": llm_result.executive_summary or "",
+                    "key_findings": llm_result.key_findings or [],
+                    "threat_indicators": iocs,
+                }
+
+                logger.info(
+                    f"LLM analysis complete for report: {investigation_id}, severity: {analysis_result['severity_level']}"
+                )
+            else:
+                severity_result = severity_scorer.calculate_severity(features, classifications, 0)
+                primary = threat_classifier.get_primary_threat(classifications)
+                primary_threat_cat = primary.category if primary else ThreatCategory.NORMAL
+
+                report_summary = ai_summarizer.generate_summary(
+                    features=features,
+                    severity_score=severity_result.score,
+                    severity_level=severity_result.level,
+                    classifications=classifications,
+                    anomalies=anomalies,
+                    session_id=investigation_id or "report",
+                )
+
+                analysis_result = {
+                    "investigation_id": investigation_id,
+                    "severity_score": severity_result.score,
+                    "severity_level": severity_result.level.value,
+                    "primary_threat": primary_threat_cat.value,
+                    "classifications": {k.value: v for k, v in classifications.items()}
+                    if classifications
+                    else {},
+                    "findings_summary": report_summary.executive_summary,
+                    "key_findings": report_summary.key_findings,
+                    "threat_indicators": iocs,
+                    "recommendations": report_summary.recommendations,
+                    "confidence": report_summary.confidence,
+                }
         else:
             analysis_result = {
                 "investigation_id": investigation_id,

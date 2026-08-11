@@ -56,7 +56,9 @@ async def summarize_investigation(request: Request, investigation_data: Investig
     try:
         logger.info("Generating investigation summary")
 
-        raw_events = investigation_data.get("events", investigation_data.get("telemetry", []))
+        data = investigation_data.model_dump()
+
+        raw_events = data.get("events", data.get("telemetry", []))
         events = []
         for ev in raw_events:
             events.append(
@@ -68,10 +70,10 @@ async def summarize_investigation(request: Request, investigation_data: Investig
                 )
             )
 
-        evidence_count = len(investigation_data.get("evidence", []))
-        alert_count = len(investigation_data.get("alerts", []))
-        title = investigation_data.get("title", "Untitled Investigation")
-        description = investigation_data.get("description", "")
+        evidence_count = len(data.get("evidence", []))
+        alert_count = len(data.get("alerts", []))
+        title = data.get("title", "Untitled Investigation")
+        description = data.get("description", "")
 
         if events:
             features = feature_extractor.extract_features(events)
@@ -87,7 +89,7 @@ async def summarize_investigation(request: Request, investigation_data: Investig
                 severity_level=severity_result.level,
                 classifications=classifications,
                 anomalies=anomalies,
-                session_id=investigation_data.get("id", "investigation"),
+                session_id=data.get("id", "investigation"),
             )
 
             return AnalysisResponse(

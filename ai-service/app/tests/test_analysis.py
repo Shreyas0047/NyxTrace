@@ -5,6 +5,8 @@ Tests for telemetry analysis endpoint.
 import pytest
 from httpx import AsyncClient, ASGITransport
 from app.main import app
+from app.modules.llm_router import LlmRouterOutput, _anomalies_to_text
+from app.core.models import AnomalyResult, SeverityLevel
 
 
 @pytest.fixture
@@ -102,13 +104,149 @@ async def test_analyze_report_success(client):
             json={
                 "investigation_id": "inv-001",
                 "events": SAMPLE_EVENTS,
-                "iocIndicators": ["185.130.5.203"],
+                "iocIndicators": [{"type": "ip", "value": "185.130.5.203"}],
                 "summary": "Suspicious encryption activity detected",
             },
         )
     assert resp.status_code == 200
     data = resp.json()
     assert data["success"] is True
+
+
+@pytest.mark.asyncio
+async def test_analyze_report_llm_path(client, monkeypatch):
+    async def fake_llm(features, events, anomalies):
+        return LlmRouterOutput(
+            threat_classification={"ransomware_like": 0.85, "suspicious_behavior": 0.9},
+            severity_score=72.0,
+            severity_level="high",
+            behavioral_summary="Ransomware-like encryption behavior detected",
+            recommendations=["Isolate the host"],
+            confidence=0.88,
+            executive_summary="Executive summary from LLM",
+            key_findings=["finding-1"],
+            mitre_mapping=[
+                {"technique_id": "T1486", "technique_name": "Data Encrypted for Impact"}
+            ],
+            attack_chain=[{"phase": "impact", "techniques": ["T1486"], "event_count": 3}],
+            anti_forensics_detected=True,
+            anti_forensics_indicators=["timestamp manipulation"],
+            reconstruction_summary="Reconstruction narrative",
+            predicted_next_step="lateral movement",
+            stealth_rating="medium",
+        )
+
+    monkeypatch.setattr("app.routes.analysis.analyze_with_llm", fake_llm)
+
+    async with client as ac:
+        resp = await ac.post(
+            "/api/v1/analyze/report",
+            json={
+                "investigation_id": "inv-llm-001",
+                "events": SAMPLE_EVENTS,
+                "iocIndicators": [{"type": "ip", "value": "185.130.5.203"}],
+            },
+        )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["success"] is True
+    llm_data = data["data"]
+    assert llm_data["mitre_mapping"][0]["technique_id"] == "T1486"
+    assert llm_data["attack_chain"][0]["phase"] == "impact"
+    assert llm_data["threat_classification"]["ransomware_like"] == 0.85
+    assert llm_data["primary_threat"] == "suspicious_behavior"
+    assert llm_data["executive_summary"] == "Executive summary from LLM"
+    assert llm_data["findings_summary"] == "Executive summary from LLM"
+    assert llm_data["severity_level"] == "high"
+    assert llm_data["anti_forensics_detected"] is True
+    assert "behavioral_summary" in llm_data
+    assert "reconstruction_summary" in llm_data
+    assert "predicted_next_step" in llm_data
+    assert llm_data["threat_indicators"] == [{"type": "ip", "value": "185.130.5.203"}]
+
+
+@pytest.mark.asyncio
+async def test_analyze_report_llm_fallback(client, monkeypatch):
+    async def fake_llm(features, events, anomalies):
+        return None
+
+    monkeypatch.setattr("app.routes.analysis.analyze_with_llm", fake_llm)
+
+    async with client as ac:
+        resp = await ac.post(
+            "/api/v1/analyze/report",
+            json={
+                "investigation_id": "inv-fallback-001",
+                "events": SAMPLE_EVENTS,
+            },
+        )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["success"] is True
+    assert "findings_summary" in data["data"]
+    assert "severity_level" in data["data"]
+    assert "mitre_mapping" not in data["data"]
+
+
+@pytest.mark.asyncio
+async def test_analyze_report_llm_with_anomalies_no_crash(client, monkeypatch):
+    async def fake_llm(features, events, anomalies):
+        return LlmRouterOutput(
+            threat_classification={"suspicious_behavior": 0.9},
+            severity_score=65.0,
+            severity_level="medium",
+            behavioral_summary="Anomalous behavior detected",
+            recommendations=["Investigate"],
+            confidence=0.8,
+        )
+
+    monkeypatch.setattr("app.routes.analysis.analyze_with_llm", fake_llm)
+    monkeypatch.setattr(
+        "app.routes.analysis.anomaly_detector.detect_anomalies",
+        lambda events, features: [
+            AnomalyResult(
+                type="burst",
+                description="Event burst detected",
+                severity=SeverityLevel.HIGH,
+                events_involved=["ev-1"],
+                deviation_score=4.5,
+            )
+        ],
+    )
+
+    async with client as ac:
+        resp = await ac.post(
+            "/api/v1/analyze/report",
+            json={
+                "investigation_id": "inv-anom-001",
+                "events": SAMPLE_EVENTS,
+            },
+        )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["success"] is True
+    assert data["data"]["anomalies"][0]["type"] == "burst"
+
+
+def test_anomalies_to_text_handles_anomaly_result():
+    text = _anomalies_to_text(
+        [
+            AnomalyResult(
+                type="burst",
+                description="Event burst detected",
+                severity=SeverityLevel.HIGH,
+                events_involved=["ev-1"],
+                deviation_score=4.5,
+            )
+        ]
+    )
+    assert "burst" in text
+    assert "high" in text
+
+
+def test_anomalies_to_text_handles_dicts():
+    text = _anomalies_to_text([{"type": "burst", "description": "d", "severity": "medium"}])
+    assert "burst" in text
 
 
 @pytest.mark.asyncio
@@ -121,7 +259,7 @@ async def test_enrich_alert_success(client):
                 "events": SAMPLE_EVENTS,
                 "severity": "high",
                 "description": "Suspicious encryption activity detected",
-                "iocIndicators": ["185.130.5.203"],
+                "iocIndicators": [{"type": "ip", "value": "185.130.5.203"}],
             },
         )
     assert resp.status_code == 200
@@ -139,7 +277,7 @@ async def test_enrich_alert_no_events(client):
             "/api/v1/enrich/alert",
             json={
                 "alert_id": "alert-002",
-                "indicators": ["10.0.0.1"],
+                "indicators": [{"type": "ip", "value": "10.0.0.1"}],
             },
         )
     assert resp.status_code == 200

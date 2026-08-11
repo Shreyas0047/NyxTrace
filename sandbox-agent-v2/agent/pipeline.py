@@ -187,8 +187,10 @@ class SessionPipeline:
         self._parse_telemetry(sid, result.stdout)
 
         if result.code != 0:
+            parsed = len(self._events.get(sid, []))
             log.warning("Simulator exited with code %d: %s", result.code, result.stderr[:200])
-            self._emit_log("WARNING", f"Simulator exited with code {result.code}", sid)
+            self._emit_log("WARNING", f"Simulator exited with code {result.code}"
+                           + (f" — {parsed} events recovered" if parsed else ""), sid)
             if result.stderr.strip():
                 self._emit_log("ERROR", f"Simulator stderr: {result.stderr.strip()[:500]}", sid)
 

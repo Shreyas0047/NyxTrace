@@ -14,6 +14,44 @@ const ROOT_DIR = resolve(import.meta.dirname ?? dirname(fileURLToPath(import.met
 const LOG_DIR = join(ROOT_DIR, 'logs');
 const PIDS_FILE = join(LOG_DIR, '.pids.json');
 
+// First contract deployed by Hardhat account #0 — also the default configured
+// in backend/.env (BLOCKCHAIN_CONTRACT_ADDRESS).
+const BLOCKCHAIN_CONTRACT_ADDRESS = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
+
+function rpcCall(method: string, params: unknown[] = []): Promise<any> {
+  return new Promise((resolvePromise) => {
+    const body = JSON.stringify({ jsonrpc: '2.0', method, params, id: Date.now() });
+    const req = http.request(
+      {
+        hostname: '127.0.0.1',
+        port: 8545,
+        path: '/',
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 5000,
+      },
+      (res) => {
+        let data = '';
+        res.on('data', (chunk) => (data += chunk));
+        res.on('end', () => {
+          try {
+            resolvePromise(JSON.parse(data).result);
+          } catch {
+            resolvePromise(undefined);
+          }
+        });
+      }
+    );
+    req.on('error', () => resolvePromise(undefined));
+    req.on('timeout', () => {
+      req.destroy();
+      resolvePromise(undefined);
+    });
+    req.write(body);
+    req.end();
+  });
+}
+
 interface ServiceConfig {
   name: string;
   displayName: string;
@@ -53,6 +91,11 @@ const SERVICES: ServiceConfig[] = [
       if (!existsSync(join(cwd, 'node_modules'))) {
         execSync('npm install --silent', { cwd, stdio: 'ignore' });
       }
+      const existing = await rpcCall('eth_getCode', [BLOCKCHAIN_CONTRACT_ADDRESS, 'latest']);
+      if (existing && existing !== '0x') {
+        log('Blockchain', chalk.dim(`contract already present at ${BLOCKCHAIN_CONTRACT_ADDRESS} — skipping deploy`));
+        return;
+      }
       execSync('npx hardhat run scripts/deploy.ts --network localhost', { cwd, stdio: 'ignore' });
     },
   },
@@ -79,7 +122,7 @@ const SERVICES: ServiceConfig[] = [
     command: IS_WIN
       ? join(ROOT_DIR, 'ai-service', '.venv', 'Scripts', 'python.exe')
       : join(ROOT_DIR, 'ai-service', '.venv', 'bin', 'python'),
-    args: ['-m', 'uvicorn', 'app.main:app', '--reload', '--host', '127.0.0.1', '--port', '8000'],
+    args: ['-m', 'uvicorn', 'app.main:app', '--host', '127.0.0.1', '--port', '8000'],
     healthUrl: 'http://localhost:8000/health',
     env: {},
   },
@@ -119,6 +162,10 @@ function addPid(name: string, pid: number): void {
   savePids(pids);
 }
 
+function removePid(name: string): void {
+  savePids(readPids().filter((p) => p.name !== name));
+}
+
 function getRunningNames(): string[] {
   const pids = readPids();
   const alive = pids.filter((p) => {
@@ -131,6 +178,49 @@ function getRunningNames(): string[] {
   });
   if (alive.length !== pids.length) savePids(alive);
   return alive.map((p) => p.name);
+}
+
+function getPortPid(port: number): number | null {
+  if (!Number.isInteger(port) || port <= 0) return null;
+  try {
+    if (IS_WIN) {
+      const out = execSync('netstat -ano -p tcp', { encoding: 'utf8' });
+      for (const line of out.split('\n')) {
+        if (/LISTENING/i.test(line) && line.includes(`:${port}`)) {
+          const parts = line.trim().split(/\s+/);
+          const pid = Number(parts[parts.length - 1]);
+          if (Number.isInteger(pid) && pid > 0) return pid;
+        }
+      }
+      return null;
+    }
+
+    let out = '';
+    try {
+      out = execSync('ss -tlnp', { encoding: 'utf8' });
+    } catch {
+      out = execSync('netstat -tlnp', { encoding: 'utf8' });
+    }
+    const pids = new Set<number>();
+    for (const line of out.split('\n')) {
+      const tokens = line.trim().split(/\s+/);
+      const isLocal = tokens.some((t) => t.endsWith(`:${port}`));
+      if (!isLocal) continue;
+      const m = line.match(/pid=(\d+)/);
+      if (m) pids.add(Number(m[1]));
+    }
+    return pids.size > 0 ? [...pids][0] : null;
+  } catch {
+    return null;
+  }
+}
+
+function servicePort(service: ServiceConfig): number {
+  try {
+    return Number(new URL(service.healthUrl).port);
+  } catch {
+    return 0;
+  }
 }
 
 function healthCheck(service: ServiceConfig, timeout = 5000): Promise<boolean> {
@@ -170,6 +260,50 @@ async function waitForHealth(service: ServiceConfig, label: string, maxWait = 30
   }
   process.stdout.write(` ${chalk.red('✗')}\n`);
   return false;
+}
+
+// Waits on many services concurrently, re-rendering one status line so the
+// whole stack's boot progress is visible at once instead of serialized.
+async function waitForAllHealth(services: ServiceConfig[], maxWait = 30): Promise<Map<string, boolean>> {
+  const results = new Map<string, boolean>();
+  const elapsed = new Map<string, number>();
+  const ready = new Set<string>();
+
+  const render = (): void => {
+    const parts = services.map((s) => {
+      const state = ready.has(s.name)
+        ? chalk.green('✓')
+        : results.get(s.name) === false
+          ? chalk.red('✗')
+          : `${elapsed.get(s.name) ?? 0}s`;
+      return `${s.displayName} ${state}`;
+    });
+    process.stdout.write(`\r  ${chalk.dim('Waiting:')} ${parts.join('   ')}${chalk.dim(' ...')}`);
+  };
+
+  process.stdout.write('\n');
+  render();
+
+  await Promise.all(
+    services.map(async (service) => {
+      for (let i = 0; i < maxWait; i++) {
+        if (await healthCheck(service)) {
+          results.set(service.name, true);
+          ready.add(service.name);
+          render();
+          return;
+        }
+        elapsed.set(service.name, i + 1);
+        render();
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+      results.set(service.name, false);
+      render();
+    })
+  );
+
+  process.stdout.write('\n');
+  return results;
 }
 
 function timestamp(): string {
@@ -223,12 +357,44 @@ async function stopProcess(pid: number, label: string): Promise<void> {
 // ─── START ─────────────────────────────────────────────────────────────
 async function startServices(skip: string[]): Promise<void> {
   showBanner();
-  const running = getRunningNames();
 
-  const toStart = SERVICES.filter(
-    (s) => !skip.includes(s.name) && !running.includes(s.name)
-  );
-  const alreadyRunning = SERVICES.filter((s) => running.includes(s.name));
+  // Port is the source of truth: a tracked pid whose port is dead (e.g. an
+  // npm parent outliving its child) counts as stopped, and an untracked
+  // process already listening counts as running (adopted, never duplicated).
+  const trackedPids = new Map(readPids().map((p) => [p.name, p.pid]));
+  const alreadyRunning: ServiceConfig[] = [];
+  const stalePids: { service: ServiceConfig; pid: number }[] = [];
+  const toStart: ServiceConfig[] = [];
+
+  for (const service of SERVICES) {
+    if (skip.includes(service.name)) continue;
+    const port = servicePort(service);
+    const listenerPid = port > 0 ? getPortPid(port) : null;
+    if (listenerPid) {
+      alreadyRunning.push(service);
+      const trackedPid = trackedPids.get(service.name);
+      if (!trackedPid || trackedPid !== listenerPid) {
+        log(service.displayName, chalk.yellow(`existing process PID ${listenerPid} on port ${port} — adopting (not starting a duplicate)`));
+        addPid(service.name, listenerPid);
+      }
+    } else {
+      const trackedPid = trackedPids.get(service.name);
+      if (trackedPid) {
+        stalePids.push({ service, pid: trackedPid });
+      }
+      toStart.push(service);
+    }
+  }
+
+  if (stalePids.length > 0) {
+    console.log(chalk.yellow(`  ${stalePids.length} tracked service(s) not listening — cleaning stale processes:`));
+    for (const { service, pid } of stalePids) {
+      log(service.displayName, chalk.dim(`PID ${pid} no longer serving — killing stale process`));
+      await stopProcess(pid, service.displayName);
+      removePid(service.name);
+    }
+    console.log();
+  }
 
   if (alreadyRunning.length > 0) {
     console.log(chalk.yellow(`  ${alreadyRunning.length} service(s) already running (skipping):`));
@@ -241,7 +407,18 @@ async function startServices(skip: string[]): Promise<void> {
     return;
   }
 
-  for (const service of toStart) {
+  for (const service of alreadyRunning) {
+    if (service.postStart) {
+      try {
+        await service.postStart();
+        log(service.displayName, chalk.dim('post-start hook completed'));
+      } catch {
+        log(service.displayName, chalk.yellow('post-start hook skipped'));
+      }
+    }
+  }
+
+  async function spawnService(service: ServiceConfig): Promise<void> {
     log(service.displayName, chalk.dim('starting...'));
 
     const cwd = join(ROOT_DIR, service.cwd);
@@ -266,9 +443,31 @@ async function startServices(skip: string[]): Promise<void> {
 
     child.unref();
     addPid(service.name, child.pid!);
+  }
 
-    const ready = await waitForHealth(service, service.displayName);
-    if (ready) {
+  // Ollama must be up before the AI Service spawns so the LLM gates
+  // (AI_LLM_ENABLED / AI_LLM_PRIMARY_PATH) are decided correctly.
+  const ollamaService = toStart.find((s) => s.name === 'ollama');
+  const parallel = toStart.filter((s) => s.name !== 'ollama');
+
+  if (ollamaService) {
+    await spawnService(ollamaService);
+    if (await waitForHealth(ollamaService, ollamaService.displayName)) {
+      log(ollamaService.displayName, chalk.green('ready'));
+    } else {
+      log(ollamaService.displayName, chalk.red('health check timed out'));
+    }
+    console.log();
+  }
+
+  // Spawn everything else immediately (no waiting between spawns), then let
+  // all health checks run concurrently — total wait ≈ slowest service, not
+  // the sum of every service's wait.
+  await Promise.all(parallel.map((service) => spawnService(service)));
+
+  const results = await waitForAllHealth(parallel);
+  for (const service of parallel) {
+    if (results.get(service.name)) {
       log(service.displayName, chalk.green('ready'));
       if (service.postStart) {
         try {
@@ -314,6 +513,12 @@ async function checkServices(): Promise<void> {
     process.stdout.write(`  ${chalk.bold(service.displayName.padEnd(16))} `);
 
     if (!runningNames.has(service.name)) {
+      const port = servicePort(service);
+      const strayPid = port > 0 ? getPortPid(port) : null;
+      if (strayPid) {
+        console.log(`${chalk.yellow('● Alive (untracked)')}  ${chalk.dim(`PID ${strayPid} — run start to adopt it`)}`);
+        continue;
+      }
       console.log(chalk.red('○ Not started'));
       allOk = false;
       continue;
@@ -353,6 +558,18 @@ async function stopServices(): Promise<void> {
     const label = service?.displayName || entry.name;
     log(label, chalk.dim(`PID ${entry.pid}`));
     await stopProcess(entry.pid, label);
+  }
+
+  // Sweep: stop any untracked processes still listening on managed ports
+  // (e.g. services started manually outside nyx).
+  for (const service of SERVICES) {
+    const port = servicePort(service);
+    if (port <= 0) continue;
+    const strayPid = getPortPid(port);
+    if (strayPid && !pids.some((p) => p.pid === strayPid)) {
+      log(service.displayName, chalk.yellow(`untracked process PID ${strayPid} on port ${port} — stopping`));
+      await stopProcess(strayPid, service.displayName);
+    }
   }
 
   if (existsSync(PIDS_FILE)) unlinkSync(PIDS_FILE);

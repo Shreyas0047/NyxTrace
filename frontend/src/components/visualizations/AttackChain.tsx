@@ -66,9 +66,9 @@ const statusConfig = {
     dot: 'bg-rose-500',
   },
   pending: {
-    color: 'text-slate-400',
-    bg: 'bg-slate-500/10',
-    border: 'border-slate-500/30',
+    color: 'text-[var(--text-secondary)] ',
+    bg: 'bg-[var(--surface-container)]',
+    border: 'border-[var(--border-default)] ',
     dot: 'bg-slate-400',
   },
 };
@@ -97,24 +97,24 @@ export function AttackChain({ stages = [], title = 'Attack Chain' }: AttackChain
   return (
     <div className={cn(
       'rounded-2xl border overflow-hidden',
-      isDark ? 'bg-slate-800/50 border-slate-700/50' : 'bg-white border-slate-200'
+      isDark ? 'bg-[var(--surface-container-low)]  border-[var(--border-subtle)] ' : 'bg-white border-[var(--border-subtle)]'
     )}>
       {/* Header */}
       <div className={cn(
         'flex items-center justify-between px-5 py-4 border-b',
-        isDark ? 'border-slate-700/50' : 'border-slate-200'
+        isDark ? 'border-[var(--border-subtle)] ' : 'border-[var(--border-subtle)]'
       )}>
         <div className="flex items-center gap-3">
-          <Target className={cn('w-5 h-5', isDark ? 'text-slate-400' : 'text-slate-500')} />
+          <Target className={cn('w-5 h-5', isDark ? 'text-[var(--text-secondary)] ' : 'text-[var(--text-secondary)]')} />
           <h3 className={cn(
             'text-base font-semibold',
-            isDark ? 'text-slate-100' : 'text-slate-800'
+            isDark ? 'text-[var(--text-primary)] ' : 'text-[var(--text-primary)]'
           )}>
             {title}
           </h3>
           <span className={cn(
             'px-2 py-0.5 text-xs rounded-full',
-            isDark ? 'bg-slate-700 text-slate-400' : 'bg-slate-100 text-slate-500'
+            isDark ? 'bg-[var(--surface-container-low)]  text-[var(--text-secondary)] ' : 'bg-[var(--surface-container-low)] text-[var(--text-secondary)]'
           )}>
             {stages.length} stages
           </span>
@@ -124,13 +124,13 @@ export function AttackChain({ stages = [], title = 'Attack Chain' }: AttackChain
         <div className="flex items-center gap-3">
           <span className={cn(
             'text-sm',
-            isDark ? 'text-slate-400' : 'text-slate-500'
+            isDark ? 'text-[var(--text-secondary)] ' : 'text-[var(--text-secondary)]'
           )}>
             {completedStages}/{stages.length} completed
           </span>
           <div className={cn(
             'w-32 h-2 rounded-full overflow-hidden',
-            isDark ? 'bg-slate-700' : 'bg-slate-200'
+            isDark ? 'bg-[var(--surface-container-low)] ' : 'bg-[var(--surface-container)]'
           )}>
             <motion.div
               initial={{ width: 0 }}
@@ -146,16 +146,16 @@ export function AttackChain({ stages = [], title = 'Attack Chain' }: AttackChain
       <div className="p-5">
         {stages.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
-            <Target className="w-12 h-12 text-slate-400 mb-3" />
-            <p className="text-sm font-medium text-slate-500">No attack chain data available</p>
-            <p className="text-xs text-slate-400 mt-1">Data will appear after sandbox session analysis</p>
+            <Target className="w-12 h-12 text-[var(--text-secondary)]  mb-3" />
+            <p className="text-sm font-medium text-[var(--text-secondary)]">No attack chain data available</p>
+            <p className="text-xs text-[var(--text-secondary)]  mt-1">Data will appear after sandbox session analysis</p>
           </div>
         ) : (
         <div className="relative">
           {/* Vertical Line */}
           <div className={cn(
             'absolute left-6 top-8 bottom-8 w-0.5',
-            isDark ? 'bg-slate-700' : 'bg-slate-200'
+            isDark ? 'bg-[var(--surface-container-low)] ' : 'bg-[var(--surface-container)]'
           )} />
 
           {/* Stages */}
@@ -182,15 +182,15 @@ export function AttackChain({ stages = [], title = 'Attack Chain' }: AttackChain
                       'transition-all duration-200',
                       isPending
                         ? isDark
-                          ? 'bg-slate-800/30 border-slate-700/50 opacity-50'
-                          : 'bg-slate-50 border-slate-100 opacity-60'
+                          ? 'bg-[var(--surface-container-low)]  border-[var(--border-subtle)]  opacity-50'
+                          : 'bg-[var(--surface-container-lowest)] border-[var(--border-subtle)] opacity-60'
                         : `${config.bg} ${config.border} hover:shadow-lg`
                     )}
                   >
                     {/* Connection Dot */}
                     <div className={cn(
                       'absolute left-[-2rem] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 z-10',
-                      isDark ? 'bg-slate-800 border-slate-600' : 'bg-white border-slate-300'
+                      isDark ? 'bg-[var(--surface-container-low)]  border-[var(--border-default)] ' : 'bg-white border-[var(--border-default)]'
                     )}>
                       <div className={cn(
                         'w-2 h-2 rounded-full',
@@ -202,13 +202,13 @@ export function AttackChain({ stages = [], title = 'Attack Chain' }: AttackChain
                     <div className={cn(
                       'flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center',
                       isPending
-                        ? isDark ? 'bg-slate-700' : 'bg-slate-200'
+                        ? isDark ? 'bg-[var(--surface-container-low)] ' : 'bg-[var(--surface-container)]'
                         : config.bg
                     )}>
                       <Icon className={cn(
                         'w-5 h-5',
                         isPending
-                          ? isDark ? 'text-slate-500' : 'text-slate-400'
+                          ? isDark ? 'text-[var(--text-secondary)]' : 'text-[var(--text-secondary)] '
                           : config.color
                       )} />
                     </div>
@@ -218,13 +218,13 @@ export function AttackChain({ stages = [], title = 'Attack Chain' }: AttackChain
                       <div className="flex items-center gap-2">
                         <span className={cn(
                           'text-xs font-mono',
-                          isDark ? 'text-slate-500' : 'text-slate-400'
+                          isDark ? 'text-[var(--text-secondary)]' : 'text-[var(--text-secondary)] '
                         )}>
                           Stage {index + 1}
                         </span>
                         <h4 className={cn(
                           'text-sm font-semibold',
-                          isDark ? 'text-slate-200' : 'text-slate-700'
+                          isDark ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'
                         )}>
                           {stage.name}
                         </h4>
@@ -241,7 +241,7 @@ export function AttackChain({ stages = [], title = 'Attack Chain' }: AttackChain
                       {!isPending && stage.description && (
                         <p className={cn(
                           'text-xs mt-1',
-                          isDark ? 'text-slate-400' : 'text-slate-500'
+                          isDark ? 'text-[var(--text-secondary)] ' : 'text-[var(--text-secondary)]'
                         )}>
                           {stage.description}
                         </p>
@@ -253,7 +253,7 @@ export function AttackChain({ stages = [], title = 'Attack Chain' }: AttackChain
                       {stage.events > 0 && (
                         <div className={cn(
                           'text-center',
-                          isDark ? 'text-slate-400' : 'text-slate-500'
+                          isDark ? 'text-[var(--text-secondary)] ' : 'text-[var(--text-secondary)]'
                         )}>
                           <p className="text-lg font-bold">{stage.events}</p>
                           <p className="text-xs">events</p>
@@ -261,9 +261,9 @@ export function AttackChain({ stages = [], title = 'Attack Chain' }: AttackChain
                       )}
                       {!isPending && (
                         isExpanded ? (
-                          <ChevronDown className={cn('w-4 h-4', isDark ? 'text-slate-400' : 'text-slate-500')} />
+                          <ChevronDown className={cn('w-4 h-4', isDark ? 'text-[var(--text-secondary)] ' : 'text-[var(--text-secondary)]')} />
                         ) : (
-                          <ChevronRight className={cn('w-4 h-4', isDark ? 'text-slate-400' : 'text-slate-500')} />
+                          <ChevronRight className={cn('w-4 h-4', isDark ? 'text-[var(--text-secondary)] ' : 'text-[var(--text-secondary)]')} />
                         )
                       )}
                     </div>
@@ -278,35 +278,35 @@ export function AttackChain({ stages = [], title = 'Attack Chain' }: AttackChain
                         exit={{ height: 0, opacity: 0 }}
                         className={cn(
                           'mt-2 ml-4 p-4 rounded-xl',
-                          isDark ? 'bg-slate-800/50' : 'bg-slate-50'
+                          isDark ? 'bg-[var(--surface-container-low)] ' : 'bg-[var(--surface-container-lowest)]'
                         )}
                       >
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <p className={cn('text-xs', isDark ? 'text-slate-500' : 'text-slate-400')}>
+                            <p className={cn('text-xs', isDark ? 'text-[var(--text-secondary)]' : 'text-[var(--text-secondary)] ')}>
                               Timestamp
                             </p>
                             <p className={cn(
                               'text-sm font-mono',
-                              isDark ? 'text-slate-300' : 'text-slate-600'
+                              isDark ? 'text-[var(--text-secondary)] ' : 'text-[var(--text-secondary)]'
                             )}>
                               {stage.timestamp}
                             </p>
                           </div>
                           <div>
-                            <p className={cn('text-xs', isDark ? 'text-slate-500' : 'text-slate-400')}>
+                            <p className={cn('text-xs', isDark ? 'text-[var(--text-secondary)]' : 'text-[var(--text-secondary)] ')}>
                               Events Detected
                             </p>
                             <p className={cn(
                               'text-sm font-bold',
-                              isDark ? 'text-slate-300' : 'text-slate-600'
+                              isDark ? 'text-[var(--text-secondary)] ' : 'text-[var(--text-secondary)]'
                             )}>
                               {stage.events}
                             </p>
                           </div>
                           {stage.severity && (
                             <div className="col-span-2">
-                              <p className={cn('text-xs', isDark ? 'text-slate-500' : 'text-slate-400')}>
+                              <p className={cn('text-xs', isDark ? 'text-[var(--text-secondary)]' : 'text-[var(--text-secondary)] ')}>
                                 Risk Assessment
                               </p>
                               <span className={cn(

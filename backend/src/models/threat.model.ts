@@ -260,7 +260,7 @@ const threatCorrelationSchema = new Schema({
   graphData: {
     nodes: [{
       id: String,
-      type: String,
+      type: { type: String },
       label: String,
     }],
     edges: [{

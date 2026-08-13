@@ -63,18 +63,18 @@ export function MITREHeatmap({ data, title = 'MITRE ATT&CK Heatmap' }: MITREHeat
   return (
     <div className={cn(
       'rounded-2xl border overflow-hidden',
-      isDark ? 'bg-slate-800/50 border-slate-700/50' : 'bg-white border-slate-200'
+      isDark ? 'bg-[var(--surface-container-low)]  border-[var(--border-subtle)] ' : 'bg-white border-[var(--border-subtle)]'
     )}>
       {/* Header */}
       <div className={cn(
         'flex items-center justify-between px-5 py-4 border-b',
-        isDark ? 'border-slate-700/50' : 'border-slate-200'
+        isDark ? 'border-[var(--border-subtle)] ' : 'border-[var(--border-subtle)]'
       )}>
         <div className="flex items-center gap-3">
-          <Shield className={cn('w-5 h-5', isDark ? 'text-slate-400' : 'text-slate-500')} />
+          <Shield className={cn('w-5 h-5', isDark ? 'text-[var(--text-secondary)] ' : 'text-[var(--text-secondary)]')} />
           <h3 className={cn(
             'text-base font-semibold',
-            isDark ? 'text-slate-100' : 'text-slate-800'
+            isDark ? 'text-[var(--text-primary)] ' : 'text-[var(--text-primary)]'
           )}>
             {title}
           </h3>
@@ -85,7 +85,7 @@ export function MITREHeatmap({ data, title = 'MITRE ATT&CK Heatmap' }: MITREHeat
           <div className="flex items-center gap-2">
             <span className={cn(
               'text-xs',
-              isDark ? 'text-slate-500' : 'text-slate-400'
+              isDark ? 'text-[var(--text-secondary)]' : 'text-[var(--text-secondary)] '
             )}>
               Intensity:
             </span>
@@ -107,7 +107,7 @@ export function MITREHeatmap({ data, title = 'MITRE ATT&CK Heatmap' }: MITREHeat
                 <div className={cn('w-2 h-2 rounded-full', colors.bg)} />
                 <span className={cn(
                   'text-xs capitalize',
-                  isDark ? 'text-slate-400' : 'text-slate-500'
+                  isDark ? 'text-[var(--text-secondary)] ' : 'text-[var(--text-secondary)]'
                 )}>
                   {severity}
                 </span>
@@ -121,9 +121,9 @@ export function MITREHeatmap({ data, title = 'MITRE ATT&CK Heatmap' }: MITREHeat
       <div className="p-5">
         {tactics.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
-            <Shield className="w-12 h-12 text-slate-400 mb-3" />
-            <p className="text-sm font-medium text-slate-500">No MITRE ATT&CK data available</p>
-            <p className="text-xs text-slate-400 mt-1">Technique mapping will appear after analysis</p>
+            <Shield className="w-12 h-12 text-[var(--text-secondary)]  mb-3" />
+            <p className="text-sm font-medium text-[var(--text-secondary)]">No MITRE ATT&CK data available</p>
+            <p className="text-xs text-[var(--text-secondary)]  mt-1">Technique mapping will appear after analysis</p>
           </div>
         ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -136,7 +136,7 @@ export function MITREHeatmap({ data, title = 'MITRE ATT&CK Heatmap' }: MITREHeat
                 animate={{ opacity: 1, y: 0 }}
                 className={cn(
                   'rounded-xl border overflow-hidden',
-                  isDark ? 'bg-slate-800/30 border-slate-700/50' : 'bg-slate-50 border-slate-200'
+                  isDark ? 'bg-[var(--surface-container-low)]  border-[var(--border-subtle)] ' : 'bg-[var(--surface-container-lowest)] border-[var(--border-subtle)]'
                 )}
               >
                 {/* Tactic Header */}
@@ -145,19 +145,19 @@ export function MITREHeatmap({ data, title = 'MITRE ATT&CK Heatmap' }: MITREHeat
                   className={cn(
                     'flex items-center justify-between px-4 py-3 cursor-pointer',
                     'transition-colors',
-                    isDark ? 'hover:bg-slate-700/30' : 'hover:bg-slate-100'
+                    isDark ? 'hover:bg-[var(--surface-container-low)] ' : 'hover:bg-[var(--surface-container-low)]'
                   )}
                 >
                   <div className="flex items-center gap-3">
                     <span className={cn(
                       'text-xs font-mono font-bold',
-                      isDark ? 'text-slate-500' : 'text-slate-400'
+                      isDark ? 'text-[var(--text-secondary)]' : 'text-[var(--text-secondary)] '
                     )}>
                       {tactic.id}
                     </span>
                     <span className={cn(
                       'text-sm font-semibold',
-                      isDark ? 'text-slate-200' : 'text-slate-700'
+                      isDark ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'
                     )}>
                       {tactic.name}
                     </span>
@@ -166,19 +166,19 @@ export function MITREHeatmap({ data, title = 'MITRE ATT&CK Heatmap' }: MITREHeat
                   <div className="flex items-center gap-3">
                     <span className={cn(
                       'text-xs px-2 py-0.5 rounded-full',
-                      isDark ? 'bg-slate-700 text-slate-400' : 'bg-slate-200 text-slate-600'
+                      isDark ? 'bg-[var(--surface-container-low)]  text-[var(--text-secondary)] ' : 'bg-[var(--surface-container)] text-[var(--text-secondary)]'
                     )}>
                       {tactic.techniques.length} techniques
                     </span>
                     {isExpanded ? (
                       <ChevronDown className={cn(
                         'w-4 h-4',
-                        isDark ? 'text-slate-400' : 'text-slate-500'
+                        isDark ? 'text-[var(--text-secondary)] ' : 'text-[var(--text-secondary)]'
                       )} />
                     ) : (
                       <ChevronRight className={cn(
                         'w-4 h-4',
-                        isDark ? 'text-slate-400' : 'text-slate-500'
+                        isDark ? 'text-[var(--text-secondary)] ' : 'text-[var(--text-secondary)]'
                       )} />
                     )}
                   </div>
@@ -206,17 +206,17 @@ export function MITREHeatmap({ data, title = 'MITRE ATT&CK Heatmap' }: MITREHeat
                           {hoveredTechnique === tech.id && (
                             <div className={cn(
                               'absolute z-10 left-0 top-full mt-2 p-3 rounded-lg shadow-xl w-48',
-                              isDark ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-slate-200'
+                              isDark ? 'bg-[var(--surface-container-low)]  border border-[var(--border-subtle)] ' : 'bg-white border border-[var(--border-subtle)]'
                             )}>
                               <p className={cn(
                                 'text-sm font-semibold',
-                                isDark ? 'text-slate-200' : 'text-slate-700'
+                                isDark ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'
                               )}>
                                 {tech.name}
                               </p>
                               <p className={cn(
                                 'text-xs mt-1',
-                                isDark ? 'text-slate-400' : 'text-slate-500'
+                                isDark ? 'text-[var(--text-secondary)] ' : 'text-[var(--text-secondary)]'
                               )}>
                                 Count: {tech.count}
                               </p>
@@ -241,7 +241,7 @@ export function MITREHeatmap({ data, title = 'MITRE ATT&CK Heatmap' }: MITREHeat
                     animate={{ height: 'auto', opacity: 1 }}
                     className={cn(
                       'border-t px-4 py-3 space-y-2',
-                      isDark ? 'border-slate-700/50' : 'border-slate-200'
+                      isDark ? 'border-[var(--border-subtle)] ' : 'border-[var(--border-subtle)]'
                     )}
                   >
                     {tactic.techniques.map((tech) => {
@@ -251,19 +251,19 @@ export function MITREHeatmap({ data, title = 'MITRE ATT&CK Heatmap' }: MITREHeat
                           key={tech.id}
                           className={cn(
                             'flex items-center justify-between p-2 rounded-lg',
-                            isDark ? 'bg-slate-700/30' : 'bg-slate-100'
+                            isDark ? 'bg-[var(--surface-container-low)] ' : 'bg-[var(--surface-container-low)]'
                           )}
                         >
                           <div className="flex items-center gap-3">
                             <span className={cn(
                               'text-xs font-mono font-bold px-1.5 py-0.5 rounded',
-                              isDark ? 'bg-slate-600 text-slate-300' : 'bg-slate-200 text-slate-600'
+                              isDark ? 'bg-slate-600 text-[var(--text-secondary)] ' : 'bg-[var(--surface-container)] text-[var(--text-secondary)]'
                             )}>
                               {tech.id}
                             </span>
                             <span className={cn(
                               'text-sm',
-                              isDark ? 'text-slate-300' : 'text-slate-600'
+                              isDark ? 'text-[var(--text-secondary)] ' : 'text-[var(--text-secondary)]'
                             )}>
                               {tech.name}
                             </span>
@@ -271,7 +271,7 @@ export function MITREHeatmap({ data, title = 'MITRE ATT&CK Heatmap' }: MITREHeat
                           <div className="flex items-center gap-2">
                             <div className={cn(
                               'w-20 h-2 rounded-full overflow-hidden',
-                              isDark ? 'bg-slate-700' : 'bg-slate-200'
+                              isDark ? 'bg-[var(--surface-container-low)] ' : 'bg-[var(--surface-container)]'
                             )}>
                               <div
                                 className={cn('h-full rounded-full', colors.bg)}
@@ -280,7 +280,7 @@ export function MITREHeatmap({ data, title = 'MITRE ATT&CK Heatmap' }: MITREHeat
                             </div>
                             <span className={cn(
                               'text-xs font-medium w-6 text-right',
-                              isDark ? 'text-slate-400' : 'text-slate-500'
+                              isDark ? 'text-[var(--text-secondary)] ' : 'text-[var(--text-secondary)]'
                             )}>
                               {tech.count}
                             </span>

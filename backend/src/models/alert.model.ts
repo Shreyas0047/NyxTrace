@@ -183,7 +183,7 @@ const alertSchema = new Schema({
 
   // Indicators of compromise
   iocIndicators: [{
-    type: String,
+    type: { type: String },
     value: String,
     source: String,
     confidence: Number,

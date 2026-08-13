@@ -55,7 +55,7 @@ export function DashboardCard({
       whileHover={hover ? { y: -2 } : undefined}
       onClick={onClick}
       className={cn(
-        'bg-white dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700/50',
+        'bg-white  rounded-xl border border-[var(--border-subtle)] ',
         'shadow-sm',
         hover && 'cursor-pointer transition-shadow hover:shadow-md',
         spanClass,
@@ -64,7 +64,7 @@ export function DashboardCard({
       )}
     >
       {header && (
-        <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700/50">
+        <div className="px-5 py-4 border-b border-[var(--border-subtle)] ">
           {header}
         </div>
       )}
@@ -72,7 +72,7 @@ export function DashboardCard({
         {children}
       </div>
       {footer && (
-        <div className="px-5 py-4 border-t border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/30 rounded-b-xl">
+        <div className="px-5 py-4 border-t border-[var(--border-subtle)]  bg-[var(--surface-container-lowest)]  rounded-b-xl">
           {footer}
         </div>
       )}
@@ -91,11 +91,11 @@ export function DashboardHeader({ title, subtitle, action, className }: Dashboar
   return (
     <div className={cn('flex items-start justify-between', className)}>
       <div>
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+        <h2 className="text-lg font-semibold text-[var(--text-primary)] ">
           {title}
         </h2>
         {subtitle && (
-          <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+          <p className="mt-0.5 text-sm text-[var(--text-secondary)] ">
             {subtitle}
           </p>
         )}
@@ -125,9 +125,9 @@ export function DashboardStat({ label, value, change, icon, delta, className }: 
   const getChangeColor = () => {
     if (!change) return '';
     switch (change.type) {
-      case 'increase': return 'text-emerald-600 dark:text-emerald-400';
-      case 'decrease': return 'text-red-600 dark:text-red-400';
-      default: return 'text-slate-500 dark:text-slate-400';
+      case 'increase': return 'text-emerald-600  ';
+      case 'decrease': return 'text-red-600  ';
+      default: return 'text-[var(--text-secondary)] ';
     }
   };
 
@@ -141,23 +141,23 @@ export function DashboardStat({ label, value, change, icon, delta, className }: 
   return (
     <div className={cn('flex items-center justify-between', className)}>
       <div>
-        <p className="text-sm text-slate-500 dark:text-slate-400">{label}</p>
-        <p className="mt-1 text-2xl font-semibold text-slate-900 dark:text-white">
+        <p className="text-sm text-[var(--text-secondary)] ">{label}</p>
+        <p className="mt-1 text-2xl font-semibold text-[var(--text-primary)] ">
           {value}
         </p>
         {change && (
           <p className={cn('mt-1 text-xs flex items-center gap-1', getChangeColor())}>
             <span>{getChangeIcon()}</span>
             <span>{Math.abs(change.value)}%</span>
-            <span className="text-slate-400 dark:text-slate-500">vs last period</span>
+            <span className="text-[var(--text-tertiary)] ">vs last period</span>
           </p>
         )}
         {delta && !change && (
-          <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">{delta}</p>
+          <p className="mt-1 text-xs text-[var(--text-tertiary)] ">{delta}</p>
         )}
       </div>
       {icon && (
-        <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-700/50 flex items-center justify-center">
+        <div className="w-10 h-10 rounded-xl bg-[var(--surface-container-low)]  flex items-center justify-center">
           {icon}
         </div>
       )}
@@ -181,22 +181,22 @@ interface DashboardListProps {
 export function DashboardList({ items, onItemClick, renderItem, className }: DashboardListProps) {
   const getStatusClasses = (status?: string) => {
     switch (status) {
-      case 'active': return 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400';
-      case 'warning': return 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400';
-      case 'error': return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400';
-      default: return 'bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-400';
+      case 'active': return 'bg-emerald-100  text-emerald-700  ';
+      case 'warning': return 'bg-amber-100  text-amber-700  ';
+      case 'error': return 'bg-red-100  text-red-700  ';
+      default: return 'bg-[var(--surface-container-low)]  text-[var(--text-secondary)] ';
     }
   };
 
   return (
-    <div className={cn('divide-y divide-slate-100 dark:divide-slate-700/50', className)}>
+    <div className={cn('divide-y divide-[var(--border-subtle)] ', className)}>
       {items.map((item) => (
         <div
           key={item.id}
           onClick={() => onItemClick?.(item.id)}
           className={cn(
             'px-5 py-4 transition-colors',
-            onItemClick && 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50'
+            onItemClick && 'cursor-pointer hover:bg-[var(--surface-container-lowest)] '
           )}
         >
           {renderItem ? (
@@ -204,11 +204,11 @@ export function DashboardList({ items, onItemClick, renderItem, className }: Das
           ) : (
             <div className="flex items-center justify-between gap-4">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
+                <p className="text-sm font-medium text-[var(--text-primary)]  truncate">
                   {item.title}
                 </p>
                 {item.subtitle && (
-                  <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 truncate">
+                  <p className="mt-0.5 text-xs text-[var(--text-secondary)]  truncate">
                     {item.subtitle}
                   </p>
                 )}

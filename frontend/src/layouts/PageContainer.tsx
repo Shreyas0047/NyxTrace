@@ -19,13 +19,13 @@ export function PageHeader({ title, subtitle, actions, badge }: PageHeaderProps)
     >
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-3">
-          <h1 className="font-display text-2xl font-semibold text-[#f0ede4] truncate tracking-tight">
+          <h1 className="font-display text-2xl font-semibold text-[var(--text-primary)] truncate tracking-tight">
             {title}
           </h1>
           {badge}
         </div>
         {subtitle && (
-          <p className="mt-1 text-sm font-body text-[#a8a294]">
+          <p className="mt-1 text-sm font-body text-[var(--text-secondary)]">
             {subtitle}
           </p>
         )}
@@ -53,12 +53,12 @@ export function PageSection({ title, description, children, className, noPadding
       {(title || description) && (
         <div className="mb-4">
           {title && (
-            <h2 className="font-display text-lg font-semibold text-[#f0ede4] tracking-tight">
+            <h2 className="font-display text-lg font-semibold text-[var(--text-primary)] tracking-tight">
               {title}
             </h2>
           )}
           {description && (
-            <p className="text-sm font-body text-[#a8a294] mt-1">
+            <p className="text-sm font-body text-[var(--text-secondary)] mt-1">
               {description}
             </p>
           )}
@@ -124,15 +124,15 @@ export function EmptyState({ icon, title, description, action, className }: Empt
   return (
     <div className={cn('flex flex-col items-center justify-center py-12 px-6 text-center', className)}>
       {icon && (
-        <div className="w-16 h-16 rounded-[20px] bg-[#171510] flex items-center justify-center mb-4 border border-[rgba(245,240,230,0.05)]">
+        <div className="w-16 h-16 rounded-[20px] bg-[var(--surface-container)] flex items-center justify-center mb-4 border border-[var(--border-subtle)]">
           {icon}
         </div>
       )}
-      <h3 className="font-display text-lg font-semibold text-[#f0ede4] tracking-tight">
+      <h3 className="font-display text-lg font-semibold text-[var(--text-primary)] tracking-tight">
         {title}
       </h3>
       {description && (
-        <p className="mt-1 text-sm font-body text-[#a8a294] max-w-sm">
+        <p className="mt-1 text-sm font-body text-[var(--text-secondary)] max-w-sm">
           {description}
         </p>
       )}

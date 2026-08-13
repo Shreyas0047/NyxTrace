@@ -30,19 +30,19 @@ import api from '../services/api';
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 
 const levelColors: Record<string, string> = {
-  debug: 'text-slate-500 dark:text-slate-400',
-  info: 'text-blue-600 dark:text-blue-400',
-  warning: 'text-amber-600 dark:text-amber-400',
-  error: 'text-red-600 dark:text-red-400',
-  critical: 'text-purple-600 dark:text-purple-400 font-bold',
+  debug: 'text-[var(--text-secondary)] ',
+  info: 'text-blue-600 ',
+  warning: 'text-amber-600  ',
+  error: 'text-red-600  ',
+  critical: 'text-purple-600  font-bold',
 };
 
 const levelBgColors: Record<string, string> = {
-  debug: 'bg-slate-50 dark:bg-slate-800/30',
-  info: 'bg-blue-50/30 dark:bg-blue-900/10',
-  warning: 'bg-amber-50/30 dark:bg-amber-900/10',
-  error: 'bg-red-50/30 dark:bg-red-900/10',
-  critical: 'bg-purple-50/30 dark:bg-purple-900/10',
+  debug: 'bg-[var(--surface-container-lowest)] ',
+  info: 'bg-blue-50/30 ',
+  warning: 'bg-amber-50/30 ',
+  error: 'bg-red-50/30 ',
+  critical: 'bg-purple-50/30 ',
 };
 
 const levelIcons: Record<string, typeof Info> = {
@@ -54,14 +54,14 @@ const levelIcons: Record<string, typeof Info> = {
 };
 
 const categoryColors: Record<string, string> = {
-  app: 'bg-violet-100 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400',
-  monitoring: 'bg-amber-500/15 text-amber-400',
+  app: 'bg-violet-100  text-violet-600  ',
+  monitoring: 'bg-amber-500/15 text-amber-600 ',
   simulator: 'bg-blue-500/15 text-blue-400',
-  execution: 'bg-amber-100 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400',
-  forensics: 'bg-emerald-100 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400',
-  vm: 'bg-orange-100 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400',
-  sandbox: 'bg-pink-100 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400',
-  system: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400',
+  execution: 'bg-amber-100  text-amber-600  ',
+  forensics: 'bg-emerald-100  text-emerald-600  ',
+  vm: 'bg-orange-100  text-orange-600  ',
+  sandbox: 'bg-pink-100  text-pink-600 ',
+  system: 'bg-[var(--surface-container-low)]  text-[var(--text-secondary)] ',
 };
 
 export function LogsPage() {
@@ -196,14 +196,14 @@ export function LogsPage() {
         actions={
           <div className="flex items-center gap-2">
             {/* View toggle: Audit (structured records) vs System (raw log files) */}
-            <div className="inline-flex items-center bg-slate-100 dark:bg-slate-800/80 rounded-lg p-1">
+            <div className="inline-flex items-center bg-[var(--surface-container-low)]  rounded-lg p-1">
               <button
                 onClick={() => setView('audit')}
                 className={cn(
                   'px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5',
                   view === 'audit'
-                    ? 'bg-white dark:bg-slate-700 text-amber-400 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
+                    ? 'bg-white  text-amber-600  shadow-sm'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text-secondary)] '
                 )}
               >
                 <History className="w-3.5 h-3.5" />
@@ -214,8 +214,8 @@ export function LogsPage() {
                 className={cn(
                   'px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5',
                   view === 'system'
-                    ? 'bg-white dark:bg-slate-700 text-amber-400 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
+                    ? 'bg-white  text-amber-600  shadow-sm'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text-secondary)] '
                 )}
               >
                 <Terminal className="w-3.5 h-3.5" />
@@ -253,28 +253,28 @@ export function LogsPage() {
               <DashboardStat
                 label="Total Events"
                 value={auditStats?.total || 0}
-                icon={<History className="w-5 h-5 text-amber-400" />}
+                icon={<History className="w-5 h-5 text-amber-600 " />}
               />
             </DashboardCard>
             <DashboardCard>
               <DashboardStat
                 label="Successful"
                 value={auditStats?.byStatus?.success || 0}
-                icon={<CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />}
+                icon={<CheckCircle className="w-5 h-5 text-emerald-600  " />}
               />
             </DashboardCard>
             <DashboardCard>
               <DashboardStat
                 label="Failed"
                 value={auditStats?.byStatus?.failed || 0}
-                icon={<XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />}
+                icon={<XCircle className="w-5 h-5 text-red-600  " />}
               />
             </DashboardCard>
             <DashboardCard>
               <DashboardStat
                 label="Action Types"
                 value={auditStats?.byAction?.length || 0}
-                icon={<Filter className="w-5 h-5 text-violet-600 dark:text-violet-400" />}
+                icon={<Filter className="w-5 h-5 text-violet-600  " />}
               />
             </DashboardCard>
           </PageGrid>
@@ -290,7 +290,7 @@ export function LogsPage() {
                 />
               </div>
               <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-slate-400" />
+                <Filter className="w-4 h-4 text-[var(--text-secondary)] " />
                 <Select
                   value={auditActionFilter}
                   onChange={(val) => setAuditActionFilter(val)}
@@ -321,13 +321,13 @@ export function LogsPage() {
           </Card>
 
           <Card className="!p-0 overflow-hidden">
-            <div className="bg-slate-900 text-slate-100 font-mono text-xs">
-              <div className="px-4 py-2 bg-slate-800 flex items-center justify-between border-b border-slate-700">
+            <div className="bg-slate-900 text-[var(--text-primary)]  font-mono text-xs">
+              <div className="px-4 py-2 bg-[var(--surface-container-low)]  flex items-center justify-between border-b border-[var(--border-subtle)] ">
                 <div className="flex items-center gap-2">
-                  <History className="w-4 h-4 text-amber-400" />
-                  <span className="text-slate-300">Audit Trail</span>
+                  <History className="w-4 h-4 text-amber-600 " />
+                  <span className="text-[var(--text-secondary)] ">Audit Trail</span>
                 </div>
-                <span className="text-slate-500">{auditEntries.length} entries</span>
+                <span className="text-[var(--text-secondary)]">{auditEntries.length} entries</span>
               </div>
               <div className="max-h-[600px] overflow-y-auto">
                 {auditLoading && auditEntries.length === 0 ? (
@@ -336,32 +336,32 @@ export function LogsPage() {
                   </div>
                 ) : auditError ? (
                   <div className="flex flex-col items-center justify-center py-12">
-                    <p className="text-red-400 mb-3">{auditError}</p>
+                    <p className="text-red-600  mb-3">{auditError}</p>
                     <Button variant="outline" size="sm" onClick={fetchAuditLogs}>Retry</Button>
                   </div>
                 ) : auditEntries.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-12">
-                    <History className="w-10 h-10 text-slate-600 mb-3" />
-                    <p className="text-slate-500">No audit records yet.</p>
-                    <p className="text-slate-600 text-[10px] mt-1">Login, evidence uploads, and session events will appear here.</p>
+                    <History className="w-10 h-10 text-[var(--text-secondary)] mb-3" />
+                    <p className="text-[var(--text-secondary)]">No audit records yet.</p>
+                    <p className="text-[var(--text-secondary)] text-[10px] mt-1">Login, evidence uploads, and session events will appear here.</p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-slate-800">
+                  <div className="divide-y divide-[var(--border-subtle)]">
                     {auditEntries.map((entry) => {
                       const isFailed = entry.status === 'failed';
                       return (
                         <div
                           key={entry.id}
                           className={cn(
-                            'px-4 py-2 hover:bg-slate-800/50 transition-colors',
+                            'px-4 py-2 hover:bg-[var(--surface-container)]  transition-colors',
                             isFailed && 'bg-red-900/10'
                           )}
                         >
                           <div className="flex items-start gap-3">
-                            <span className={cn('flex-shrink-0 mt-0.5', isFailed ? 'text-red-400' : 'text-emerald-400')}>
+                            <span className={cn('flex-shrink-0 mt-0.5', isFailed ? 'text-red-600 ' : 'text-emerald-600 ')}>
                               {isFailed ? <XCircle className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
                             </span>
-                            <span className="flex-shrink-0 text-slate-500 w-44">
+                            <span className="flex-shrink-0 text-[var(--text-secondary)] w-44">
                               {new Date(entry.timestamp).toLocaleString()}
                             </span>
                             <span className={cn(
@@ -371,35 +371,35 @@ export function LogsPage() {
                               {entry.action}
                             </span>
                             {entry.entityType && (
-                              <span className="flex-shrink-0 px-1.5 py-0.5 rounded text-[10px] bg-slate-700 text-slate-300">
+                              <span className="flex-shrink-0 px-1.5 py-0.5 rounded text-[10px] bg-[var(--surface-container-low)]  text-[var(--text-secondary)] ">
                                 {entry.entityType}
                               </span>
                             )}
-                            <div className="flex-1 min-w-0 text-slate-300">
+                            <div className="flex-1 min-w-0 text-[var(--text-secondary)] ">
                               {entry.user ? (
                                 <span className="inline-flex items-center gap-1 mr-3">
-                                  <User className="w-3 h-3 text-slate-500" />
+                                  <User className="w-3 h-3 text-[var(--text-secondary)]" />
                                   {entry.user.email || entry.user.username || entry.user.name || entry.user.id}
                                 </span>
                               ) : (
-                                <span className="text-slate-500 mr-3">system</span>
+                                <span className="text-[var(--text-secondary)] mr-3">system</span>
                               )}
                               {entry.entityId && (
-                                <span className="text-slate-500 mr-3 font-mono">id: {entry.entityId.slice(0, 24)}</span>
+                                <span className="text-[var(--text-secondary)] mr-3 font-mono">id: {entry.entityId.slice(0, 24)}</span>
                               )}
                               {entry.ipAddress && (
-                                <span className="text-slate-500 mr-3">from {entry.ipAddress}</span>
+                                <span className="text-[var(--text-secondary)] mr-3">from {entry.ipAddress}</span>
                               )}
                               {entry.errorMessage && (
-                                <span className="text-red-400">{entry.errorMessage}</span>
+                                <span className="text-red-600 ">{entry.errorMessage}</span>
                               )}
                             </div>
                           </div>
                           {entry.details && Object.keys(entry.details).length > 0 && (
-                            <div className="mt-1 ml-7 text-[10px] text-slate-500 truncate">
+                            <div className="mt-1 ml-7 text-[10px] text-[var(--text-secondary)] truncate">
                               {Object.entries(entry.details).slice(0, 4).map(([k, v]) => (
                                 <span key={k} className="mr-3">
-                                  {k}=<span className="text-slate-400">{String(v).slice(0, 60)}</span>
+                                  {k}=<span className="text-[var(--text-secondary)] ">{String(v).slice(0, 60)}</span>
                                 </span>
                               ))}
                             </div>
@@ -416,7 +416,7 @@ export function LogsPage() {
           {auditStats && auditStats.byAction.length > 0 && (
             <Card>
               <div className="p-4">
-                <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase mb-3">Action Distribution</p>
+                <p className="text-xs font-semibold text-[var(--text-secondary)]   uppercase mb-3">Action Distribution</p>
                 <div className="flex gap-2 flex-wrap">
                   {auditStats.byAction.slice(0, 12).map(({ action, count }) => (
                     <button
@@ -425,8 +425,8 @@ export function LogsPage() {
                       className={cn(
                         'inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors',
                         auditActionFilter === action
-                          ? 'bg-amber-500/10 border-amber-500/50 text-amber-400'
-                          : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                          ? 'bg-amber-500/10 border-amber-500/50 text-amber-600 '
+                          : 'bg-[var(--surface-container-lowest)]  border-[var(--border-subtle)]  text-[var(--text-secondary)]  hover:bg-[var(--surface-container-low)] '
                       )}
                     >
                       {action}: <span className="font-bold">{count}</span>
@@ -444,28 +444,28 @@ export function LogsPage() {
           <DashboardStat
             label="Total Lines"
             value={totalLines}
-            icon={<Terminal className="w-5 h-5 text-amber-400" />}
+            icon={<Terminal className="w-5 h-5 text-amber-600 " />}
           />
         </DashboardCard>
         <DashboardCard>
           <DashboardStat
             label="Errors"
             value={errorCount}
-            icon={<AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />}
+            icon={<AlertCircle className="w-5 h-5 text-red-600  " />}
           />
         </DashboardCard>
         <DashboardCard>
           <DashboardStat
             label="Warnings"
             value={warningCount}
-            icon={<AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />}
+            icon={<AlertTriangle className="w-5 h-5 text-amber-600  " />}
           />
         </DashboardCard>
         <DashboardCard>
           <DashboardStat
             label="Critical"
             value={criticalCount}
-            icon={<ShieldAlert className="w-5 h-5 text-purple-600 dark:text-purple-400" />}
+            icon={<ShieldAlert className="w-5 h-5 text-purple-600 " />}
           />
         </DashboardCard>
       </PageGrid>
@@ -481,7 +481,7 @@ export function LogsPage() {
             />
           </div>
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-slate-400" />
+            <Filter className="w-4 h-4 text-[var(--text-secondary)] " />
             <Select
               value={filters.level}
               onChange={(val) => handleLevelFilter(val)}
@@ -539,14 +539,14 @@ export function LogsPage() {
       </Card>
 
       <Card className="!p-0 overflow-hidden">
-        <div className="bg-slate-900 dark:bg-slate-900 text-slate-100 font-mono text-xs overflow-hidden">
-          <div className="px-4 py-2 bg-slate-800 dark:bg-slate-900 flex items-center justify-between border-b border-slate-700">
+        <div className="bg-slate-900  text-[var(--text-primary)]  font-mono text-xs overflow-hidden">
+          <div className="px-4 py-2 bg-[var(--surface-container-low)]   flex items-center justify-between border-b border-[var(--border-subtle)] ">
             <div className="flex items-center gap-2">
-              <Terminal className="w-4 h-4 text-amber-400" />
-              <span className="text-slate-300">Live Log Stream</span>
+              <Terminal className="w-4 h-4 text-amber-600 " />
+              <span className="text-[var(--text-secondary)] ">Live Log Stream</span>
               {autoRefresh && <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />}
             </div>
-            <span className="text-slate-500">{logs.length} entries</span>
+            <span className="text-[var(--text-secondary)]">{logs.length} entries</span>
           </div>
 
           <div className="max-h-[500px] overflow-y-auto p-0">
@@ -556,34 +556,34 @@ export function LogsPage() {
               </div>
             ) : error && logs.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12">
-                <p className="text-red-400 mb-3">{error}</p>
+                <p className="text-red-600  mb-3">{error}</p>
                 <Button variant="outline" size="sm" onClick={() => fetchLogs()}>Retry</Button>
               </div>
             ) : logs.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12">
-                <Terminal className="w-10 h-10 text-slate-600 mb-3" />
-                <p className="text-slate-500">No logs found. Run simulations to generate logs.</p>
+                <Terminal className="w-10 h-10 text-[var(--text-secondary)] mb-3" />
+                <p className="text-[var(--text-secondary)]">No logs found. Run simulations to generate logs.</p>
               </div>
             ) : (
-              <div className="divide-y divide-slate-800">
+              <div className="divide-y divide-[var(--border-subtle)]">
                 {logs.map((log) => {
                   const Icon = levelIcons[log.level] || Info;
                   const isExpanded = expandedLog === log.id;
                   return (
-                    <div key={log.id} className={cn('px-4 py-1.5 hover:bg-slate-800/50 cursor-pointer transition-colors', levelBgColors[log.level])}>
+                    <div key={log.id} className={cn('px-4 py-1.5 hover:bg-[var(--surface-container)]  cursor-pointer transition-colors', levelBgColors[log.level])}>
                       <div className="flex items-start gap-2" onClick={() => setExpandedLog(isExpanded ? null : log.id)}>
                         <span className={cn('flex-shrink-0 mt-0.5', levelColors[log.level])}>
                           <Icon className="w-3 h-3" />
                         </span>
-                        <span className="flex-shrink-0 text-slate-500 w-36">{log.timestamp}</span>
+                        <span className="flex-shrink-0 text-[var(--text-secondary)] w-36">{log.timestamp}</span>
                         <span className={cn('flex-shrink-0 px-1.5 py-0.5 rounded text-xs font-medium uppercase', categoryColors[log.category])}>
                           {log.category}
                         </span>
-                        <span className="flex-shrink-0 w-12 text-center text-slate-400">{log.level.toUpperCase()}</span>
-                        <span className="flex-1 text-slate-300 break-all">{log.message}</span>
+                        <span className="flex-shrink-0 w-12 text-center text-[var(--text-secondary)] ">{log.level.toUpperCase()}</span>
+                        <span className="flex-1 text-[var(--text-secondary)]  break-all">{log.message}</span>
                       </div>
                       {isExpanded && log.details && (
-                        <div className="mt-2 ml-6 p-2 bg-slate-900 rounded border border-slate-700 text-slate-400 text-xs">
+                        <div className="mt-2 ml-6 p-2 bg-slate-900 rounded border border-[var(--border-subtle)]  text-[var(--text-secondary)]  text-xs">
                           <pre className="whitespace-pre-wrap">{JSON.stringify(log.details, null, 2)}</pre>
                         </div>
                       )}
@@ -600,7 +600,7 @@ export function LogsPage() {
       {stats && (
         <Card>
           <div className="p-4">
-            <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase mb-3">Level Distribution</p>
+            <p className="text-xs font-semibold text-[var(--text-secondary)]   uppercase mb-3">Level Distribution</p>
             <div className="flex gap-2 flex-wrap">
               {Object.entries(stats.byLevel || {}).map(([level, count]) => {
                 const Icon = levelIcons[level] || Info;
@@ -608,8 +608,8 @@ export function LogsPage() {
                   <button key={level} onClick={() => handleLevelFilter(level)}
                     className={cn('inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors',
                       filters.level === level
-                        ? 'bg-amber-500/10 border-amber-500/50 text-amber-400'
-                        : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                        ? 'bg-amber-500/10 border-amber-500/50 text-amber-600 '
+                        : 'bg-[var(--surface-container-lowest)]  border-[var(--border-subtle)]  text-[var(--text-secondary)]  hover:bg-[var(--surface-container-low)] '
                     )}>
                     <Icon className="w-3 h-3" />
                     {level}: <span className="font-bold">{count}</span>

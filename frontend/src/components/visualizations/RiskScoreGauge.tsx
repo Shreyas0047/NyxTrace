@@ -108,7 +108,7 @@ export function RiskScoreGauge({
           </motion.span>
           <span className={cn(
             'text-xs mt-1',
-            isDark ? 'text-slate-500' : 'text-slate-400'
+            isDark ? 'text-[var(--text-secondary)]' : 'text-[var(--text-secondary)] '
           )}>
             / 100
           </span>
@@ -120,7 +120,7 @@ export function RiskScoreGauge({
         <div className="flex items-center gap-2">
           <span className={cn(
             'text-sm font-medium',
-            isDark ? 'text-slate-300' : 'text-slate-600'
+            isDark ? 'text-[var(--text-secondary)] ' : 'text-[var(--text-secondary)]'
           )}>
             {label}
           </span>

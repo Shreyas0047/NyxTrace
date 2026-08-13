@@ -82,33 +82,33 @@ export const colors = {
     high: { bg: 'bg-orange-950/30', text: 'text-orange-400', border: 'border-orange-800/40', solid: 'bg-orange-500' },
     medium: { bg: 'bg-amber-950/30', text: 'text-amber-400', border: 'border-amber-800/40', solid: 'bg-amber-500' },
     low: { bg: 'bg-emerald-950/30', text: 'text-emerald-400', border: 'border-emerald-800/40', solid: 'bg-emerald-500' },
-    info: { bg: 'bg-sky-950/30', text: 'text-sky-400', border: 'border-sky-800/40', solid: 'bg-sky-500' },
+    info: { bg: 'bg-sky-100 ', text: 'text-sky-600 ', border: 'border-sky-200 ', solid: 'bg-sky-500' },
   },
   status: {
-    active: { bg: 'bg-emerald-950/30', text: 'text-emerald-400', dot: 'bg-emerald-500' },
-    pending: { bg: 'bg-amber-950/30', text: 'text-amber-400', dot: 'bg-amber-500' },
-    error: { bg: 'bg-rose-950/30', text: 'text-rose-400', dot: 'bg-rose-500' },
-    inactive: { bg: 'bg-slate-800/50', text: 'text-slate-500', dot: 'bg-slate-500' },
+    active: { bg: 'bg-emerald-100 ', text: 'text-emerald-600 ', dot: 'bg-emerald-500' },
+    pending: { bg: 'bg-amber-100 ', text: 'text-amber-600 ', dot: 'bg-amber-500' },
+    error: { bg: 'bg-rose-100 ', text: 'text-rose-600 ', dot: 'bg-rose-500' },
+    inactive: { bg: 'bg-[var(--surface-container-low)] ', text: 'text-[var(--text-secondary)]', dot: 'bg-slate-500' },
   },
   surface: {
-    base: 'bg-[#0a0a08]',
-    dim: 'bg-[#0d0c0a]',
-    container: 'bg-[#171510]',
-    'container-high': 'bg-[#1e1b14]',
-    'container-highest': 'bg-[#24211a]',
-    bright: 'bg-[#2a2620]',
+    base: 'bg-[var(--surface-base)]',
+    dim: 'bg-[var(--surface-dim)]',
+    container: 'bg-[var(--surface-container)]',
+    'container-high': 'bg-[var(--surface-container-high)]',
+    'container-highest': 'bg-[var(--surface-container-highest)]',
+    bright: 'bg-[var(--surface-bright)]',
   },
   border: {
-    primary: 'border-[#29251c]',
-    secondary: 'border-[#3a3730]',
+    primary: 'border-[var(--outline)]',
+    secondary: 'border-[var(--outline-variant)]',
     accent: 'border-[#f59e0b]',
   },
   text: {
-    primary: 'text-[#f0ede4]',
-    secondary: 'text-[#a8a294]',
-    tertiary: 'text-[#6c675c]',
-    muted: 'text-[#3a3730]',
-    inverse: 'text-[#0a0a08]',
+    primary: 'text-[var(--text-primary)]',
+    secondary: 'text-[var(--text-secondary)]',
+    tertiary: 'text-[var(--text-tertiary)]',
+    muted: 'text-[var(--text-disabled)]',
+    inverse: 'text-[var(--surface-base)]',
   },
 } as const;
 
@@ -171,7 +171,7 @@ export const animations = {
 export const buttonVariants = {
   primary: `
     bg-amber-500
-    text-[#0a0a08]
+    text-[#1e1b14]
     font-medium
     hover:bg-amber-400 active:bg-amber-600
     shadow-sm hover:shadow-[0_0_24px_rgba(245,158,11,0.15)]
@@ -179,25 +179,25 @@ export const buttonVariants = {
     transition-all duration-[200ms] ease-out
   `,
   secondary: `
-    bg-[#24211a]
-    text-[#f0ede4]
-    hover:bg-[#2a2620] active:bg-[#1e1b14]
-    border border-[#3a3730]
+    bg-[var(--surface-container-high)]
+    text-[var(--on-surface)]
+    hover:bg-[var(--surface-container-highest)] active:bg-[var(--surface-container)]
+    border border-[var(--outline-variant)]
     focus-visible:ring-2 focus-visible:ring-amber-500/50
     transition-all duration-[200ms] ease-out
   `,
   outline: `
     bg-transparent
-    text-[#a8a294]
-    border border-[#3a3730]
-    hover:bg-[#171510] hover:text-[#f0ede4] hover:border-[#5c574c]
+    text-[var(--text-secondary)]
+    border border-[var(--outline-variant)]
+    hover:bg-[var(--surface-container)] hover:text-[var(--on-surface)] hover:border-[var(--outline)]
     focus-visible:ring-2 focus-visible:ring-amber-500/50
     transition-all duration-[200ms] ease-out
   `,
   ghost: `
     bg-transparent
-    text-[#a8a294]
-    hover:bg-[#171510] hover:text-[#f0ede4]
+    text-[var(--text-secondary)]
+    hover:bg-[var(--surface-container)] hover:text-[var(--on-surface)]
     focus-visible:ring-2 focus-visible:ring-amber-500/50
     transition-all duration-[200ms] ease-out
   `,
@@ -223,20 +223,20 @@ export const buttonVariants = {
 
 export const cardVariants = {
   default: `
-    bg-[#171510]
-    border border-[rgba(245,240,230,0.05)]
+    bg-[var(--surface-container)]
+    border border-[var(--border-subtle)]
     shadow-sm
     rounded-[20px]
   `,
   elevated: `
-    bg-[#1e1b14]
-    border border-[rgba(245,240,230,0.08)]
+    bg-[var(--surface-raised)]
+    border border-[var(--border-default)]
     shadow-md
     rounded-[20px]
   `,
   bordered: `
-    bg-[#171510]
-    border-2 border-[#3a3730]
+    bg-[var(--surface-container)]
+    border-2 border-[var(--outline-variant)]
     rounded-[20px]
   `,
   ghost: `
@@ -244,7 +244,7 @@ export const cardVariants = {
     border border-transparent
   `,
   accent: `
-    bg-[#171510]
+    bg-[var(--surface-container)]
     border border-[rgba(245,158,11,0.2)]
     shadow-sm
     rounded-[20px]

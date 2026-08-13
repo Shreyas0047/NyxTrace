@@ -20,38 +20,38 @@ interface StatusBannerProps {
 const typeConfig: Record<StatusType, { icon: typeof Info; bg: string; border: string; text: string; iconColor: string }> = {
   info: {
     icon: Info,
-    bg: 'bg-blue-50 dark:bg-blue-950/40',
-    border: 'border-blue-200 dark:border-blue-800/50',
-    text: 'text-blue-800 dark:text-blue-300',
+    bg: 'bg-blue-50 ',
+    border: 'border-blue-200 ',
+    text: 'text-blue-800 ',
     iconColor: 'text-blue-500',
   },
   success: {
     icon: CheckCircle,
-    bg: 'bg-emerald-50 dark:bg-emerald-950/40',
-    border: 'border-emerald-200 dark:border-emerald-800/50',
-    text: 'text-emerald-800 dark:text-emerald-300',
+    bg: 'bg-emerald-50 ',
+    border: 'border-emerald-200 ',
+    text: 'text-emerald-800 ',
     iconColor: 'text-emerald-500',
   },
   warning: {
     icon: AlertCircle,
-    bg: 'bg-amber-50 dark:bg-amber-950/40',
-    border: 'border-amber-200 dark:border-amber-800/50',
-    text: 'text-amber-800 dark:text-amber-300',
+    bg: 'bg-amber-50 ',
+    border: 'border-amber-200 ',
+    text: 'text-amber-800 ',
     iconColor: 'text-amber-500',
   },
   error: {
     icon: AlertCircle,
-    bg: 'bg-red-50 dark:bg-red-950/40',
-    border: 'border-red-200 dark:border-red-800/50',
-    text: 'text-red-800 dark:text-red-300',
+    bg: 'bg-red-50 ',
+    border: 'border-red-200 ',
+    text: 'text-red-800 ',
     iconColor: 'text-red-500',
   },
   loading: {
     icon: Loader2,
-    bg: 'bg-slate-50 dark:bg-slate-800/50',
-    border: 'border-slate-200 dark:border-slate-700',
-    text: 'text-slate-800 dark:text-slate-300',
-    iconColor: 'text-slate-500',
+    bg: 'bg-[var(--surface-container-lowest)] ',
+    border: 'border-[var(--border-subtle)] ',
+    text: 'text-[var(--text-primary)] ',
+    iconColor: 'text-[var(--text-secondary)]',
   },
 };
 
@@ -83,7 +83,7 @@ export function StatusBanner({ status, onDismiss, className }: StatusBannerProps
           )}
         </div>
         {onDismiss && status.type !== 'loading' && (
-          <button onClick={onDismiss} className="p-0.5 rounded hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex-shrink-0">
+          <button onClick={onDismiss} className="p-0.5 rounded hover:bg-black/5  transition-colors flex-shrink-0">
             <X className="w-3.5 h-3.5 opacity-50" />
           </button>
         )}

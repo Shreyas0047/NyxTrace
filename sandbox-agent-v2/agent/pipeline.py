@@ -339,16 +339,17 @@ class SessionPipeline:
 
         # Resolve simulator name (matches backend SIMULATOR_DISPLAY_NAMES)
         sim_display = {
-            "system-service-alpha": "Sample Alpha",
-            "system-service-beta": "Sample Beta",
-            "system-service-gamma": "Sample Gamma",
-            "system-service-delta": "Sample Delta",
-            "system-service-epsilon": "Sample Epsilon",
-            "ransomware-simulator": "Sample Alpha",
-            "spyware-simulator": "Sample Beta",
-            "trojan-simulator": "Sample Gamma",
-            "botnet-simulator": "Sample Delta",
-            "credential-stealer": "Sample Epsilon",
+            "system-service-alpha": "LockByte",
+            "system-service-beta": "HiveMind",
+            "system-service-gamma": "VaultDrain",
+            "system-service-delta": "SilentEye",
+            "system-service-epsilon": "GhostKernel",
+            "system-service-lateral": "NetWarp",
+            "ransomware-simulator": "LockByte",
+            "spyware-simulator": "SilentEye",
+            "trojan-simulator": "Wraith",
+            "botnet-simulator": "HiveMind",
+            "credential-stealer": "VaultDrain",
         }
         simulator_name = sim_display.get(session.simulator_id, session.simulator_id)
 

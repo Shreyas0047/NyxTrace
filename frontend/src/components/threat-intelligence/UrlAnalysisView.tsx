@@ -35,6 +35,7 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { IocPanel, type ExtractedIOC } from './IocPanel';
 import AiInsightsCard from './AiInsightsCard';
+import { VerdictBanner } from './VerdictBanner';
 import { useThreatIntelStore } from '../../stores/threatIntelStore';
 import type { AnalysisFinding } from '../../types';
 
@@ -67,17 +68,17 @@ function getThreatLevelMeta(level: string): {
 } {
   switch (level) {
     case 'critical':
-      return { bg: 'bg-red-500/15', text: 'text-red-400', border: 'border-red-500/30', icon: ShieldAlert };
+      return { bg: 'bg-red-500/15', text: 'text-red-600 ', border: 'border-red-500/30', icon: ShieldAlert };
     case 'high':
-      return { bg: 'bg-orange-500/15', text: 'text-orange-400', border: 'border-orange-500/30', icon: ShieldAlert };
+      return { bg: 'bg-orange-500/15', text: 'text-orange-600 ', border: 'border-orange-500/30', icon: ShieldAlert };
     case 'medium':
-      return { bg: 'bg-amber-500/15', text: 'text-amber-400', border: 'border-amber-500/30', icon: Shield };
+      return { bg: 'bg-amber-500/15', text: 'text-amber-600 ', border: 'border-amber-500/30', icon: Shield };
     case 'low':
-      return { bg: 'bg-sky-500/15', text: 'text-sky-400', border: 'border-sky-500/30', icon: ShieldCheck };
+      return { bg: 'bg-sky-500/15', text: 'text-sky-600 ', border: 'border-sky-500/30', icon: ShieldCheck };
     case 'benign':
-      return { bg: 'bg-emerald-500/15', text: 'text-emerald-400', border: 'border-emerald-500/30', icon: ShieldCheck };
+      return { bg: 'bg-emerald-500/15', text: 'text-emerald-600 ', border: 'border-emerald-500/30', icon: ShieldCheck };
     default:
-      return { bg: 'bg-slate-500/15', text: 'text-slate-400', border: 'border-slate-500/30', icon: Shield };
+      return { bg: 'bg-[var(--surface-container)]', text: 'text-[var(--text-secondary)] ', border: 'border-[var(--border-default)] ', icon: Shield };
   }
 }
 
@@ -90,11 +91,11 @@ function getRiskScoreColor(score: number): string {
 }
 
 function getRiskScoreTextColor(score: number): string {
-  if (score >= 80) return 'text-red-400';
-  if (score >= 60) return 'text-orange-400';
-  if (score >= 40) return 'text-amber-400';
-  if (score >= 20) return 'text-sky-400';
-  return 'text-emerald-400';
+  if (score >= 80) return 'text-red-600 ';
+  if (score >= 60) return 'text-orange-600 ';
+  if (score >= 40) return 'text-amber-600 ';
+  if (score >= 20) return 'text-sky-600 ';
+  return 'text-emerald-600 ';
 }
 
 function getRiskScoreLabel(score: number): string {
@@ -113,16 +114,16 @@ function getFindingSeverityMeta(severity: string): {
 } {
   switch (severity) {
     case 'critical':
-      return { bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/20', dot: 'bg-red-400' };
+      return { bg: 'bg-red-500/10', text: 'text-red-600 ', border: 'border-red-500/20', dot: 'bg-red-400' };
     case 'high':
-      return { bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/20', dot: 'bg-orange-400' };
+      return { bg: 'bg-orange-500/10', text: 'text-orange-600 ', border: 'border-orange-500/20', dot: 'bg-orange-400' };
     case 'medium':
-      return { bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/20', dot: 'bg-amber-400' };
+      return { bg: 'bg-amber-500/10', text: 'text-amber-600 ', border: 'border-amber-500/20', dot: 'bg-amber-400' };
     case 'low':
-      return { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/20', dot: 'bg-emerald-400' };
+      return { bg: 'bg-emerald-500/10', text: 'text-emerald-600 ', border: 'border-emerald-500/20', dot: 'bg-emerald-400' };
     case 'info':
     default:
-      return { bg: 'bg-sky-500/10', text: 'text-sky-400', border: 'border-sky-500/20', dot: 'bg-sky-400' };
+      return { bg: 'bg-sky-500/10', text: 'text-sky-600 ', border: 'border-sky-500/20', dot: 'bg-sky-400' };
   }
 }
 
@@ -155,11 +156,11 @@ function UrlInputForm({
       {/* Icon header */}
       <div className="text-center space-y-3">
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/20">
-          <Link2 className="w-7 h-7 text-cyan-400" />
+          <Link2 className="w-7 h-7 text-cyan-600 " />
         </div>
         <div>
-          <h2 className="text-xl font-semibold text-slate-100">URL Intelligence Analysis</h2>
-          <p className="mt-1 text-sm text-slate-400 max-w-md mx-auto leading-relaxed">
+          <h2 className="text-xl font-semibold text-[var(--text-primary)] ">URL Intelligence Analysis</h2>
+          <p className="mt-1 text-sm text-[var(--text-secondary)]  max-w-md mx-auto leading-relaxed">
             Analyze any URL for malicious indicators, threat intelligence matches, SSL validity,
             domain reputation, and more.
           </p>
@@ -169,7 +170,7 @@ function UrlInputForm({
       {/* URL input */}
       <div className="max-w-2xl mx-auto space-y-4">
         <div className="relative">
-          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none z-10">
+          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] pointer-events-none z-10">
             <Globe className="w-4 h-4" />
           </div>
           <input
@@ -183,8 +184,8 @@ function UrlInputForm({
             aria-label="URL to analyze"
             className={cn(
               'w-full pl-10 pr-10 py-3 text-sm rounded-xl border',
-              'bg-slate-800/60 text-slate-100 placeholder:text-slate-500',
-              'border-slate-700/50 focus:border-cyan-500/50',
+              'bg-[var(--surface-container-low)]  text-[var(--text-primary)]  placeholder:text-[var(--text-tertiary)]',
+              'border-[var(--border-subtle)]  focus:border-cyan-500/50',
               'focus:outline-none focus:ring-2 focus:ring-cyan-500/20',
               'transition-all duration-200',
               validationError && 'border-red-500/50 focus:border-red-500/50 focus:ring-red-500/20',
@@ -194,7 +195,7 @@ function UrlInputForm({
             <button
               type="button"
               onClick={() => onUrlChange('')}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-[var(--text-secondary)]  transition-colors"
               aria-label="Clear URL input"
             >
               <X className="w-4 h-4" />
@@ -209,7 +210,7 @@ function UrlInputForm({
               initial={{ opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
-              className="text-xs text-red-400 flex items-center gap-1.5"
+              className="text-xs text-red-600  flex items-center gap-1.5"
             >
               <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
               {validationError}
@@ -256,19 +257,19 @@ function LoadingState({ url }: { url: string }) {
       {/* Pulsing spinner */}
       <div className="relative">
         <div className="absolute inset-0 rounded-full bg-cyan-500/10 animate-ping" />
-        <div className="relative flex items-center justify-center w-16 h-16 rounded-full bg-slate-800 border border-slate-700/50">
-          <Loader2 className="w-7 h-7 text-cyan-400 animate-spin" />
+        <div className="relative flex items-center justify-center w-16 h-16 rounded-full bg-[var(--surface-container-low)]  border border-[var(--border-subtle)] ">
+          <Loader2 className="w-7 h-7 text-cyan-600  animate-spin" />
         </div>
       </div>
 
       <div className="text-center space-y-2">
-        <h3 className="text-lg font-semibold text-slate-100">Analyzing URL</h3>
-        <p className="text-sm text-slate-400 max-w-md truncate px-4" title={url}>
+        <h3 className="text-lg font-semibold text-[var(--text-primary)] ">Analyzing URL</h3>
+        <p className="text-sm text-[var(--text-secondary)]  max-w-md truncate px-4" title={url}>
           {url}
         </p>
       </div>
 
-      <div className="flex items-center gap-2 text-xs text-slate-500">
+      <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
         <span className="flex gap-1">
           <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: '0ms' }} />
           <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -299,12 +300,12 @@ function ErrorState({
       className="flex flex-col items-center justify-center py-16 space-y-6"
     >
       <div className="flex items-center justify-center w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20">
-        <XCircle className="w-7 h-7 text-red-400" />
+        <XCircle className="w-7 h-7 text-red-600 " />
       </div>
 
       <div className="text-center space-y-1 max-w-md">
-        <h3 className="text-lg font-semibold text-slate-100">Analysis Failed</h3>
-        <p className="text-sm text-slate-400 leading-relaxed">{error}</p>
+        <h3 className="text-lg font-semibold text-[var(--text-primary)] ">Analysis Failed</h3>
+        <p className="text-sm text-[var(--text-secondary)]  leading-relaxed">{error}</p>
       </div>
 
       <div className="flex items-center gap-3">
@@ -329,14 +330,14 @@ function ErrorState({
 function ReputationBadge({ malicious }: { malicious: boolean }) {
   if (malicious) {
     return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-500/15 text-red-400 border border-red-500/30">
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-500/15 text-red-600  border border-red-500/30">
         <AlertTriangle className="w-3.5 h-3.5" />
         Malicious
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-600  border border-emerald-500/30">
       <CheckCircle className="w-3.5 h-3.5" />
       Benign
     </span>
@@ -354,12 +355,12 @@ function RiskScoreBar({ score }: { score: number }) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-xs">
-        <span className="text-slate-400">Risk Score</span>
+        <span className="text-[var(--text-secondary)] ">Risk Score</span>
         <span className={cn('font-semibold', textColor)}>
           {score}/100 &mdash; {label}
         </span>
       </div>
-      <div className="w-full h-2.5 rounded-full bg-slate-700/50 overflow-hidden">
+      <div className="w-full h-2.5 rounded-full bg-[var(--surface-container-low)]  overflow-hidden">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${Math.min(score, 100)}%` }}
@@ -388,13 +389,13 @@ function StatCard({
   return (
     <motion.div
       whileHover={{ y: -2 }}
-      className="flex items-center gap-3 p-4 rounded-xl bg-slate-800/40 border border-slate-700/30 transition-colors hover:bg-slate-800/60"
+      className="flex items-center gap-3 p-4 rounded-xl bg-[var(--surface-container-low)]  border border-[var(--border-subtle)]  transition-colors hover:bg-[var(--surface-container)] "
     >
       <div className={cn('flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-lg', `${color.replace('text-', 'bg-')}/10`)}>
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="text-xs text-slate-400 truncate">{label}</p>
+        <p className="text-xs text-[var(--text-secondary)]  truncate">{label}</p>
         <p className={cn('text-lg font-bold leading-tight', color)}>{value}</p>
       </div>
     </motion.div>
@@ -416,15 +417,15 @@ function DetailRow({
   highlight?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between py-2.5 border-b border-slate-700/30 last:border-b-0">
+    <div className="flex items-center justify-between py-2.5 border-b border-[var(--border-subtle)]  last:border-b-0">
       <div className="flex items-center gap-2 text-sm min-w-0">
-        <span className="text-slate-500 flex-shrink-0">{icon}</span>
-        <span className="text-slate-400 truncate">{label}</span>
+        <span className="text-[var(--text-secondary)] flex-shrink-0">{icon}</span>
+        <span className="text-[var(--text-secondary)]  truncate">{label}</span>
       </div>
       <div
         className={cn(
           'text-sm font-medium text-right flex-shrink-0 ml-4',
-          highlight ? 'text-slate-100' : 'text-slate-300',
+          highlight ? 'text-[var(--text-primary)] ' : 'text-[var(--text-secondary)] ',
         )}
       >
         {value}
@@ -465,12 +466,12 @@ function FindingCard({ finding }: { finding: AnalysisFinding }) {
               {finding.severity}
             </span>
           </div>
-          <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">{finding.description}</p>
+          <p className="text-xs text-[var(--text-secondary)]  line-clamp-2 leading-relaxed">{finding.description}</p>
         </div>
         {expanded ? (
-          <ChevronDown className="w-4 h-4 text-slate-500 flex-shrink-0 mt-1" />
+          <ChevronDown className="w-4 h-4 text-[var(--text-secondary)] flex-shrink-0 mt-1" />
         ) : (
-          <ChevronRight className="w-4 h-4 text-slate-500 flex-shrink-0 mt-1" />
+          <ChevronRight className="w-4 h-4 text-[var(--text-secondary)] flex-shrink-0 mt-1" />
         )}
       </button>
 
@@ -486,26 +487,26 @@ function FindingCard({ finding }: { finding: AnalysisFinding }) {
           >
             <div className="px-4 pb-4 pt-0 space-y-3">
               {/* Meta row */}
-              <div className="flex items-center gap-4 text-xs text-slate-500">
+              <div className="flex items-center gap-4 text-xs text-[var(--text-secondary)]">
                 <span>
                   Category:{' '}
-                  <span className="text-slate-300 capitalize">{finding.category}</span>
+                  <span className="text-[var(--text-secondary)]  capitalize">{finding.category}</span>
                 </span>
                 <span>
                   Confidence:{' '}
-                  <span className="text-slate-300">{finding.confidence}%</span>
+                  <span className="text-[var(--text-secondary)] ">{finding.confidence}%</span>
                 </span>
               </div>
 
               {/* Evidence list */}
               {finding.evidence.length > 0 && (
                 <div className="space-y-1.5">
-                  <span className="text-xs font-medium text-slate-500">Evidence:</span>
+                  <span className="text-xs font-medium text-[var(--text-secondary)]">Evidence:</span>
                   <ul className="space-y-1">
                     {finding.evidence.map((ev, i) => (
                       <li key={i} className="flex items-start gap-2 text-xs">
-                        <span className="text-slate-600 mt-1 flex-shrink-0">&bull;</span>
-                        <code className="font-mono text-[11px] text-slate-400 bg-slate-800/60 px-1.5 py-0.5 rounded break-all leading-relaxed">
+                        <span className="text-[var(--text-secondary)] mt-1 flex-shrink-0">&bull;</span>
+                        <code className="font-mono text-[11px] text-[var(--text-secondary)]  bg-[var(--surface-container-low)]  px-1.5 py-0.5 rounded break-all leading-relaxed">
                           {ev}
                         </code>
                       </li>
@@ -516,7 +517,7 @@ function FindingCard({ finding }: { finding: AnalysisFinding }) {
 
               {/* MITRE mapping */}
               {finding.mitreMapping && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-medium text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded">
+                <span className="inline-flex items-center gap-1 text-[10px] font-medium text-violet-600  bg-violet-500/10 px-2 py-0.5 rounded">
                   MITRE: {finding.mitreMapping}
                 </span>
               )}
@@ -560,10 +561,10 @@ function ThreatIntelMatchItem({ match, index }: { match: string; index: number }
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.04 }}
-      className="flex items-center gap-3 p-3 rounded-lg bg-slate-800/40 border border-slate-700/30 hover:bg-slate-800/60 transition-colors"
+      className="flex items-center gap-3 p-3 rounded-lg bg-[var(--surface-container-low)]  border border-[var(--border-subtle)]  hover:bg-[var(--surface-container)]  transition-colors"
     >
-      <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
-      <code className="text-xs font-mono text-slate-300 break-all leading-relaxed">{match}</code>
+      <AlertTriangle className="w-4 h-4 text-amber-600  flex-shrink-0" />
+      <code className="text-xs font-mono text-[var(--text-secondary)]  break-all leading-relaxed">{match}</code>
     </motion.div>
   );
 }
@@ -699,8 +700,8 @@ export function UrlAnalysisView(_props: UrlAnalysisViewProps) {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0 space-y-3">
                   <div className="flex items-center gap-3 flex-wrap">
-                    <Globe className="w-5 h-5 text-cyan-400 flex-shrink-0" />
-                    <h2 className="text-base font-semibold text-slate-100 truncate max-w-md" title={analysis.url}>
+                    <Globe className="w-5 h-5 text-cyan-600  flex-shrink-0" />
+                    <h2 className="text-base font-semibold text-[var(--text-primary)]  truncate max-w-md" title={analysis.url}>
                       {analysis.url || 'URL Analysis'}
                     </h2>
                     {reputation && <ReputationBadge malicious={reputation.malicious} />}
@@ -717,7 +718,7 @@ export function UrlAnalysisView(_props: UrlAnalysisViewProps) {
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-slate-400 leading-relaxed">{analysis.summary}</p>
+                  <p className="text-sm text-[var(--text-secondary)]  leading-relaxed">{analysis.summary}</p>
                 </div>
                 <Button
                   variant="outline"
@@ -731,6 +732,15 @@ export function UrlAnalysisView(_props: UrlAnalysisViewProps) {
               </div>
             </Card>
 
+            {/* --- Verdict Banner --- */}
+            <VerdictBanner
+              threatType={analysis.threatLevel}
+              confidence={analysis.confidence}
+              riskScore={reputation?.riskScore}
+              malicious={reputation?.malicious}
+              artifactLabel={analysis.url}
+            />
+
             {/* --- Summary Stats Grid --- */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <StatCard
@@ -738,30 +748,30 @@ export function UrlAnalysisView(_props: UrlAnalysisViewProps) {
                   threatMeta ? (
                     <Shield className={cn('w-5 h-5', threatMeta.text)} />
                   ) : (
-                    <Shield className="w-5 h-5 text-slate-400" />
+                    <Shield className="w-5 h-5 text-[var(--text-secondary)] " />
                   )
                 }
                 label="Threat Level"
                 value={analysis.threatLevel.charAt(0).toUpperCase() + analysis.threatLevel.slice(1)}
-                color={threatMeta?.text || 'text-slate-400'}
+                color={threatMeta?.text || 'text-[var(--text-secondary)] '}
               />
               <StatCard
-                icon={<ShieldCheck className="w-5 h-5 text-cyan-400" />}
+                icon={<ShieldCheck className="w-5 h-5 text-cyan-600 " />}
                 label="Confidence"
                 value={`${analysis.confidence}%`}
-                color="text-cyan-400"
+                color="text-cyan-600 "
               />
               <StatCard
-                icon={<Hash className="w-5 h-5 text-violet-400" />}
+                icon={<Hash className="w-5 h-5 text-violet-600 " />}
                 label="Findings"
                 value={analysis.findings.length}
-                color="text-violet-400"
+                color="text-violet-600 "
               />
               <StatCard
-                icon={<Bug className="w-5 h-5 text-amber-400" />}
+                icon={<Bug className="w-5 h-5 text-amber-600 " />}
                 label="IOC Count"
                 value={analysis.iocs.length}
-                color="text-amber-400"
+                color="text-amber-600 "
               />
             </div>
 
@@ -775,8 +785,8 @@ export function UrlAnalysisView(_props: UrlAnalysisViewProps) {
                 <Card>
                   <div className="space-y-5">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-semibold text-slate-200">URL Reputation Analysis</h3>
-                      <span className="text-xs text-slate-500">
+                      <h3 className="text-sm font-semibold text-[var(--text-primary)]">URL Reputation Analysis</h3>
+                      <span className="text-xs text-[var(--text-secondary)]">
                         Last analyzed: {new Date(reputation.lastAnalyzed).toLocaleDateString()}
                       </span>
                     </div>
@@ -787,10 +797,10 @@ export function UrlAnalysisView(_props: UrlAnalysisViewProps) {
                 {/* URL Details Table */}
                 <Card>
                   <div className="flex items-center gap-2 mb-4">
-                    <Server className="w-4 h-4 text-slate-400" />
-                    <h3 className="text-sm font-semibold text-slate-200">URL Details</h3>
+                    <Server className="w-4 h-4 text-[var(--text-secondary)] " />
+                    <h3 className="text-sm font-semibold text-[var(--text-primary)]">URL Details</h3>
                   </div>
-                  <div className="divide-y divide-slate-700/30">
+                  <div className="divide-y divide-[var(--border-subtle)]">
                     <DetailRow
                       icon={<Clock className="w-4 h-4" />}
                       label="Domain Age"
@@ -803,7 +813,7 @@ export function UrlAnalysisView(_props: UrlAnalysisViewProps) {
                         <span
                           className={cn(
                             'inline-flex items-center gap-1',
-                            reputation.sslValid ? 'text-emerald-400' : 'text-red-400',
+                            reputation.sslValid ? 'text-emerald-600 ' : 'text-red-600 ',
                           )}
                         >
                           {reputation.sslValid ? (
@@ -842,9 +852,9 @@ export function UrlAnalysisView(_props: UrlAnalysisViewProps) {
                 {reputation.redirectChain.length > 0 && (
                   <Card>
                     <div className="flex items-center gap-2 mb-4">
-                      <ArrowRight className="w-4 h-4 text-slate-400" />
-                      <h3 className="text-sm font-semibold text-slate-200">Redirect Chain</h3>
-                      <span className="text-xs text-slate-500">({reputation.redirectChain.length} hops)</span>
+                      <ArrowRight className="w-4 h-4 text-[var(--text-secondary)] " />
+                      <h3 className="text-sm font-semibold text-[var(--text-primary)]">Redirect Chain</h3>
+                      <span className="text-xs text-[var(--text-secondary)]">({reputation.redirectChain.length} hops)</span>
                     </div>
                     <div className="space-y-1">
                       {reputation.redirectChain.map((redirectUrl, i) => (
@@ -852,11 +862,11 @@ export function UrlAnalysisView(_props: UrlAnalysisViewProps) {
                           <div className="flex flex-col items-center gap-0.5 pt-1">
                             <div className="w-2 h-2 rounded-full bg-cyan-500/50 flex-shrink-0" />
                             {i < reputation.redirectChain.length - 1 && (
-                              <div className="w-px h-6 bg-slate-700/50" />
+                              <div className="w-px h-6 bg-[var(--surface-container-low)] " />
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <code className="text-xs font-mono text-slate-300 break-all bg-slate-800/40 px-2.5 py-1.5 rounded-lg block">
+                            <code className="text-xs font-mono text-[var(--text-secondary)]  break-all bg-[var(--surface-container-low)]  px-2.5 py-1.5 rounded-lg block">
                               {redirectUrl}
                             </code>
                           </div>
@@ -870,14 +880,14 @@ export function UrlAnalysisView(_props: UrlAnalysisViewProps) {
                 {reputation.technologies.length > 0 && (
                   <Card>
                     <div className="flex items-center gap-2 mb-4">
-                      <Wifi className="w-4 h-4 text-slate-400" />
-                      <h3 className="text-sm font-semibold text-slate-200">Technologies Detected</h3>
+                      <Wifi className="w-4 h-4 text-[var(--text-secondary)] " />
+                      <h3 className="text-sm font-semibold text-[var(--text-primary)]">Technologies Detected</h3>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {reputation.technologies.map((tech, i) => (
                         <span
                           key={i}
-                          className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 bg-slate-700/40 border border-slate-600/30"
+                          className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium text-[var(--text-secondary)]  bg-[var(--surface-container-low)]  border border-[var(--border-default)]  "
                         >
                           {tech}
                         </span>
@@ -890,8 +900,8 @@ export function UrlAnalysisView(_props: UrlAnalysisViewProps) {
                 {reputation.categories.length > 0 && (
                   <Card>
                     <div className="flex items-center gap-2 mb-4">
-                      <Hash className="w-4 h-4 text-slate-400" />
-                      <h3 className="text-sm font-semibold text-slate-200">Categories</h3>
+                      <Hash className="w-4 h-4 text-[var(--text-secondary)] " />
+                      <h3 className="text-sm font-semibold text-[var(--text-primary)]">Categories</h3>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {reputation.categories.map((cat, i) => (
@@ -905,9 +915,9 @@ export function UrlAnalysisView(_props: UrlAnalysisViewProps) {
                 {reputation.threatIntelMatches.length > 0 && (
                   <Card>
                     <div className="flex items-center gap-2 mb-4">
-                      <AlertTriangle className="w-4 h-4 text-amber-400" />
-                      <h3 className="text-sm font-semibold text-slate-200">Threat Intelligence Matches</h3>
-                      <span className="text-xs text-amber-400/70">({reputation.threatIntelMatches.length} matches)</span>
+                      <AlertTriangle className="w-4 h-4 text-amber-600 " />
+                      <h3 className="text-sm font-semibold text-[var(--text-primary)]">Threat Intelligence Matches</h3>
+                      <span className="text-xs text-amber-600 ">({reputation.threatIntelMatches.length} matches)</span>
                     </div>
                     <div className="space-y-2">
                       {reputation.threatIntelMatches.map((match, i) => (
@@ -923,9 +933,9 @@ export function UrlAnalysisView(_props: UrlAnalysisViewProps) {
             {analysis.mitreTechniques.length > 0 && (
               <Card>
                 <div className="flex items-center gap-2 mb-4">
-                  <Bug className="w-4 h-4 text-violet-400" />
-                  <h3 className="text-sm font-semibold text-slate-200">MITRE ATT&CK Techniques</h3>
-                  <span className="text-xs text-slate-500">({analysis.mitreTechniques.length} techniques)</span>
+                  <Bug className="w-4 h-4 text-violet-600 " />
+                  <h3 className="text-sm font-semibold text-[var(--text-primary)]">MITRE ATT&CK Techniques</h3>
+                  <span className="text-xs text-[var(--text-secondary)]">({analysis.mitreTechniques.length} techniques)</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {analysis.mitreTechniques.map((technique, i) => (
@@ -933,11 +943,11 @@ export function UrlAnalysisView(_props: UrlAnalysisViewProps) {
                   ))}
                 </div>
                 {analysis.mitreTactics.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-slate-700/30">
+                  <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-[var(--border-subtle)] ">
                     {analysis.mitreTactics.map((tactic, i) => (
                       <span
                         key={i}
-                        className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium text-violet-400/70 bg-violet-500/5 border border-violet-500/10"
+                        className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium text-violet-600  bg-violet-500/5 border border-violet-500/10"
                       >
                         {tactic}
                       </span>
@@ -951,9 +961,9 @@ export function UrlAnalysisView(_props: UrlAnalysisViewProps) {
             {analysis.findings.length > 0 && (
               <Card>
                 <div className="flex items-center gap-2 mb-4">
-                  <AlertTriangle className="w-4 h-4 text-amber-400" />
-                  <h3 className="text-sm font-semibold text-slate-200">Analysis Findings</h3>
-                  <span className="text-xs text-slate-500">({analysis.findings.length} findings)</span>
+                  <AlertTriangle className="w-4 h-4 text-amber-600 " />
+                  <h3 className="text-sm font-semibold text-[var(--text-primary)]">Analysis Findings</h3>
+                  <span className="text-xs text-[var(--text-secondary)]">({analysis.findings.length} findings)</span>
                 </div>
                 <div className="space-y-2">
                   {[...analysis.findings]
@@ -976,7 +986,7 @@ export function UrlAnalysisView(_props: UrlAnalysisViewProps) {
             )}
 
             {/* --- Footer: Timestamp + New Analysis --- */}
-            <div className="flex items-center justify-between text-xs text-slate-500 pt-2">
+            <div className="flex items-center justify-between text-xs text-[var(--text-secondary)] pt-2">
               <span className="flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5" />
                 Analyzed at: {new Date(analysis.analyzedAt).toLocaleString()}

@@ -57,7 +57,7 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
     switch (type) {
       case 'critical': return <AlertTriangle className="w-4 h-4 text-rose-500" />;
       case 'success': return <CheckCircle className="w-4 h-4 text-emerald-500" />;
-      default: return <Info className="w-4 h-4 text-amber-400" />;
+      default: return <Info className="w-4 h-4 text-amber-600 " />;
     }
   };
 
@@ -81,41 +81,39 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center gap-3 px-4 py-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-                <Search className="w-5 h-5 text-[#6c675c]" />
+                <Search className="w-5 h-5 text-[var(--text-tertiary)]" />
                 <input
                   ref={searchInputRef}
                   type="text"
-                  placeholder="Search investigations, evidence, alerts, reports..."
+                  placeholder="Search cases, evidence, sandbox sessions, reports..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1 bg-transparent text-sm font-body text-[#a8a294] placeholder:text-[#6c675c] outline-none"
+                  className="flex-1 bg-transparent text-sm font-body text-[var(--text-secondary)] placeholder:text-[var(--text-tertiary)] outline-none"
                 />
-                <button onClick={() => setShowSearch(false)} className="p-1 rounded-[8px] hover:bg-[rgba(245,240,230,0.04)]">
-                  <X className="w-4 h-4 text-[#6c675c]" />
+                <button onClick={() => setShowSearch(false)} className="p-1 rounded-[8px] hover:bg-[var(--surface-container)]">
+                  <X className="w-4 h-4 text-[var(--text-tertiary)]" />
                 </button>
               </div>
-              <div className="p-2 bg-[rgba(245,240,230,0.01)]">
+              <div className="p-2 bg-transparent">
                 <div className="flex items-center gap-2 px-2 py-1">
-                  <span className="text-xs font-mono text-[#6c675c] tracking-[0.12em] uppercase">Quick actions</span>
+                  <span className="text-xs font-mono text-[var(--text-tertiary)] tracking-[0.12em] uppercase">Quick actions</span>
                 </div>
               </div>
               <div className="max-h-80 overflow-y-auto">
                 {[
-                  { title: 'New Investigation', description: 'Create a new case', action: () => { setShowSearch(false); navigate('/investigations?new=true'); }},
                   { title: 'Upload Evidence', description: 'Add files to repository', action: () => { setShowSearch(false); navigate('/evidence?upload=true'); }},
-                  { title: 'View Alerts', description: 'Check active alerts', action: () => { setShowSearch(false); navigate('/alerts'); }},
                 ].map((item, index) => (
                   <button
                     key={index}
                     onClick={item.action}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-[rgba(245,240,230,0.02)] transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-[var(--surface-container)] transition-colors"
                   >
-                    <div className="p-2 rounded-[10px] bg-[rgba(245,240,230,0.04)]">
-                      <Search className="w-4 h-4 text-[#6c675c]" />
+                    <div className="p-2 rounded-[10px] bg-[var(--surface-container)]">
+                      <Search className="w-4 h-4 text-[var(--text-tertiary)]" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-[#a8a294] font-body">{item.title}</p>
-                      <p className="text-xs text-[#6c675c] font-body">{item.description}</p>
+                      <p className="text-sm font-medium text-[var(--text-secondary)] font-body">{item.title}</p>
+                      <p className="text-xs text-[var(--text-tertiary)] font-body">{item.description}</p>
                     </div>
                   </button>
                 ))}
@@ -126,15 +124,15 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
       </AnimatePresence>
 
       <header
-        className="h-14 flex items-center justify-between px-5 sticky top-0 z-40 border-b"
+        className="h-14 flex items-center justify-between px-3 md:px-5 sticky top-0 z-40 border-b"
         style={{
           background: 'var(--surface-overlay)',
           borderColor: 'var(--border-subtle)',
           backdropFilter: 'blur(20px)',
         }}
       >
-        <div className="flex items-center gap-2">
-          <nav className="flex items-center gap-1.5 text-sm font-body">
+        <div className="flex items-center gap-2 min-w-0">
+          <nav className="hidden md:flex items-center gap-1.5 text-sm font-body">
             {breadcrumbs.slice(1).map((item, index) => (
               <div key={index} className="flex items-center gap-1.5">
                 {index > 0 && <ChevronRight className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} />}
@@ -158,7 +156,7 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
               </div>
             ))}
             {currentPage && (
-              <span style={{ color: 'var(--text-tertiary)' }} className="mx-1 text-[#6c675c]">/</span>
+              <span style={{ color: 'var(--text-tertiary)' }} className="mx-1 text-[var(--text-tertiary)]">/</span>
             )}
             {currentPage && (
               <span className="font-display text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
@@ -166,6 +164,11 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
               </span>
             )}
           </nav>
+          {currentPage && (
+            <span className="md:hidden text-sm font-display font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+              {currentPage}
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -173,19 +176,21 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setShowSearch(true)}
-            className="flex items-center justify-center w-9 h-9 rounded-[10px] transition-colors text-[#6c675c] hover:bg-[rgba(245,240,230,0.04)] hover:text-[#a8a294]"
+            className="hidden sm:flex items-center justify-center w-9 h-9 rounded-[10px] transition-colors text-[var(--text-tertiary)] hover:bg-[var(--surface-container)] hover:text-[var(--text-secondary)]"
           >
             <Search className="w-4 h-4" />
           </motion.button>
 
-          <ConnectionStatus />
+          <div className="hidden md:block">
+            <ConnectionStatus />
+          </div>
 
           <div className="relative">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setShowNotifications(!showNotifications)}
-              className="relative flex items-center justify-center w-9 h-9 rounded-[10px] transition-colors text-[#6c675c] hover:bg-[rgba(245,240,230,0.04)] hover:text-[#a8a294]"
+              className="relative flex items-center justify-center w-9 h-9 rounded-[10px] transition-colors text-[var(--text-tertiary)] hover:bg-[var(--surface-container)] hover:text-[var(--text-secondary)]"
             >
               <Bell className="w-4 h-4" />
               <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-rose-500 rounded-full pulse-ring" />
@@ -208,7 +213,7 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
                     {notifications.map((notification) => (
                       <div
                         key={notification.id}
-                        className="px-4 py-3 cursor-pointer border-b transition-colors hover:bg-[rgba(245,240,230,0.02)]"
+                        className="px-4 py-3 cursor-pointer border-b transition-colors hover:bg-[var(--surface-container)]"
                         style={{ borderColor: 'var(--border-subtle)' }}
                       >
                         <div className="flex items-start gap-3">
@@ -221,8 +226,8 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
                       </div>
                     ))}
                   </div>
-                  <div className="px-4 py-3 border-t bg-[rgba(245,240,230,0.02)]" style={{ borderColor: 'var(--border-subtle)' }}>
-                    <button className="text-sm font-medium font-body text-amber-400 hover:text-amber-300 transition-colors">
+                  <div className="px-4 py-3 border-t bg-[var(--surface-container)]" style={{ borderColor: 'var(--border-subtle)' }}>
+                    <button className="text-sm font-medium font-body text-amber-600  hover:text-amber-300 transition-colors">
                       View all notifications
                     </button>
                   </div>
@@ -236,7 +241,7 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-2 px-2 py-1 rounded-[10px] transition-colors hover:bg-[rgba(245,240,230,0.03)]"
+              className="flex items-center gap-1 px-1 md:px-2 py-1 rounded-[10px] transition-colors hover:bg-[var(--surface-container)]"
             >
               <div
                 className="w-7 h-7 rounded-[8px] flex items-center justify-center"
@@ -250,7 +255,7 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
                 </p>
               </div>
               <ChevronDown
-                className="w-3 h-3 transition-transform"
+                className="w-3 h-3 transition-transform hidden md:block"
                 style={{ color: 'var(--text-tertiary)' }}
               />
             </motion.button>
@@ -289,7 +294,7 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
                     <div style={{ borderColor: 'var(--border-subtle)' }} className="my-1 border-t" />
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-sm font-body transition-colors text-rose-400 hover:bg-rose-500/10"
+                      className="w-full flex items-center gap-3 px-4 py-2 text-sm font-body transition-colors text-rose-600  hover:bg-rose-500/10"
                     >
                       <LogOut className="w-4 h-4" />
                       Logout

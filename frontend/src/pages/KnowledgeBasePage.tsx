@@ -33,9 +33,9 @@ const typeIcons = {
 };
 
 const typeColors: Record<string, string> = {
-  guide: 'bg-amber-500/15 text-amber-400',
-  reference: 'bg-violet-500/15 text-violet-400',
-  tutorial: 'bg-emerald-500/15 text-emerald-400',
+  guide: 'bg-amber-500/15 text-amber-600 ',
+  reference: 'bg-violet-500/15 text-violet-600 ',
+  tutorial: 'bg-emerald-500/15 text-emerald-600 ',
 };
 
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.05 } } };
@@ -78,7 +78,7 @@ export function KnowledgeBasePage() {
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
         <PageHeader title="Knowledge Base" subtitle="Guides, references, and tutorials for the NyxTrace platform" />
         <div className="flex items-center justify-center py-24">
-          <Loader2 className="w-8 h-8 text-amber-400 animate-spin" />
+          <Loader2 className="w-8 h-8 text-amber-600  animate-spin" />
         </div>
       </motion.div>
     );
@@ -89,11 +89,11 @@ export function KnowledgeBasePage() {
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
         <PageHeader title="Knowledge Base" subtitle="Guides, references, and tutorials for the NyxTrace platform" />
         <Card>
-          <div className="flex flex-col items-center justify-center py-16 text-slate-500">
-            <AlertCircle className="w-12 h-12 mb-3 text-rose-400" />
-            <p className="text-lg font-medium text-slate-300">Failed to load articles</p>
+          <div className="flex flex-col items-center justify-center py-16 text-[var(--text-secondary)]">
+            <AlertCircle className="w-12 h-12 mb-3 text-rose-600 " />
+            <p className="text-lg font-medium text-[var(--text-secondary)] ">Failed to load articles</p>
             <p className="text-sm mt-1">{error}</p>
-            <button onClick={loadArticles} className="mt-4 px-4 py-2 text-sm bg-amber-500/20 text-amber-400 rounded-lg hover:bg-amber-500/30 transition-colors">Retry</button>
+            <button onClick={loadArticles} className="mt-4 px-4 py-2 text-sm bg-amber-500/20 text-amber-600  rounded-lg hover:bg-amber-500/30 transition-colors">Retry</button>
           </div>
         </Card>
       </motion.div>
@@ -124,8 +124,8 @@ export function KnowledgeBasePage() {
               className={cn(
                 'px-3 py-1.5 text-xs font-medium rounded-full transition-colors',
                 activeCategory === cat.id
-                  ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                  : 'text-slate-400 border border-slate-700 hover:border-slate-500 hover:text-slate-200'
+                  ? 'bg-amber-500/20 text-amber-600  border border-amber-500/30'
+                  : 'text-[var(--text-secondary)]  border border-[var(--border-subtle)]  hover:border-slate-500 hover:text-[var(--text-primary)]'
               )}
             >
               {cat.label}
@@ -136,7 +136,7 @@ export function KnowledgeBasePage() {
 
       {filtered.length === 0 ? (
         <Card>
-          <div className="flex flex-col items-center justify-center py-16 text-slate-500">
+          <div className="flex flex-col items-center justify-center py-16 text-[var(--text-secondary)]">
             <BookOpen className="w-12 h-12 mb-3 opacity-40" />
             <p className="text-lg font-medium">No articles found</p>
             <p className="text-sm mt-1">Try a different search or category</p>
@@ -156,16 +156,16 @@ export function KnowledgeBasePage() {
                         <Icon className="w-5 h-5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-slate-100 text-sm mb-1">{article.title}</h3>
-                        <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">{article.excerpt}</p>
+                        <h3 className="font-semibold text-[var(--text-primary)]  text-sm mb-1">{article.title}</h3>
+                        <p className="text-xs text-[var(--text-secondary)]  leading-relaxed line-clamp-2">{article.excerpt}</p>
                       </div>
                     </div>
                     <div className="mt-auto pt-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <span className="px-2 py-0.5 text-[10px] font-mono border border-slate-600 text-slate-400 rounded-full">{article.category}</span>
-                        <span className="text-[10px] text-slate-500">{article.readTime}</span>
+                        <span className="px-2 py-0.5 text-[10px] font-mono border border-[var(--border-default)]  text-[var(--text-secondary)]  rounded-full">{article.category}</span>
+                        <span className="text-[10px] text-[var(--text-secondary)]">{article.readTime}</span>
                       </div>
-                      <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-amber-400 transition-colors" />
+                      <ArrowUpRight className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-amber-600  transition-colors" />
                     </div>
                   </div>
                 </Card>

@@ -191,7 +191,7 @@ const reportSchema = new Schema({
     implemented: Boolean,
   }],
   iocIndicators: [{
-    type: String,
+    type: { type: String },
     value: String,
     description: String,
     context: String,

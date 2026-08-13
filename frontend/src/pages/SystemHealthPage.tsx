@@ -195,7 +195,7 @@ export function SystemHealthPage() {
           subtitle="Platform diagnostics and monitoring"
           actions={
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+              <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)] ">
                 <Clock className="w-4 h-4" />
                 Last refresh: {lastRefresh.toLocaleTimeString()}
               </div>
@@ -213,7 +213,7 @@ export function SystemHealthPage() {
           <DashboardStat
             label="Healthy Services"
             value={healthyCount}
-            icon={<CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />}
+            icon={<CheckCircle className="w-5 h-5 text-emerald-600  " />}
             delta={`${services.length} total services`}
           />
         </DashboardCard>
@@ -221,7 +221,7 @@ export function SystemHealthPage() {
           <DashboardStat
             label="Degraded"
             value={degradedCount}
-            icon={<AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />}
+            icon={<AlertTriangle className="w-5 h-5 text-amber-600  " />}
             delta={degradedCount > 0 ? 'Attention needed' : 'All services nominal'}
           />
         </DashboardCard>
@@ -229,7 +229,7 @@ export function SystemHealthPage() {
           <DashboardStat
             label="Offline"
             value={offlineCount}
-            icon={<XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />}
+            icon={<XCircle className="w-5 h-5 text-red-600  " />}
             delta={offlineCount > 0 ? 'Service disruption' : 'No outages'}
           />
         </DashboardCard>
@@ -237,7 +237,7 @@ export function SystemHealthPage() {
           <DashboardStat
             label="Active Connections"
             value={systemMetrics.activeConnections}
-            icon={<Wifi className="w-5 h-5 text-amber-400" />}
+            icon={<Wifi className="w-5 h-5 text-amber-600 " />}
             delta="WebSocket clients"
           />
         </DashboardCard>
@@ -245,48 +245,48 @@ export function SystemHealthPage() {
 
       <motion.div variants={item}>
         <DashboardCard>
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">System Metrics</h2>
+          <h2 className="text-lg font-semibold text-[var(--text-primary)]  mb-4">System Metrics</h2>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
             <div className="text-center">
               <div className="relative w-20 h-20 mx-auto mb-2">
                 <svg className="w-20 h-20 transform -rotate-90">
-                  <circle cx="40" cy="40" r="36" fill="none" stroke="currentColor" strokeWidth="8" className="text-slate-200 dark:text-slate-700" />
+                  <circle cx="40" cy="40" r="36" fill="none" stroke="currentColor" strokeWidth="8" className="text-[var(--surface-container)] " />
                   <circle cx="40" cy="40" r="36" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray={`${(systemMetrics.cpu / 100) * 226} 226`} className="text-amber-500" />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-lg font-bold text-slate-900 dark:text-white">{systemMetrics.cpu}%</span>
+                  <span className="text-lg font-bold text-[var(--text-primary)] ">{systemMetrics.cpu}%</span>
                 </div>
               </div>
-              <p className="text-sm text-slate-500 dark:text-slate-400">CPU</p>
+              <p className="text-sm text-[var(--text-secondary)] ">CPU</p>
             </div>
             <div className="text-center">
               <div className="relative w-20 h-20 mx-auto mb-2">
                 <svg className="w-20 h-20 transform -rotate-90">
-                  <circle cx="40" cy="40" r="36" fill="none" stroke="currentColor" strokeWidth="8" className="text-slate-200 dark:text-slate-700" />
+                  <circle cx="40" cy="40" r="36" fill="none" stroke="currentColor" strokeWidth="8" className="text-[var(--surface-container)] " />
                   <circle cx="40" cy="40" r="36" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray={`${(systemMetrics.memory / 100) * 226} 226`} className="text-violet-500" />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-lg font-bold text-slate-900 dark:text-white">{systemMetrics.memory}%</span>
+                  <span className="text-lg font-bold text-[var(--text-primary)] ">{systemMetrics.memory}%</span>
                 </div>
               </div>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Memory</p>
+              <p className="text-sm text-[var(--text-secondary)] ">Memory</p>
             </div>
             <div className="text-center">
               <div className="relative w-20 h-20 mx-auto mb-2">
                 <svg className="w-20 h-20 transform -rotate-90">
-                  <circle cx="40" cy="40" r="36" fill="none" stroke="currentColor" strokeWidth="8" className="text-slate-200 dark:text-slate-700" />
+                  <circle cx="40" cy="40" r="36" fill="none" stroke="currentColor" strokeWidth="8" className="text-[var(--surface-container)] " />
                   <circle cx="40" cy="40" r="36" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray={`${(systemMetrics.storage / 100) * 226} 226`} className="text-amber-500" />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-lg font-bold text-slate-900 dark:text-white">{systemMetrics.storage}%</span>
+                  <span className="text-lg font-bold text-[var(--text-primary)] ">{systemMetrics.storage}%</span>
                 </div>
               </div>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Storage</p>
+              <p className="text-sm text-[var(--text-secondary)] ">Storage</p>
             </div>
             <div className="text-center col-span-2">
-              <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                <p className="text-3xl font-bold text-slate-900 dark:text-white">{systemMetrics.uptime}</p>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Runtime Uptime</p>
+              <div className="p-4 bg-[var(--surface-container-lowest)]  rounded-lg">
+                <p className="text-3xl font-bold text-[var(--text-primary)] ">{systemMetrics.uptime}</p>
+                <p className="text-sm text-[var(--text-secondary)]  mt-1">Runtime Uptime</p>
               </div>
             </div>
           </div>
@@ -295,17 +295,17 @@ export function SystemHealthPage() {
 
       <motion.div variants={item}>
         <DashboardCard>
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Service Status</h2>
+          <h2 className="text-lg font-semibold text-[var(--text-primary)]  mb-4">Service Status</h2>
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+              <Loader2 className="w-6 h-6 animate-spin text-[var(--text-secondary)] " />
             </div>
           ) : (
-            <div className="divide-y divide-slate-100 dark:divide-slate-700/50">
+            <div className="divide-y divide-[var(--border-subtle)] ">
               {services.map((service) => (
                 <div
                   key={service.name}
-                  className="px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                  className="px-5 py-4 hover:bg-[var(--surface-container-lowest)]  transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -316,15 +316,15 @@ export function SystemHealthPage() {
                         service.status === 'offline' && 'bg-red-500'
                       )} />
                       <div>
-                        <p className="font-medium text-slate-900 dark:text-white">{service.name}</p>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">{service.details}</p>
+                        <p className="font-medium text-[var(--text-primary)] ">{service.name}</p>
+                        <p className="text-sm text-[var(--text-secondary)] ">{service.details}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-6">
                       {service.responseTime && (
                         <div className="text-right">
-                          <p className="text-sm text-slate-500 dark:text-slate-400">Response</p>
-                          <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{service.responseTime}ms</p>
+                          <p className="text-sm text-[var(--text-secondary)] ">Response</p>
+                          <p className="text-sm font-medium text-[var(--text-secondary)] ">{service.responseTime}ms</p>
                         </div>
                       )}
                       <StatusBadge status={service.status} size="sm" />
@@ -344,21 +344,21 @@ export function SystemHealthPage() {
               <Server className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="font-semibold text-slate-900 dark:text-white">Backend API</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Express + TypeScript</p>
+              <h3 className="font-semibold text-[var(--text-primary)] ">Backend API</h3>
+              <p className="text-xs text-[var(--text-secondary)] ">Express + TypeScript</p>
             </div>
           </div>
           <div className="space-y-3">
             <div className="flex justify-between text-sm">
-              <span className="text-slate-500 dark:text-slate-400">Port</span>
-              <span className="text-slate-700 dark:text-slate-300 font-mono">3001</span>
+              <span className="text-[var(--text-secondary)] ">Port</span>
+              <span className="text-[var(--text-secondary)]  font-mono">3001</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-slate-500 dark:text-slate-400">Telemetry Events</span>
-              <span className="text-slate-700 dark:text-slate-300">{totalEvents}</span>
+              <span className="text-[var(--text-secondary)] ">Telemetry Events</span>
+              <span className="text-[var(--text-secondary)] ">{totalEvents}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-slate-500 dark:text-slate-400">JWT Auth</span>
+              <span className="text-[var(--text-secondary)] ">JWT Auth</span>
               <StatusBadge status="active" size="sm" />
             </div>
           </div>
@@ -370,22 +370,22 @@ export function SystemHealthPage() {
               <Brain className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="font-semibold text-slate-900 dark:text-white">AI Engine</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">FastAPI + Python</p>
+              <h3 className="font-semibold text-[var(--text-primary)] ">AI Engine</h3>
+              <p className="text-xs text-[var(--text-secondary)] ">FastAPI + Python</p>
             </div>
           </div>
           <div className="space-y-3">
             <div className="flex justify-between text-sm">
-              <span className="text-slate-500 dark:text-slate-400">Status</span>
+              <span className="text-[var(--text-secondary)] ">Status</span>
               <StatusBadge status="active" size="sm" />
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-slate-500 dark:text-slate-400">Analysis</span>
-              <span className="text-slate-700 dark:text-slate-300">Telemetry + Reports</span>
+              <span className="text-[var(--text-secondary)] ">Analysis</span>
+              <span className="text-[var(--text-secondary)] ">Telemetry + Reports</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-slate-500 dark:text-slate-400">Session History</span>
-              <span className="text-slate-700 dark:text-slate-300">{sessionCount}</span>
+              <span className="text-[var(--text-secondary)] ">Session History</span>
+              <span className="text-[var(--text-secondary)] ">{sessionCount}</span>
             </div>
           </div>
         </DashboardCard>
@@ -396,21 +396,21 @@ export function SystemHealthPage() {
               <Terminal className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="font-semibold text-slate-900 dark:text-white">Sandbox Agent</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">PyQt6 Desktop</p>
+              <h3 className="font-semibold text-[var(--text-primary)] ">Sandbox Agent</h3>
+              <p className="text-xs text-[var(--text-secondary)] ">PyQt6 Desktop</p>
             </div>
           </div>
           <div className="space-y-3">
             <div className="flex justify-between text-sm">
-              <span className="text-slate-500 dark:text-slate-400">VM Status</span>
-              <span className="text-slate-700 dark:text-slate-300 capitalize">{health?.vm_status?.state || 'Unknown'}</span>
+              <span className="text-[var(--text-secondary)] ">VM Status</span>
+              <span className="text-[var(--text-secondary)]  capitalize">{health?.vm_status?.state || 'Unknown'}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-slate-500 dark:text-slate-400">Active Sessions</span>
-              <span className="text-slate-700 dark:text-slate-300">{health?.active_sessions || 0}</span>
+              <span className="text-[var(--text-secondary)] ">Active Sessions</span>
+              <span className="text-[var(--text-secondary)] ">{health?.active_sessions || 0}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-slate-500 dark:text-slate-400">Monitoring</span>
+              <span className="text-[var(--text-secondary)] ">Monitoring</span>
               <StatusBadge status={monitoringStatus?.enabled ? 'active' : 'closed'} size="sm" />
             </div>
           </div>
@@ -418,20 +418,20 @@ export function SystemHealthPage() {
       </motion.div>
 
       <motion.div variants={item}>
-        <DashboardCard className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-800">
+        <DashboardCard className="bg-gradient-to-r from-slate-50 to-slate-100  ">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-violet-500 flex items-center justify-center">
                 <Shield className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="font-bold text-slate-900 dark:text-white">NyxTrace</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400">AI-Powered Cybercrime Digital NyxTrace</p>
+                <h3 className="font-bold text-[var(--text-primary)] ">NyxTrace</h3>
+                <p className="text-sm text-[var(--text-secondary)] ">AI-Powered Cybercrime Digital NyxTrace</p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-sm text-slate-500 dark:text-slate-400">Version 4.0.0</p>
-              <p className="text-sm text-slate-400 dark:text-slate-500">Phase 4 - Enterprise Hardening</p>
+              <p className="text-sm text-[var(--text-secondary)] ">Version 4.0.0</p>
+              <p className="text-sm text-[var(--text-secondary)]  ">Phase 4 - Enterprise Hardening</p>
             </div>
           </div>
         </DashboardCard>

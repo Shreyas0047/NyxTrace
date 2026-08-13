@@ -16,11 +16,11 @@ export function Card({
   hover = false,
 }: CardProps) {
   const variantClasses = {
-    default: 'bg-[#171510] border border-[rgba(245,240,230,0.05)] shadow-sm',
-    elevated: 'bg-[#1e1b14] border border-[rgba(245,240,230,0.08)] shadow-md',
-    bordered: 'bg-[#171510] border-2 border-[#3a3730]',
+    default: 'bg-[var(--surface-container)] border border-[var(--border-subtle)] shadow-sm',
+    elevated: 'bg-[var(--surface-raised)] border border-[var(--border-default)] shadow-md',
+    bordered: 'bg-[var(--surface-container)] border-2 border-[var(--outline-variant)]',
     ghost: 'bg-transparent border border-transparent',
-    accent: 'bg-[#171510] border border-[rgba(245,158,11,0.2)] shadow-sm',
+    accent: 'bg-[var(--surface-container)] border border-[rgba(217,119,6,0.35)] shadow-sm',
   };
 
   const paddingClasses = {
@@ -58,22 +58,22 @@ interface CardHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
 export function CardHeader({ title, description, action, className, children }: CardHeaderProps) {
   if (children) {
     return (
-      <div className={cn('px-5 py-4 border-b border-[rgba(245,240,230,0.05)]', className)}>
+      <div className={cn('px-5 py-4 border-b border-[var(--border-subtle)]', className)}>
         {children}
       </div>
     );
   }
 
   return (
-    <div className={cn('flex items-start justify-between px-5 py-4 border-b border-[rgba(245,240,230,0.05)]', className)}>
+    <div className={cn('flex items-start justify-between px-5 py-4 border-b border-[var(--border-subtle)]', className)}>
       <div>
         {title && (
-          <h3 className="font-display text-base font-semibold text-[#f0ede4]">
+          <h3 className="font-display text-base font-semibold text-[var(--text-primary)]">
             {title}
           </h3>
         )}
         {description && (
-          <p className="mt-0.5 text-sm text-[#a8a294] font-body">
+          <p className="mt-0.5 text-sm text-[var(--text-secondary)] font-body">
             {description}
           </p>
         )}
@@ -97,7 +97,7 @@ interface CardFooterProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 export function CardFooter({ children, className }: CardFooterProps) {
   return (
-    <div className={cn('px-5 py-4 border-t border-[rgba(245,240,230,0.05)] bg-[#14120d]/50 rounded-b-[20px]', className)}>
+    <div className={cn('px-5 py-4 border-t border-[var(--border-subtle)] bg-[var(--surface-container-low)] rounded-b-[20px]', className)}>
       {children}
     </div>
   );

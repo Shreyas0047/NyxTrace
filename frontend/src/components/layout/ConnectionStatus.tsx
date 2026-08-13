@@ -54,10 +54,10 @@ export function ConnectionStatus() {
   const status = isConnected ? 'live' : apiHealthy ? 'connected' : apiHealthy === false ? 'offline' : 'connecting';
 
   const styles = {
-    live: { dot: 'text-emerald-400', label: 'Live', labelColor: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
-    connected: { dot: 'text-emerald-400', label: 'Connected', labelColor: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+    live: { dot: 'text-emerald-600 ', label: 'Live', labelColor: 'text-emerald-600 ', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+    connected: { dot: 'text-emerald-600 ', label: 'Connected', labelColor: 'text-emerald-600 ', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
     connecting: { dot: 'text-[#6c6862]', label: 'Connecting', labelColor: 'text-[#a09b93]', bg: 'bg-white/5', border: 'border-white/10' },
-    offline: { dot: 'text-rose-400', label: 'Offline', labelColor: 'text-rose-400', bg: 'bg-rose-500/10', border: 'border-rose-500/20' },
+    offline: { dot: 'text-rose-600 ', label: 'Offline', labelColor: 'text-rose-600 ', bg: 'bg-rose-500/10', border: 'border-rose-500/20' },
   }[status];
 
   return (

@@ -11,12 +11,25 @@ import api from '../services/api';
 interface GraphNode {
   id: string;
   label: string;
-  type: 'ip' | 'hash' | 'investigation' | 'domain';
+  type: string;
   severity: number; // 0-100
   x: number;
   y: number;
   vx: number;
   vy: number;
+}
+
+interface GraphNodeData {
+  id: string;
+  type: string;
+  label: string;
+  metadata?: { severity?: string; threatScore?: number };
+}
+
+interface GraphEdgeData {
+  source: string;
+  target: string;
+  relationship: string;
 }
 
 interface GraphEdge {
@@ -160,7 +173,7 @@ function ThreatMapCanvas({ nodes, edges }: { nodes: GraphNode[]; edges: GraphEdg
   return (
     <canvas
       ref={canvasRef}
-      className="w-full h-[500px] rounded-lg border border-slate-200/50 bg-white/80 backdrop-blur"
+      className="w-full h-[500px] rounded-lg border border-[var(--border-subtle)] bg-white/80 backdrop-blur"
       style={{ imageRendering: 'auto' }}
     />
   );
@@ -180,42 +193,68 @@ export const ThreatIntelligencePage: React.FC = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await api.get<{ iocs: IOC[] }>('/threat/iocs?limit=50');
-      if (res.success && res.data?.iocs) {
-        const fetchedIocs = res.data.iocs;
-        setIocs(fetchedIocs);
-        buildGraph(fetchedIocs);
-      }
+      const [iocsRes, graphRes] = await Promise.all([
+        api.get<{ iocs: IOC[] }>('/threat/iocs?limit=50'),
+        api.get<{ nodes: GraphNodeData[]; edges: GraphEdgeData[] }>('/threat/graph'),
+      ]);
+      const fetchedIocs = iocsRes.success && iocsRes.data?.iocs ? iocsRes.data.iocs : [];
+      setIocs(fetchedIocs);
+      buildGraph(
+        fetchedIocs,
+        graphRes.success && graphRes.data ? graphRes.data : { nodes: [], edges: [] }
+      );
     } catch { /* empty state */ }
     setLoading(false);
   };
 
-  const buildGraph = (data: IOC[]) => {
+  const severityToScore: Record<string, number> = {
+    critical: 90,
+    high: 70,
+    medium: 45,
+    low: 20,
+  };
+
+  const addEdge = (edges: GraphEdge[], source: string, target: string) => {
+    if (edges.find(e => (e.source === source && e.target === target) || (e.source === target && e.target === source))) {
+      return;
+    }
+    edges.push({ source, target, weight: 0.5 });
+  };
+
+  const buildGraph = (data: IOC[], graph: { nodes: GraphNodeData[]; edges: GraphEdgeData[] }) => {
     const nodes: GraphNode[] = [];
     const edges: GraphEdge[] = [];
     const center = { x: 400, y: 250 };
 
-    data.forEach((ioc, i) => {
-      const angle = (i / data.length) * Math.PI * 2;
-      const r = 120 + Math.random() * 80;
+    graph.nodes.forEach((n, i) => {
+      const angle = (i / Math.max(graph.nodes.length, 1)) * Math.PI * 2;
+      const r = 110 + (i % 4) * 40;
       nodes.push({
-        id: ioc.iocId,
-        label: ioc.value,
-        type: ioc.type as GraphNode['type'],
-        severity: ioc.threatScore,
+        id: n.id,
+        label: n.label || n.id,
+        type: n.type,
+        severity: n.metadata?.threatScore ?? severityToScore[n.metadata?.severity ?? ''] ?? 0,
         x: center.x + Math.cos(angle) * r,
         y: center.y + Math.sin(angle) * r,
-        vx: 0, vy: 0,
+        vx: 0,
+        vy: 0,
       });
+    });
 
-      // Link IOCs that share investigations
+    // Server-built edges: ThreatCorrelation relationships
+    graph.edges.forEach((e) => {
+      if (nodes.some(n => n.id === e.source) && nodes.some(n => n.id === e.target)) {
+        addEdge(edges, e.source, e.target);
+      }
+    });
+
+    // Client-side supplement: link IOCs that share investigations
+    data.forEach((ioc) => {
       if (ioc.linkedInvestigations) {
         for (const other of data) {
           if (other.iocId === ioc.iocId) continue;
           if (other.linkedInvestigations?.some(inv => ioc.linkedInvestigations?.includes(inv))) {
-            if (!edges.find(e => (e.source === ioc.iocId && e.target === other.iocId) || (e.source === other.iocId && e.target === ioc.iocId))) {
-              edges.push({ source: ioc.iocId, target: other.iocId, weight: 0.5 });
-            }
+            addEdge(edges, ioc.iocId, other.iocId);
           }
         }
       }
@@ -227,12 +266,12 @@ export const ThreatIntelligencePage: React.FC = () => {
 
   const getSeverityColor = (severity: string) => {
     const map: Record<string, string> = {
-      critical: 'text-red-400 bg-red-500/10 border-red-500/30',
-      high: 'text-orange-400 bg-orange-500/10 border-orange-500/30',
+      critical: 'text-red-600  bg-red-500/10 border-red-500/30',
+      high: 'text-orange-600  bg-orange-500/10 border-orange-500/30',
       medium: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30',
       low: 'text-green-400 bg-green-500/10 border-green-500/30',
     };
-    return map[severity] || 'text-slate-500 bg-slate-500/10 border-slate-500/30';
+    return map[severity] || 'text-[var(--text-secondary)] bg-[var(--surface-container)] border-[var(--border-default)] ';
   };
 
   return (
@@ -240,17 +279,17 @@ export const ThreatIntelligencePage: React.FC = () => {
       <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-mono tracking-tight">
+          <h1 className="text-3xl font-bold text-[var(--text-primary)]  font-mono tracking-tight">
             Threat Intelligence
           </h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-sm text-[var(--text-secondary)] ">
             Link-analysis graph · IOC correlation · Real-time threat mapping
           </p>
         </motion.div>
 
         {/* Force-Directed Graph */}
         <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }} className="mb-6">
-          <div className="relative rounded-xl border border-slate-200/50 overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800/50 to-slate-900 p-1">
+          <div className="relative rounded-xl border border-[var(--border-subtle)] overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800/50 to-slate-900 p-1">
             <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjAuNSIgZmlsbD0icmdiYSgxNDgsMTYzLDE4NCwwLjA1KSIvPjwvc3ZnPg==')] opacity-50" />
             {loading ? (
               <div className="flex items-center justify-center h-[500px]">
@@ -259,7 +298,7 @@ export const ThreatIntelligencePage: React.FC = () => {
             ) : graphNodes.length > 0 ? (
               <ThreatMapCanvas nodes={graphNodes} edges={graphEdges} />
             ) : (
-              <div className="flex flex-col items-center justify-center h-[500px] text-slate-500 dark:text-slate-400">
+              <div className="flex flex-col items-center justify-center h-[500px] text-[var(--text-secondary)] ">
                 <p className="text-lg font-mono">No threat data available</p>
                 <p className="text-sm mt-1">IOCs will appear here after sandbox analysis</p>
               </div>
@@ -269,40 +308,40 @@ export const ThreatIntelligencePage: React.FC = () => {
 
         {/* IOC Table */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-          <div className="rounded-xl border border-slate-200/50 dark:border-slate-700/50 bg-white dark:bg-slate-800/80 backdrop-blur overflow-hidden">
-            <div className="p-4 border-b border-slate-200/50 dark:border-slate-700/50">
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-white font-mono">Active IOCs</h2>
+          <div className="rounded-xl border border-[var(--border-subtle)]  bg-white  backdrop-blur overflow-hidden">
+            <div className="p-4 border-b border-[var(--border-subtle)] ">
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]  font-mono">Active IOCs</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-50/80 dark:bg-slate-800/50">
+                <thead className="bg-[var(--surface-container-lowest)] ">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-mono text-slate-500 dark:text-slate-400 uppercase">Indicator</th>
-                    <th className="px-4 py-3 text-left text-xs font-mono text-slate-500 dark:text-slate-400 uppercase">Type</th>
-                    <th className="px-4 py-3 text-left text-xs font-mono text-slate-500 dark:text-slate-400 uppercase">Severity</th>
-                    <th className="px-4 py-3 text-left text-xs font-mono text-slate-500 dark:text-slate-400 uppercase">Score</th>
+                    <th className="px-4 py-3 text-left text-xs font-mono text-[var(--text-secondary)]  uppercase">Indicator</th>
+                    <th className="px-4 py-3 text-left text-xs font-mono text-[var(--text-secondary)]  uppercase">Type</th>
+                    <th className="px-4 py-3 text-left text-xs font-mono text-[var(--text-secondary)]  uppercase">Severity</th>
+                    <th className="px-4 py-3 text-left text-xs font-mono text-[var(--text-secondary)]  uppercase">Score</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-700/30">
+                <tbody className="divide-y divide-[var(--border-subtle)]">
                   {iocs.slice(0, 20).map((ioc, i) => (
                     <motion.tr
                       key={ioc.iocId}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.03 }}
-                      className="hover:bg-slate-100/20 dark:hover:bg-slate-700/20"
+                      className="hover:bg-[var(--surface-container-low)] "
                     >
-                      <td className="px-4 py-3 font-mono text-sm text-slate-400">{ioc.value}</td>
-                      <td className="px-4 py-3 text-sm text-slate-500 dark:text-slate-400 capitalize">{ioc.type.replace(/_/g, ' ')}</td>
+                      <td className="px-4 py-3 font-mono text-sm text-[var(--text-secondary)] ">{ioc.value}</td>
+                      <td className="px-4 py-3 text-sm text-[var(--text-secondary)]  capitalize">{ioc.type.replace(/_/g, ' ')}</td>
                       <td className="px-4 py-3">
                         <span className={`px-2 py-0.5 text-xs font-mono rounded border ${getSeverityColor(ioc.severity)}`}>{ioc.severity}</span>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <div className="w-16 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                          <div className="w-16 h-1.5 bg-[var(--surface-container-low)]  rounded-full overflow-hidden">
                             <div className={`h-full rounded-full ${ioc.threatScore >= 70 ? 'bg-red-500' : ioc.threatScore >= 40 ? 'bg-yellow-500' : 'bg-cyan-500'}`} style={{ width: `${ioc.threatScore}%` }} />
                           </div>
-                          <span className="text-xs font-mono text-slate-500 dark:text-slate-400">{ioc.threatScore}</span>
+                          <span className="text-xs font-mono text-[var(--text-secondary)] ">{ioc.threatScore}</span>
                         </div>
                       </td>
                     </motion.tr>

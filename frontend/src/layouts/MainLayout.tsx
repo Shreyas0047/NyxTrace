@@ -16,9 +16,7 @@ import type { BreadcrumbItem } from '../components/layout/Header';
 import {
   Home,
   LayoutDashboard,
-  Search,
   Folder,
-  Bell,
   Activity,
   Brain,
   Terminal,
@@ -33,10 +31,9 @@ import {
 } from 'lucide-react';
 
 const routeBreadcrumbs: Record<string, BreadcrumbItem[]> = {
+  '/home': [{ label: 'Home', icon: Home }],
   '/dashboard': [{ label: 'Dashboard', icon: LayoutDashboard }],
-  '/investigations': [{ label: 'Investigations', icon: Search }],
   '/evidence': [{ label: 'Evidence', icon: Folder }],
-  '/alerts': [{ label: 'Alerts', icon: Bell }],
   '/sandbox': [{ label: 'Sandbox', icon: Terminal }],
   '/ai-analysis': [{ label: 'AI Analysis', icon: Brain }],
   '/telemetry': [{ label: 'Telemetry', icon: Activity }],
@@ -51,10 +48,9 @@ const routeBreadcrumbs: Record<string, BreadcrumbItem[]> = {
 };
 
 const pageNames: Record<string, string> = {
+  '/home': 'Home',
   '/dashboard': 'Operations Dashboard',
-  '/investigations': 'Investigations',
   '/evidence': 'Evidence Explorer',
-  '/alerts': 'Alert Management',
   '/sandbox': 'Sandbox Console',
   '/ai-analysis': 'AI Analysis Engine',
   '/telemetry': 'Live Telemetry',
@@ -74,6 +70,12 @@ export function MainLayout() {
 
   const getBreadcrumbs = (): BreadcrumbItem[] => {
     const basePath = '/' + location.pathname.split('/')[1];
+    if (basePath === '/home') {
+      return [{ label: 'Home', icon: Home }];
+    }
+    if (basePath === '/investigations') {
+      return [{ label: 'Home', icon: Home }, { label: 'Case Detail' }];
+    }
     const items = routeBreadcrumbs[basePath] || [];
     return [{ label: 'Home', icon: Home }, ...items];
   };
@@ -82,7 +84,7 @@ export function MainLayout() {
   const currentPage = pageNames[location.pathname] || 'Page';
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--surface-base)' }}>
+    <div className="min-h-screen overflow-x-hidden" style={{ background: 'var(--surface-base)' }}>
       {/* Sidebar */}
       <Sidebar
         collapsed={sidebarCollapsed}
@@ -127,7 +129,7 @@ export function MainLayout() {
               <Suspense
                 fallback={
                   <div className="flex items-center justify-center py-24">
-                    <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+                    <Loader2 className="w-6 h-6 animate-spin text-[var(--text-secondary)] " />
                   </div>
                 }
               >

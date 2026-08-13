@@ -1,29 +1,29 @@
 import React, { createContext, useContext, useEffect } from 'react';
 
 interface ThemeContextValue {
-  theme: 'dark';
-  actualTheme: 'dark';
+  theme: 'light';
+  actualTheme: 'light';
   setTheme: () => void;
-  isDark: true;
+  isDark: false;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    document.documentElement.classList.remove('light');
-    document.documentElement.classList.add('dark');
+    document.documentElement.classList.remove('dark');
+    document.documentElement.classList.add('light');
     const metaTheme = document.querySelector('meta[name="theme-color"]');
     if (metaTheme) {
-      metaTheme.setAttribute('content', '#000000');
+      metaTheme.setAttribute('content', '#faf8f2');
     }
   }, []);
 
   const value: ThemeContextValue = {
-    theme: 'dark',
-    actualTheme: 'dark',
+    theme: 'light',
+    actualTheme: 'light',
     setTheme: () => {},
-    isDark: true,
+    isDark: false,
   };
 
   return (

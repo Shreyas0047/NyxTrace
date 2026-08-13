@@ -15,11 +15,11 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: 'bg-amber-500 text-[#0a0a08] font-medium hover:bg-amber-400 active:bg-amber-600 shadow-sm hover:shadow-[0_0_24px_rgba(245,158,11,0.15)]',
-  secondary: 'bg-[#24211a] text-[#f0ede4] hover:bg-[#2a2620] active:bg-[#1e1b14] border border-[#3a3730]',
-  solid: 'bg-[#24211a] text-[#f0ede4] hover:bg-[#2a2620] active:bg-[#1e1b14] border border-[#3a3730]',
-  outline: 'bg-transparent text-[#a8a294] border border-[#3a3730] hover:bg-[#171510] hover:text-[#f0ede4] hover:border-[#5c574c]',
-  ghost: 'bg-transparent text-[#a8a294] hover:bg-[#171510] hover:text-[#f0ede4]',
+  primary: 'bg-amber-500 text-[#1e1b14] font-medium hover:bg-amber-400 active:bg-amber-600 shadow-sm hover:shadow-[0_0_24px_rgba(245,158,11,0.2)]',
+  secondary: 'bg-[var(--surface-container-high)] text-[var(--on-surface)] hover:bg-[var(--surface-container-highest)] active:bg-[var(--surface-container)] border border-[var(--outline-variant)]',
+  solid: 'bg-[var(--surface-container-high)] text-[var(--on-surface)] hover:bg-[var(--surface-container-highest)] active:bg-[var(--surface-container)] border border-[var(--outline-variant)]',
+  outline: 'bg-transparent text-[var(--text-secondary)] border border-[var(--outline-variant)] hover:bg-[var(--surface-container)] hover:text-[var(--text-primary)] hover:border-[var(--outline)]',
+  ghost: 'bg-transparent text-[var(--text-secondary)] hover:bg-[var(--surface-container)] hover:text-[var(--text-primary)]',
   danger: 'bg-rose-600 text-white font-medium hover:bg-rose-500 active:bg-rose-700 shadow-sm',
   success: 'bg-emerald-600 text-white font-medium hover:bg-emerald-500 active:bg-emerald-700 shadow-sm',
 };

@@ -164,7 +164,7 @@ export function SystemConfigurationPage() {
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
         <PageHeader title="System Configuration" subtitle="Manage platform settings and integrations" />
         <div className="flex items-center justify-center py-24">
-          <Loader2 className="w-8 h-8 text-amber-400 animate-spin" />
+          <Loader2 className="w-8 h-8 text-amber-600  animate-spin" />
         </div>
       </motion.div>
     );
@@ -175,11 +175,11 @@ export function SystemConfigurationPage() {
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
         <PageHeader title="System Configuration" subtitle="Manage platform settings and integrations" />
         <Card>
-          <div className="flex flex-col items-center justify-center py-16 text-slate-500">
-            <AlertCircle className="w-12 h-12 mb-3 text-rose-400" />
-            <p className="text-lg font-medium text-slate-300">Failed to load configuration</p>
+          <div className="flex flex-col items-center justify-center py-16 text-[var(--text-secondary)]">
+            <AlertCircle className="w-12 h-12 mb-3 text-rose-600 " />
+            <p className="text-lg font-medium text-[var(--text-secondary)] ">Failed to load configuration</p>
             <p className="text-sm mt-1">{error}</p>
-            <button onClick={loadConfig} className="mt-4 px-4 py-2 text-sm bg-amber-500/20 text-amber-400 rounded-lg hover:bg-amber-500/30 transition-colors">Retry</button>
+            <button onClick={loadConfig} className="mt-4 px-4 py-2 text-sm bg-amber-500/20 text-amber-600  rounded-lg hover:bg-amber-500/30 transition-colors">Retry</button>
           </div>
         </Card>
       </motion.div>
@@ -196,7 +196,7 @@ export function SystemConfigurationPage() {
         actions={
           <div className="flex items-center gap-2">
             {saved && (
-              <span className="flex items-center gap-1 text-xs text-emerald-400">
+              <span className="flex items-center gap-1 text-xs text-emerald-600 ">
                 <CheckCircle className="w-3.5 h-3.5" />
                 Saved
               </span>
@@ -221,16 +221,16 @@ export function SystemConfigurationPage() {
                   'w-full text-left p-3 rounded-lg transition-all duration-150',
                   activeSection === section.id
                     ? 'bg-amber-500/10 ring-1 ring-amber-500/30'
-                    : 'hover:bg-slate-800/50'
+                    : 'hover:bg-[var(--surface-container)] '
                 )}
               >
                 <div className="flex items-center gap-2">
-                  <Icon className={cn('w-4 h-4', activeSection === section.id ? 'text-amber-400' : 'text-slate-500')} />
-                  <span className={cn('text-sm font-medium', activeSection === section.id ? 'text-slate-100' : 'text-slate-400')}>
+                  <Icon className={cn('w-4 h-4', activeSection === section.id ? 'text-amber-600 ' : 'text-[var(--text-secondary)]')} />
+                  <span className={cn('text-sm font-medium', activeSection === section.id ? 'text-[var(--text-primary)] ' : 'text-[var(--text-secondary)] ')}>
                     {section.label}
                   </span>
                 </div>
-                <p className="text-[10px] text-slate-500 mt-1 ml-6">{section.description}</p>
+                <p className="text-[10px] text-[var(--text-secondary)] mt-1 ml-6">{section.description}</p>
               </button>
             );
           })}
@@ -239,23 +239,23 @@ export function SystemConfigurationPage() {
         <div className="lg:col-span-3">
           <Card>
             <div className="p-6">
-              <h2 className="text-lg font-semibold text-slate-100 mb-1">
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]  mb-1">
                 {sections.find(s => s.id === activeSection)?.label}
               </h2>
-              <p className="text-xs text-slate-400 mb-6">
+              <p className="text-xs text-[var(--text-secondary)]  mb-6">
                 {sections.find(s => s.id === activeSection)?.description}
               </p>
               <div className="space-y-5">
                 {currentFields.length === 0 ? (
-                  <p className="text-sm text-slate-500">No configuration options available for this section.</p>
+                  <p className="text-sm text-[var(--text-secondary)]">No configuration options available for this section.</p>
                 ) : currentFields.map((field, idx) => (
                   <motion.div key={field.key} variants={fadeUp} className="flex items-center justify-between gap-4">
-                    <label className="text-sm text-slate-300 min-w-[180px]">{field.label}</label>
+                    <label className="text-sm text-[var(--text-secondary)]  min-w-[180px]">{field.label}</label>
                     {field.type === 'toggle' ? (
                       <div
                         className={cn(
                           'relative w-10 h-5 rounded-full transition-colors cursor-pointer',
-                          field.value ? 'bg-amber-500' : 'bg-slate-700'
+                          field.value ? 'bg-amber-500' : 'bg-[var(--surface-container-low)] '
                         )}
                         onClick={() => toggleField(activeSection, idx)}
                       >
@@ -268,7 +268,7 @@ export function SystemConfigurationPage() {
                       <select
                         value={field.value as string}
                         onChange={(e) => updateField(activeSection, idx, e.target.value)}
-                        className="flex-1 max-w-xs px-3 py-1.5 text-sm bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:ring-1 focus:ring-amber-500/50"
+                        className="flex-1 max-w-xs px-3 py-1.5 text-sm bg-[var(--surface-container-low)]  border border-[var(--border-subtle)]  rounded-lg text-[var(--text-primary)]  focus:outline-none focus:ring-1 focus:ring-amber-500/50"
                       >
                         {field.options?.map(o => (
                           <option key={o.value} value={o.value}>{o.label}</option>

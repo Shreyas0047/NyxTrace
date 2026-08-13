@@ -1,9 +1,9 @@
 import { NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  LayoutDashboard, Search, Folder, Bell, Activity, Brain,
+  LayoutDashboard, Folder, Activity, Brain,
   Settings, Users, Fingerprint, History, Layers, Terminal,
-  Heart, Link2, AlertTriangle, BarChart3, Shield,
+  Heart, Link2, AlertTriangle, BarChart3, Home,
   ChevronLeft, ChevronRight, Circle,
 } from 'lucide-react';
 import { useState, memo } from 'react';
@@ -33,12 +33,16 @@ const adminRoles = ['admin', 'super_admin'];
 
 const navSections: NavSection[] = [
   {
+    label: 'Home',
+    items: [
+      { icon: Home, label: 'Home', path: '/home', roles: allRoles },
+    ],
+  },
+  {
     label: 'Workspace',
     items: [
       { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', roles: allRoles },
-      { icon: Search, label: 'Investigations', path: '/investigations', roles: allRoles },
       { icon: Folder, label: 'Evidence', path: '/evidence', roles: allRoles },
-      { icon: Bell, label: 'Alerts', path: '/alerts', roles: allRoles },
     ],
   },
   {
@@ -55,7 +59,7 @@ const navSections: NavSection[] = [
     items: [
       { icon: AlertTriangle, label: 'Threat Intel', path: '/threat-intelligence', roles: allRoles },
       { icon: BarChart3, label: 'Forensic Analytics', path: '/forensic-analytics', roles: adminRoles },
-      { icon: Shield, label: 'Chain of Custody', path: '/chain-of-custody', roles: allRoles },
+      
       { icon: Link2, label: 'Blockchain Ops', path: '/blockchain-operations', roles: adminRoles },
     ],
   },
@@ -77,8 +81,8 @@ const NavItemRow = memo(({ item, isCollapsed }: { item: NavItem; isCollapsed: bo
       'group relative flex items-center gap-3 h-9 px-2.5 rounded-[10px]',
       'transition-all duration-200',
       isActive
-        ? 'text-[#f0ede4] bg-amber-500/8'
-        : 'text-[#a09b93] hover:bg-[rgba(245,240,230,0.03)] hover:text-[#f0ede4]'
+        ? 'text-[var(--text-primary)] bg-amber-500/8'
+        : 'text-[var(--text-tertiary)] hover:bg-[var(--surface-container)] hover:text-[var(--text-primary)]'
     )}
     style={({ isActive }: any) => isActive ? { background: 'rgba(245, 158, 11, 0.08)' } : {}}
   >
@@ -97,7 +101,7 @@ const NavItemRow = memo(({ item, isCollapsed }: { item: NavItem; isCollapsed: bo
             strokeWidth={1.5}
             className={cn(
               'w-[18px] h-[18px] transition-colors',
-              isActive ? 'text-amber-400' : 'text-[#6c6862] group-hover:text-[#f0ede4]'
+              isActive ? 'text-amber-600 ' : 'text-[var(--text-tertiary)] group-hover:text-[var(--text-primary)]'
             )}
           />
         </div>
@@ -178,10 +182,10 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.12 }}
             >
-              <h1 className="font-display font-semibold text-[15px] text-[#f0ede4] tracking-tight leading-tight">
+              <h1 className="font-display font-semibold text-[15px] text-[var(--text-primary)] tracking-tight leading-tight">
                 NyxTrace
               </h1>
-              <p className="text-[10px] font-mono text-[#6c675c] mt-0.5 tracking-[0.12em] uppercase">
+              <p className="text-[10px] font-mono text-[var(--text-tertiary)] mt-0.5 tracking-[0.12em] uppercase">
                 Cyber Intelligence
               </p>
             </motion.div>
@@ -199,7 +203,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="px-2.5 mb-1.5 text-[10px] font-mono text-[#6c675c] tracking-[0.14em] uppercase"
+                  className="px-2.5 mb-1.5 text-[10px] font-mono text-[var(--text-tertiary)] tracking-[0.14em] uppercase"
                 >
                   {section.label}
                 </motion.div>
@@ -219,23 +223,23 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         {isCollapsed ? (
           <button
             onClick={handleToggle}
-            className="w-full h-9 flex items-center justify-center rounded-[10px] text-[#6c6862] hover:text-[#f0ede4] hover:bg-[rgba(245,240,230,0.03)] transition-all"
+            className="w-full h-9 flex items-center justify-center rounded-[10px] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-container)] transition-all"
             aria-label="Expand sidebar"
           >
             <ChevronRight strokeWidth={1.5} className="w-4 h-4" />
           </button>
         ) : (
           <div className="space-y-2">
-            <div className="px-2.5 py-2 rounded-[10px] bg-[rgba(245,240,230,0.02)] border border-[rgba(245,240,230,0.05)]">
+            <div className="px-2.5 py-2 rounded-[10px] bg-[var(--surface-container)] border border-[var(--border-subtle)]">
               <div className="flex items-center gap-2 mb-0.5">
-                <Circle className="w-1.5 h-1.5 fill-emerald-400 text-emerald-400" />
-                <span className="text-[10px] font-mono text-[#6c675c] tracking-[0.14em] uppercase">Operational</span>
+                <Circle className="w-1.5 h-1.5 fill-emerald-400 text-emerald-600 " />
+                <span className="text-[10px] font-mono text-[var(--text-tertiary)] tracking-[0.14em] uppercase">Operational</span>
               </div>
-              <p className="font-mono text-[10px] text-[#6c6862] tracking-tight">v2.0 · Enterprise</p>
+              <p className="font-mono text-[10px] text-[var(--text-tertiary)] tracking-tight">v2.0 · Enterprise</p>
             </div>
             <button
               onClick={handleToggle}
-              className="w-full h-8 flex items-center justify-center gap-1.5 rounded-[10px] text-[#6c6862] hover:text-[#a09b93] hover:bg-[rgba(245,240,230,0.03)] transition-all"
+              className="w-full h-8 flex items-center justify-center gap-1.5 rounded-[10px] text-[var(--text-tertiary)] hover:text-[var(--text-tertiary)] hover:bg-[var(--surface-container)] transition-all"
             >
               <ChevronLeft strokeWidth={1.5} className="w-3.5 h-3.5" />
               <span className="text-[11px] font-medium font-body">Collapse</span>

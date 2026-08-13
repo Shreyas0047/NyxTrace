@@ -1,0 +1,33 @@
+- generic [ref=e9]:
+  - banner [ref=e10]:
+    - generic [ref=e11]:
+      - link [ref=e12] [cursor=pointer]:
+        - /url: /
+      - navigation [ref=e18]:
+        - link "Manifesto Manifesto" [ref=e19] [cursor=pointer]:
+          - /url: /manifesto
+          - generic [ref=e20]:
+            - generic [ref=e21]: Manifesto
+            - generic [ref=e22]: Manifesto
+        - link "Discover Discover" [ref=e23] [cursor=pointer]:
+          - /url: /discover
+          - generic [ref=e24]:
+            - generic [ref=e25]: Discover
+            - generic [ref=e26]: Discover
+      - generic [ref=e27]:
+        - link "Login" [ref=e28] [cursor=pointer]:
+          - /url: /login
+        - link "Sign Up" [ref=e30] [cursor=pointer]:
+          - /url: /register
+  - generic [ref=e35]:
+    - generic [ref=e36]:
+      - heading "Welcome Back" [level=1] [ref=e37]
+      - paragraph [ref=e38]: Sign in to your account
+    - generic [ref=e39]:
+      - textbox "Email" [ref=e41]
+      - generic [ref=e42]:
+        - textbox "Password" [ref=e43]
+        - button "Show" [ref=e44]
+      - button "Login" [ref=e45]
+    - link "Forgot password?" [ref=e47] [cursor=pointer]:
+      - /url: /forgot-password

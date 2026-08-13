@@ -9,15 +9,13 @@ import ForgotPasswordPage from '../pages/ForgotPasswordPage';
 import ManifestoPage from '../pages/ManifestoPage';
 import DiscoverPage from '../pages/DiscoverPage';
 const EnhancedDashboardPage = lazy(() => import('../pages/EnhancedDashboardPage'));
-const InvestigationsPage = lazy(() => import('../pages/InvestigationsPage'));
-const AlertsPage = lazy(() => import('../pages/AlertsPage'));
+const HomePage = lazy(() => import('../pages/HomePage'));
 const EvidenceExplorerPage = lazy(() => import('../pages/EvidenceExplorerPage'));
 const LiveTelemetryPage = lazy(() => import('../pages/LiveTelemetryPage'));
 const BlockchainOperationsPage = lazy(() => import('../pages/BlockchainOperationsPage'));
 const ThreatIntelligencePage = lazy(() => import('../pages/ThreatIntelligencePage'));
 const ForensicAnalyticsPage = lazy(() => import('../pages/ForensicAnalyticsPage'));
 const SettingsPage = lazy(() => import('../pages/SettingsPage'));
-const ChainOfCustodyPage = lazy(() => import('../pages/ChainOfCustodyPage'));
 const UsersPage = lazy(() => import('../pages/UsersPage'));
 
 // Heavy pages — code-split so they download on demand instead of bloating
@@ -159,12 +157,12 @@ export const router = createBrowserRouter([
     ),
     children: [
       {
-        path: 'dashboard',
-        element: <EnhancedDashboardPage />,
+        path: 'home',
+        element: <HomePage />,
       },
       {
-        path: 'investigations',
-        element: <InvestigationsPage />,
+        path: 'dashboard',
+        element: <EnhancedDashboardPage />,
       },
       {
         path: 'investigations/:id',
@@ -173,10 +171,6 @@ export const router = createBrowserRouter([
       {
         path: 'evidence',
         element: <EvidenceExplorerPage />,
-      },
-      {
-        path: 'alerts',
-        element: <AlertsPage />,
       },
       {
         path: 'sandbox',
@@ -219,14 +213,6 @@ export const router = createBrowserRouter([
         element: (
           <RoleRoute allowedRoles={['admin', 'super_admin', 'forensic_analyst']}>
             <BlockchainOperationsPage />
-          </RoleRoute>
-        ),
-      },
-      {
-        path: 'chain-of-custody',
-        element: (
-          <RoleRoute allowedRoles={['admin', 'super_admin', 'forensic_analyst']}>
-            <ChainOfCustodyPage />
           </RoleRoute>
         ),
       },

@@ -43,8 +43,8 @@ export function LoginPage() {
               className="space-y-6 text-center"
             >
               <div className="space-y-1">
-                <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-slate-100">Welcome Back</h1>
-                <p className="text-[1.8rem] text-slate-400 font-light">Sign in to your account</p>
+                <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-[var(--text-primary)] ">Welcome Back</h1>
+                <p className="text-[1.8rem] text-[var(--text-secondary)]  font-light">Sign in to your account</p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -54,7 +54,7 @@ export function LoginPage() {
                     placeholder="Email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full text-slate-100 border border-slate-700 rounded-full py-3 px-4 focus:outline-none focus:border-amber-500/50 text-center placeholder-slate-500"
+                    className="w-full text-[var(--text-primary)]  border border-[var(--border-subtle)]  rounded-full py-3 px-4 focus:outline-none focus:border-amber-500/50 text-center placeholder-slate-500"
                     required
                   />
                 </div>
@@ -65,13 +65,13 @@ export function LoginPage() {
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full text-slate-100 border border-slate-700 rounded-full py-3 px-4 pr-12 focus:outline-none focus:border-amber-500/50 text-center placeholder-slate-500"
+                    className="w-full text-[var(--text-primary)]  border border-[var(--border-subtle)]  rounded-full py-3 px-4 pr-12 focus:outline-none focus:border-amber-500/50 text-center placeholder-slate-500"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors text-sm"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-[var(--text-secondary)]  transition-colors text-sm"
                   >
                     {showPassword ? 'Hide' : 'Show'}
                   </button>
@@ -103,7 +103,7 @@ export function LoginPage() {
               <div>
                 <Link
                   to="/forgot-password"
-                  className="text-slate-500 hover:text-slate-300 transition-colors text-sm underline underline-offset-4"
+                  className="text-[var(--text-secondary)] hover:text-[var(--text-secondary)]  transition-colors text-sm underline underline-offset-4"
                 >
                   Forgot password?
                 </Link>
@@ -118,8 +118,8 @@ export function LoginPage() {
               className="space-y-6 text-center"
             >
               <div className="space-y-1">
-                <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-slate-100">You're in!</h1>
-                <p className="text-[1.25rem] text-slate-400 font-light">Welcome back</p>
+                <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-[var(--text-primary)] ">You're in!</h1>
+                <p className="text-[1.25rem] text-[var(--text-secondary)]  font-light">Welcome back</p>
               </div>
 
               <motion.div

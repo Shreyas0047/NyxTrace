@@ -24,41 +24,41 @@
   --font-body: 'DM Sans', 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
 
-  --surface-base: #0a0a08;
-  --surface-dim: #0d0c0a;
-  --surface-bright: #2a2620;
-  --surface-sunken: #070706;
-  --surface-raised: #1e1b14;
-  --surface-container-lowest: #000000;
-  --surface-container-low: #11100d;
-  --surface-container: #171510;
-  --surface-container-high: #1e1b14;
-  --surface-container-highest: #24211a;
-  --surface-overlay: rgba(10, 10, 8, 0.88);
+  --surface-base: #faf8f2;
+  --surface-dim: #f5f2ea;
+  --surface-bright: #ffffff;
+  --surface-sunken: #f0ece1;
+  --surface-raised: #ffffff;
+  --surface-container-lowest: #f7f4ec;
+  --surface-container-low: #f3efe5;
+  --surface-container: #ede9de;
+  --surface-container-high: #e6e1d3;
+  --surface-container-highest: #ddd7c8;
+  --surface-overlay: rgba(250, 248, 242, 0.92);
 
-  --on-surface: #f0ede4;
-  --on-surface-variant: #a8a294;
-  --outline: #5c574c;
-  --outline-variant: #3a3730;
+  --on-surface: #1e1b14;
+  --on-surface-variant: #5c574c;
+  --outline: #b1aa9c;
+  --outline-variant: #ddd7c8;
 
-  --border-subtle: rgba(245, 240, 230, 0.05);
-  --border-default: rgba(245, 240, 230, 0.08);
-  --border-strong: rgba(245, 240, 230, 0.14);
+  --border-subtle: rgba(30, 27, 20, 0.06);
+  --border-default: rgba(30, 27, 20, 0.10);
+  --border-strong: rgba(30, 27, 20, 0.18);
 
-  --text-primary: #f0ede4;
-  --text-secondary: #a8a294;
-  --text-tertiary: #6c675c;
-  --text-disabled: #3a3730;
+  --text-primary: #1e1b14;
+  --text-secondary: #5c574c;
+  --text-tertiary: #8a8474;
+  --text-disabled: #c8c2b8;
 
-  --accent-amber: #f59e0b;
-  --accent-amber-soft: rgba(245, 158, 11, 0.10);
-  --accent-amber-glow: rgba(245, 158, 11, 0.06);
-  --accent-primary: #fbbf24;
-  --accent-primary-dim: #d97706;
-  --accent-cobalt: #60a5fa;
-  --accent-emerald: #34d399;
-  --accent-rose: #fb7185;
-  --accent-violet: #a78bfa;
+  --accent-amber: #d97706;
+  --accent-amber-soft: rgba(217, 119, 6, 0.10);
+  --accent-amber-glow: rgba(217, 119, 6, 0.06);
+  --accent-primary: #b45309;
+  --accent-primary-dim: #92400e;
+  --accent-cobalt: #2563eb;
+  --accent-emerald: #059669;
+  --accent-rose: #e11d48;
+  --accent-violet: #7c3aed;
 
   --grid-1: 4px;
   --grid-2: 8px;
@@ -74,11 +74,11 @@
   --radius-lg: 14px;
   --radius-xl: 20px;
 
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.5);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.55), 0 2px 4px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.6), 0 4px 8px rgba(0, 0, 0, 0.45);
-  --shadow-glow-amber: 0 0 0 1px rgba(245, 158, 11, 0.15), 0 4px 20px rgba(245, 158, 11, 0.08);
+  --shadow-xs: 0 1px 2px rgba(30, 27, 20, 0.04);
+  --shadow-sm: 0 1px 3px rgba(30, 27, 20, 0.06), 0 1px 2px rgba(30, 27, 20, 0.04);
+  --shadow-md: 0 4px 12px rgba(30, 27, 20, 0.08), 0 2px 4px rgba(30, 27, 20, 0.05);
+  --shadow-lg: 0 12px 32px rgba(30, 27, 20, 0.10), 0 4px 8px rgba(30, 27, 20, 0.06);
+  --shadow-glow-amber: 0 0 0 1px rgba(217, 119, 6, 0.12), 0 4px 20px rgba(217, 119, 6, 0.08);
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -86,7 +86,7 @@
   --duration-normal: 240ms;
   --duration-slow: 360ms;
 
-  --dot-grid: radial-gradient(rgba(245, 240, 230, 0.025) 1px, transparent 1px);
+  --dot-grid: radial-gradient(rgba(30, 27, 20, 0.055) 1px, transparent 1px);
   --dot-grid-size: 36px;
 }
 
@@ -149,15 +149,6 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.15;
 }
 
-.overline {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-tertiary);
-}
-
 .surface {
   background: var(--surface-container);
   border: 1px solid var(--border-subtle);
@@ -214,8 +205,8 @@ input:focus, select:focus, textarea:focus {
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(245, 240, 230, 0.08); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(245, 240, 230, 0.16); }
+::-webkit-scrollbar-thumb { background: rgba(30, 27, 20, 0.14); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(30, 27, 20, 0.24); }
 
 @keyframes shimmer {
   0% { background-position: -200% 0; }
@@ -223,7 +214,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 .skeleton {
-  background: linear-gradient(90deg, #171510 0%, #1e1b14 50%, #171510 100%);
+  background: linear-gradient(90deg, #ede9de 0%, #e6e1d3 50%, #ede9de 100%);
   background-size: 200% 100%;
   animation: shimmer 1.6s var(--ease-out) infinite;
   border-radius: var(--radius-md);

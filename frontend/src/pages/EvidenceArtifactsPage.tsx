@@ -41,15 +41,15 @@ const categoryIcons: Record<string, typeof File> = {
 };
 
 const categoryColors: Record<string, string> = {
-  process_dump: 'bg-amber-500/15 text-amber-400',
-  file_sample: 'bg-violet-100 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400',
-  registry_snapshot: 'bg-amber-100 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400',
-  network_capture: 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
-  memory_dump: 'bg-orange-100 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400',
-  screenshot: 'bg-emerald-100 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400',
-  log_file: 'bg-pink-100 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400',
-  config_file: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400',
-  configuration: 'bg-indigo-100 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400',
+  process_dump: 'bg-amber-500/15 text-amber-600 ',
+  file_sample: 'bg-violet-100  text-violet-600  ',
+  registry_snapshot: 'bg-amber-100  text-amber-600  ',
+  network_capture: 'bg-blue-100  text-blue-600 ',
+  memory_dump: 'bg-orange-100  text-orange-600  ',
+  screenshot: 'bg-emerald-100  text-emerald-600  ',
+  log_file: 'bg-pink-100  text-pink-600 ',
+  config_file: 'bg-[var(--surface-container-low)]  text-[var(--text-secondary)] ',
+  configuration: 'bg-indigo-100  text-indigo-600 ',
 };
 
 export function EvidenceArtifactsPage() {
@@ -157,21 +157,21 @@ export function EvidenceArtifactsPage() {
           <DashboardStat
             label="Total Artifacts"
             value={totalArtifacts}
-            icon={<FileText className="w-5 h-5 text-amber-400" />}
+            icon={<FileText className="w-5 h-5 text-amber-600 " />}
           />
         </DashboardCard>
         <DashboardCard>
           <DashboardStat
             label="Blockchain Verified"
             value={verifiedCount}
-            icon={<Shield className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />}
+            icon={<Shield className="w-5 h-5 text-emerald-600  " />}
           />
         </DashboardCard>
         <DashboardCard>
           <DashboardStat
             label="Categories"
             value={categoryCount}
-            icon={<Activity className="w-5 h-5 text-violet-600 dark:text-violet-400" />}
+            icon={<Activity className="w-5 h-5 text-violet-600  " />}
           />
         </DashboardCard>
       </PageGrid>
@@ -187,7 +187,7 @@ export function EvidenceArtifactsPage() {
             />
           </div>
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-slate-400" />
+            <Filter className="w-4 h-4 text-[var(--text-secondary)] " />
             <Select
               value={categoryFilter}
               onChange={(val) => { setCategoryFilter(val); fetchArtifacts({ category: val }); }}
@@ -233,19 +233,19 @@ export function EvidenceArtifactsPage() {
               </div>
             ) : artifacts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 px-6">
-                <FileText className="w-12 h-12 text-slate-300 dark:text-slate-600 mb-3" />
-                <p className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">No Evidence Artifacts Available</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 text-center max-w-md">
+                <FileText className="w-12 h-12 text-[var(--text-secondary)]   mb-3" />
+                <p className="text-sm font-medium text-[var(--text-secondary)]  mb-1">No Evidence Artifacts Available</p>
+                <p className="text-xs text-[var(--text-secondary)]  text-center max-w-md">
                   Artifacts are generated when the Sandbox Agent completes a simulation run. 
                   To populate this page: start an investigation → run a simulator in the sandbox → 
                   wait for the session to complete and sync evidence back to the server.
                 </p>
-                <div className="mt-4 text-xs text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 rounded px-3 py-2">
-                  Expected data path: <code className="text-amber-400">uploads/evidence/</code> and <code className="text-amber-400">uploads/sandbox-logs/</code>
+                <div className="mt-4 text-xs text-[var(--text-secondary)]   bg-[var(--surface-container-low)]  rounded px-3 py-2">
+                  Expected data path: <code className="text-amber-600 ">uploads/evidence/</code> and <code className="text-amber-600 ">uploads/sandbox-logs/</code>
                 </div>
               </div>
             ) : (
-              <div className="divide-y divide-slate-100 dark:divide-slate-700/50">
+              <div className="divide-y divide-[var(--border-subtle)] ">
                 {artifacts.map((artifact) => {
                   const Icon = categoryIcons[artifact.category] || File;
                   const colorClass = categoryColors[artifact.category] || categoryColors.configuration;
@@ -255,7 +255,7 @@ export function EvidenceArtifactsPage() {
                       variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } }}
                       onClick={() => handleSelectArtifact(artifact)}
                       className={cn(
-                        'px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors',
+                        'px-5 py-4 hover:bg-[var(--surface-container-lowest)]  cursor-pointer transition-colors',
                         selectedArtifact?.id === artifact.id && 'bg-amber-500/10'
                       )}
                     >
@@ -265,17 +265,17 @@ export function EvidenceArtifactsPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <p className="font-medium text-slate-900 dark:text-white truncate">{artifact.name}</p>
+                            <p className="font-medium text-[var(--text-primary)]  truncate">{artifact.name}</p>
                             {artifact.blockchainVerified && <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />}
                           </div>
                           <div className="flex items-center gap-3 mt-1">
-                            <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">{artifact.evidenceId}</span>
-                            <span className="text-xs text-slate-400 dark:text-slate-500">•</span>
-                            <span className="text-xs text-slate-400 dark:text-slate-500 capitalize">{artifact.category.replace('_', ' ')}</span>
-                            <span className="text-xs text-slate-400 dark:text-slate-500">•</span>
-                            <span className="text-xs text-slate-400 dark:text-slate-500">{formatDateTime(artifact.timestamp)}</span>
-                            <span className="text-xs text-slate-400 dark:text-slate-500">•</span>
-                            <span className="text-xs text-slate-400 dark:text-slate-500">{formatFileSize(artifact.fileSize)}</span>
+                            <span className="text-xs text-[var(--text-secondary)]   font-mono">{artifact.evidenceId}</span>
+                            <span className="text-xs text-[var(--text-secondary)]  ">•</span>
+                            <span className="text-xs text-[var(--text-secondary)]   capitalize">{artifact.category.replace('_', ' ')}</span>
+                            <span className="text-xs text-[var(--text-secondary)]  ">•</span>
+                            <span className="text-xs text-[var(--text-secondary)]  ">{formatDateTime(artifact.timestamp)}</span>
+                            <span className="text-xs text-[var(--text-secondary)]  ">•</span>
+                            <span className="text-xs text-[var(--text-secondary)]  ">{formatFileSize(artifact.fileSize)}</span>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -300,14 +300,14 @@ export function EvidenceArtifactsPage() {
             <Card>
               <div className="p-5 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-slate-900 dark:text-white">Artifact Details</h3>
+                  <h3 className="font-semibold text-[var(--text-primary)] ">Artifact Details</h3>
                   <div className="flex gap-1">
                     <Button variant={viewMode === 'detail' ? 'primary' : 'outline'} size="xs" onClick={() => setViewMode('detail')}>Detail</Button>
                     <Button variant={viewMode === 'json' ? 'primary' : 'outline'} size="xs" onClick={() => setViewMode('json')}>JSON</Button>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                <div className="flex items-center gap-4 p-4 bg-[var(--surface-container-lowest)]  rounded-lg">
                   <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center', categoryColors[selectedArtifact.category] || categoryColors.configuration)}>
                     {(() => {
                       const Icon = categoryIcons[selectedArtifact.category] || File;
@@ -315,8 +315,8 @@ export function EvidenceArtifactsPage() {
                     })()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-slate-900 dark:text-white truncate">{selectedArtifact.name}</p>
-                    <p className="text-xs text-slate-400 dark:text-slate-500 font-mono">{selectedArtifact.evidenceId}</p>
+                    <p className="font-medium text-[var(--text-primary)]  truncate">{selectedArtifact.name}</p>
+                    <p className="text-xs text-[var(--text-secondary)]   font-mono">{selectedArtifact.evidenceId}</p>
                   </div>
                 </div>
 
@@ -327,39 +327,39 @@ export function EvidenceArtifactsPage() {
                 ) : viewMode === 'detail' && detail ? (
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-sm text-slate-500 dark:text-slate-400">Source</span>
-                      <span className="text-sm text-slate-700 dark:text-slate-300 capitalize">{selectedArtifact.source}</span>
+                      <span className="text-sm text-[var(--text-secondary)] ">Source</span>
+                      <span className="text-sm text-[var(--text-secondary)]  capitalize">{selectedArtifact.source}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-slate-500 dark:text-slate-400">Category</span>
-                      <span className="text-sm text-slate-700 dark:text-slate-300 capitalize">{selectedArtifact.category.replace('_', ' ')}</span>
+                      <span className="text-sm text-[var(--text-secondary)] ">Category</span>
+                      <span className="text-sm text-[var(--text-secondary)]  capitalize">{selectedArtifact.category.replace('_', ' ')}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-slate-500 dark:text-slate-400">Timestamp</span>
-                      <span className="text-sm text-slate-700 dark:text-slate-300">{formatDateTime(selectedArtifact.timestamp)}</span>
+                      <span className="text-sm text-[var(--text-secondary)] ">Timestamp</span>
+                      <span className="text-sm text-[var(--text-secondary)] ">{formatDateTime(selectedArtifact.timestamp)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-slate-500 dark:text-slate-400">File Size</span>
-                      <span className="text-sm text-slate-700 dark:text-slate-300">{formatFileSize(selectedArtifact.fileSize)}</span>
+                      <span className="text-sm text-[var(--text-secondary)] ">File Size</span>
+                      <span className="text-sm text-[var(--text-secondary)] ">{formatFileSize(selectedArtifact.fileSize)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-slate-500 dark:text-slate-400">File Path</span>
-                      <span className="text-xs text-slate-700 dark:text-slate-300 font-mono break-all">{selectedArtifact.filePath}</span>
+                      <span className="text-sm text-[var(--text-secondary)] ">File Path</span>
+                      <span className="text-xs text-[var(--text-secondary)]  font-mono break-all">{selectedArtifact.filePath}</span>
                     </div>
                     {selectedArtifact.blockchainVerified && (
                       <div className="flex justify-between">
-                        <span className="text-sm text-slate-500 dark:text-slate-400">Blockchain</span>
-                        <span className="text-xs text-emerald-600 dark:text-emerald-400 font-mono break-all">{selectedArtifact.blockchainTxHash}</span>
+                        <span className="text-sm text-[var(--text-secondary)] ">Blockchain</span>
+                        <span className="text-xs text-emerald-600   font-mono break-all">{selectedArtifact.blockchainTxHash}</span>
                       </div>
                     )}
                     {detail.eventRelationships?.length > 0 && (
                       <div>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">Relationships ({detail.eventRelationships.length})</p>
+                        <p className="text-sm text-[var(--text-secondary)]  mb-2">Relationships ({detail.eventRelationships.length})</p>
                         <div className="space-y-1">
                           {detail.eventRelationships.slice(0, 5).map((rel, i) => (
-                            <div key={i} className="p-2 bg-slate-50 dark:bg-slate-800/50 rounded text-xs">
-                              <span className="text-slate-400">{rel.relationshipType}:</span>
-                              <span className="ml-1 text-slate-700 dark:text-slate-300">{rel.description}</span>
+                            <div key={i} className="p-2 bg-[var(--surface-container-lowest)]  rounded text-xs">
+                              <span className="text-[var(--text-secondary)] ">{rel.relationshipType}:</span>
+                              <span className="ml-1 text-[var(--text-secondary)] ">{rel.description}</span>
                             </div>
                           ))}
                         </div>
@@ -367,13 +367,13 @@ export function EvidenceArtifactsPage() {
                     )}
                     {detail.timeline?.length > 0 && (
                       <div>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">Timeline Events ({detail.timeline.length})</p>
+                        <p className="text-sm text-[var(--text-secondary)]  mb-2">Timeline Events ({detail.timeline.length})</p>
                         <div className="space-y-1">
                           {detail.timeline.slice(0, 5).map((evt, i) => (
-                            <div key={i} className="p-2 bg-slate-50 dark:bg-slate-800/50 rounded text-xs">
-                              <span className="font-mono text-slate-400">{evt.timestamp}</span>
-                              <span className="mx-1 text-slate-300">|</span>
-                              <span className="text-slate-700 dark:text-slate-300">{evt.operation}</span>
+                            <div key={i} className="p-2 bg-[var(--surface-container-lowest)]  rounded text-xs">
+                              <span className="font-mono text-[var(--text-secondary)] ">{evt.timestamp}</span>
+                              <span className="mx-1 text-[var(--text-secondary)] ">|</span>
+                              <span className="text-[var(--text-secondary)] ">{evt.operation}</span>
                             </div>
                           ))}
                         </div>
@@ -382,13 +382,13 @@ export function EvidenceArtifactsPage() {
                   </div>
                 ) : viewMode === 'json' && detail ? (
                   <div className="relative">
-                    <pre className="text-xs font-mono bg-slate-900 dark:bg-slate-950 text-slate-100 p-3 rounded-lg max-h-[400px] overflow-auto">
+                    <pre className="text-xs font-mono bg-slate-900  text-[var(--text-primary)]  p-3 rounded-lg max-h-[400px] overflow-auto">
                       {JSON.stringify(detail.rawEvent || detail, null, 2)}
                     </pre>
                   </div>
                 ) : null}
 
-                <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-slate-700/50">
+                <div className="flex gap-2 pt-2 border-t border-[var(--border-subtle)] ">
                   <Button variant="outline" size="sm" className="flex-1" leftIcon={<Copy className="w-4 h-4" />} onClick={handleCopyJson}>
                     Copy
                   </Button>
@@ -401,10 +401,10 @@ export function EvidenceArtifactsPage() {
           ) : (
             <Card>
               <div className="flex flex-col items-center justify-center py-12">
-                <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
-                  <Hexagon className="w-8 h-8 text-slate-400" />
+                <div className="w-16 h-16 rounded-full bg-[var(--surface-container-low)]  flex items-center justify-center mb-4">
+                  <Hexagon className="w-8 h-8 text-[var(--text-secondary)] " />
                 </div>
-                <p className="text-sm text-slate-500 dark:text-slate-400">Select an artifact to view details</p>
+                <p className="text-sm text-[var(--text-secondary)] ">Select an artifact to view details</p>
               </div>
             </Card>
           )}

@@ -171,7 +171,7 @@ function cleanupExpiredRecords(): void {
   }
 }
 
-export async function sendOTP(email: string, roleInput: string): Promise<{ success: boolean; message: string }> {
+export async function sendOTP(email: string, roleInput: string): Promise<{ success: boolean; message: string; devOtp?: string }> {
   cleanupExpiredRecords();
 
   const normalizedEmail = normalizeEmail(email);
@@ -212,7 +212,9 @@ export async function sendOTP(email: string, roleInput: string): Promise<{ succe
     });
 
     logger.info(`Email OTP sent to ${normalizedEmail}`);
-    return { success: true, message: 'OTP sent to your email' };
+    const result: { success: boolean; message: string; devOtp?: string } = { success: true, message: 'OTP sent to your email' };
+    if (config.otpDevMode) result.devOtp = otp;
+    return result;
   } catch (error: any) {
     logger.error({
       message: `Email OTP send failed for ${normalizedEmail}`,
@@ -352,7 +354,7 @@ function resetOtpEmailHtml(otp: string): string {
   `;
 }
 
-export async function sendPasswordResetOTP(email: string): Promise<{ success: boolean; message: string }> {
+export async function sendPasswordResetOTP(email: string): Promise<{ success: boolean; message: string; devOtp?: string }> {
   cleanupExpiredRecords();
 
   const normalizedEmail = normalizeEmail(email);
@@ -388,7 +390,9 @@ export async function sendPasswordResetOTP(email: string): Promise<{ success: bo
     });
 
     logger.info(`Password reset OTP sent to ${normalizedEmail}`);
-    return { success: true, message: 'If an account exists, an OTP has been sent to your email' };
+    const result: { success: boolean; message: string; devOtp?: string } = { success: true, message: 'If an account exists, an OTP has been sent to your email' };
+    if (config.otpDevMode) result.devOtp = otp;
+    return result;
   } catch (error: any) {
     logger.error({
       message: `Password reset OTP send failed for ${normalizedEmail}`,

@@ -44,14 +44,14 @@ const typeIcons: Record<string, typeof File> = {
 };
 
 const typeColors: Record<string, string> = {
-  email: 'bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
-  malware_sample: 'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400',
-  network_capture: 'bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
-  memory_dump: 'bg-orange-100 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400',
-  file: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400',
-  log: 'bg-amber-500/15 text-amber-400',
-  screenshot: 'bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400',
-  registry_dump: 'bg-violet-100 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400',
+  email: 'bg-blue-100  text-blue-600 ',
+  malware_sample: 'bg-red-100  text-red-600  ',
+  network_capture: 'bg-purple-100  text-purple-600 ',
+  memory_dump: 'bg-orange-100  text-orange-600  ',
+  file: 'bg-[var(--surface-container-low)]  text-[var(--text-secondary)] ',
+  log: 'bg-amber-500/15 text-amber-600 ',
+  screenshot: 'bg-green-100  text-green-600 ',
+  registry_dump: 'bg-violet-100  text-violet-600  ',
 };
 
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
@@ -110,10 +110,10 @@ export function EvidenceExplorerPage() {
       />
 
       {error && (
-        <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+        <div className="flex items-center gap-2 p-3 bg-red-50  border border-red-200  rounded-lg">
           <AlertTriangle className="w-4 h-4 text-red-500" />
-          <span className="text-sm text-red-700 dark:text-red-400">{error}</span>
-          <button onClick={() => fetchEvidence({ page: 1, limit: 50 })} className="ml-auto p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded">
+          <span className="text-sm text-red-700  ">{error}</span>
+          <button onClick={() => fetchEvidence({ page: 1, limit: 50 })} className="ml-auto p-1 hover:bg-red-100  rounded">
             <X className="w-4 h-4 text-red-500" />
           </button>
         </div>
@@ -124,7 +124,7 @@ export function EvidenceExplorerPage() {
           <DashboardStat
             label="Total Evidence"
             value={evidence.length}
-            icon={<FileText className="w-5 h-5 text-amber-400" />}
+            icon={<FileText className="w-5 h-5 text-amber-600 " />}
             delta={`${pagination.total || 0} in database`}
           />
         </DashboardCard>
@@ -132,7 +132,7 @@ export function EvidenceExplorerPage() {
           <DashboardStat
             label="Verified"
             value={verifiedCount}
-            icon={<CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />}
+            icon={<CheckCircle className="w-5 h-5 text-emerald-600  " />}
             delta={verifiedCount > 0 ? 'Chain of custody intact' : 'No verified evidence'}
           />
         </DashboardCard>
@@ -140,7 +140,7 @@ export function EvidenceExplorerPage() {
           <DashboardStat
             label="Analyzing"
             value={analyzingCount}
-            icon={<Clock className="w-5 h-5 text-violet-600 dark:text-violet-400" />}
+            icon={<Clock className="w-5 h-5 text-violet-600  " />}
             delta="In progress"
           />
         </DashboardCard>
@@ -148,7 +148,7 @@ export function EvidenceExplorerPage() {
           <DashboardStat
             label="Total Size"
             value={formatFileSize(totalSize)}
-            icon={<Database className="w-5 h-5 text-amber-600 dark:text-amber-400" />}
+            icon={<Database className="w-5 h-5 text-amber-600  " />}
             delta="Across all evidence"
           />
         </DashboardCard>
@@ -165,7 +165,7 @@ export function EvidenceExplorerPage() {
             />
           </div>
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-slate-400" />
+            <Filter className="w-4 h-4 text-[var(--text-secondary)] " />
             <Select
               value={typeFilter}
               onChange={(val) => setTypeFilter(val)}
@@ -196,11 +196,11 @@ export function EvidenceExplorerPage() {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+          <Loader2 className="w-8 h-8 animate-spin text-[var(--text-secondary)] " />
         </div>
       ) : filteredEvidence.length === 0 ? (
         <Card>
-          <div className="flex flex-col items-center justify-center py-16 text-slate-500">
+          <div className="flex flex-col items-center justify-center py-16 text-[var(--text-secondary)]">
             <FileText className="w-12 h-12 mb-3 opacity-40" />
             <p className="text-lg font-medium">No evidence found</p>
             <p className="text-sm mt-1">Evidence collected from sandbox sessions will appear here</p>
@@ -210,10 +210,10 @@ export function EvidenceExplorerPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <Card>
-              <div className="divide-y divide-slate-100 dark:divide-slate-700/50 max-h-[500px] overflow-y-auto">
+              <div className="divide-y divide-[var(--border-subtle)]  max-h-[500px] overflow-y-auto">
                 {filteredEvidence.map((ev) => {
                   const Icon = typeIcons[ev.type] || File;
-                  const colorClass = typeColors[ev.type] || 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400';
+                  const colorClass = typeColors[ev.type] || 'bg-[var(--surface-container-low)]  text-[var(--text-secondary)] ';
 
                   return (
                     <motion.div
@@ -221,7 +221,7 @@ export function EvidenceExplorerPage() {
                       variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } }}
                       onClick={() => setSelectedId(ev.id)}
                       className={cn(
-                        'px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors',
+                        'px-5 py-4 hover:bg-[var(--surface-container-lowest)]  cursor-pointer transition-colors',
                         selectedId === ev.id && 'bg-amber-500/10'
                       )}
                     >
@@ -231,15 +231,15 @@ export function EvidenceExplorerPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <p className="font-medium text-slate-900 dark:text-white truncate">{ev.name}</p>
+                            <p className="font-medium text-[var(--text-primary)]  truncate">{ev.name}</p>
                             {ev.status === 'verified' && <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />}
                           </div>
                           <div className="flex items-center gap-3 mt-1">
-                            <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">{ev.evidenceId}</span>
-                            <span className="text-xs text-slate-400 dark:text-slate-500">•</span>
-                            <span className="text-xs text-slate-400 dark:text-slate-500 capitalize">{ev.type.replace('_', ' ')}</span>
-                            <span className="text-xs text-slate-400 dark:text-slate-500">•</span>
-                            <span className="text-xs text-slate-400 dark:text-slate-500">{formatFileSize(ev.size ?? ev.fileSize ?? 0)}</span>
+                            <span className="text-xs text-[var(--text-secondary)]   font-mono">{ev.evidenceId}</span>
+                            <span className="text-xs text-[var(--text-secondary)]  ">•</span>
+                            <span className="text-xs text-[var(--text-secondary)]   capitalize">{ev.type.replace('_', ' ')}</span>
+                            <span className="text-xs text-[var(--text-secondary)]  ">•</span>
+                            <span className="text-xs text-[var(--text-secondary)]  ">{formatFileSize(ev.size ?? ev.fileSize ?? 0)}</span>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -247,7 +247,7 @@ export function EvidenceExplorerPage() {
                           {ev.status !== 'verified' && (
                             <button
                               onClick={(e) => { e.stopPropagation(); handleVerify(ev.id); }}
-                              className="p-1.5 rounded hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 transition-colors"
+                              className="p-1.5 rounded hover:bg-emerald-50  text-emerald-600   transition-colors"
                               title="Verify"
                             >
                               <CheckCircle className="w-4 h-4" />
@@ -255,7 +255,7 @@ export function EvidenceExplorerPage() {
                           )}
                           <button
                             onClick={(e) => { e.stopPropagation(); handleDelete(ev.id); }}
-                            className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors"
+                            className="p-1.5 rounded hover:bg-red-50  text-red-600   transition-colors"
                             title="Delete"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -273,55 +273,55 @@ export function EvidenceExplorerPage() {
             {selectedEvidence ? (
               <Card>
                 <div className="p-5">
-                  <h3 className="font-semibold text-slate-900 dark:text-white mb-4">Evidence Details</h3>
-                  <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg mb-4">
-                    <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center', typeColors[selectedEvidence.type] || 'bg-slate-100')}>
+                  <h3 className="font-semibold text-[var(--text-primary)]  mb-4">Evidence Details</h3>
+                  <div className="flex items-center gap-4 p-4 bg-[var(--surface-container-lowest)]  rounded-lg mb-4">
+                    <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center', typeColors[selectedEvidence.type] || 'bg-[var(--surface-container-low)]')}>
                       {(() => {
                         const Icon = typeIcons[selectedEvidence.type] || File;
                         return <Icon className="w-6 h-6" />;
                       })()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-slate-900 dark:text-white truncate">{selectedEvidence.name}</p>
-                      <p className="text-xs text-slate-400 dark:text-slate-500 font-mono">{selectedEvidence.evidenceId}</p>
+                      <p className="font-medium text-[var(--text-primary)]  truncate">{selectedEvidence.name}</p>
+                      <p className="text-xs text-[var(--text-secondary)]   font-mono">{selectedEvidence.evidenceId}</p>
                     </div>
                   </div>
 
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-sm text-slate-500 dark:text-slate-400">Type</span>
-                      <span className="text-sm text-slate-700 dark:text-slate-300 capitalize">{selectedEvidence.type.replace('_', ' ')}</span>
+                      <span className="text-sm text-[var(--text-secondary)] ">Type</span>
+                      <span className="text-sm text-[var(--text-secondary)]  capitalize">{selectedEvidence.type.replace('_', ' ')}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-slate-500 dark:text-slate-400">Size</span>
-                      <span className="text-sm text-slate-700 dark:text-slate-300">{formatFileSize(selectedEvidence.size ?? selectedEvidence.fileSize ?? 0)}</span>
+                      <span className="text-sm text-[var(--text-secondary)] ">Size</span>
+                      <span className="text-sm text-[var(--text-secondary)] ">{formatFileSize(selectedEvidence.size ?? selectedEvidence.fileSize ?? 0)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-slate-500 dark:text-slate-400">Status</span>
+                      <span className="text-sm text-[var(--text-secondary)] ">Status</span>
                       <StatusBadge status={selectedEvidence.status} size="sm" />
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-slate-500 dark:text-slate-400">Investigation</span>
-                      <span className="text-sm text-slate-700 dark:text-slate-300 font-mono">{selectedEvidence.investigationId || 'N/A'}</span>
+                      <span className="text-sm text-[var(--text-secondary)] ">Investigation</span>
+                      <span className="text-sm text-[var(--text-secondary)]  font-mono">{selectedEvidence.investigationId || 'N/A'}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-slate-500 dark:text-slate-400">SHA-256</span>
-                      <span className="text-xs text-slate-700 dark:text-slate-300 font-mono truncate max-w-[150px]" title={selectedEvidence.sha256}>
+                      <span className="text-sm text-[var(--text-secondary)] ">SHA-256</span>
+                      <span className="text-xs text-[var(--text-secondary)]  font-mono truncate max-w-[150px]" title={selectedEvidence.sha256}>
                         {selectedEvidence.sha256 ? selectedEvidence.sha256.slice(0, 16) + '...' : 'N/A'}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-slate-500 dark:text-slate-400">Collected</span>
-                      <span className="text-sm text-slate-700 dark:text-slate-300">{selectedEvidence.collectedAt ? formatRelativeTime(selectedEvidence.collectedAt) : 'N/A'}</span>
+                      <span className="text-sm text-[var(--text-secondary)] ">Collected</span>
+                      <span className="text-sm text-[var(--text-secondary)] ">{selectedEvidence.collectedAt ? formatRelativeTime(selectedEvidence.collectedAt) : 'N/A'}</span>
                     </div>
                   </div>
 
                   {selectedEvidence.tags && selectedEvidence.tags.length > 0 && (
                     <div className="mt-4">
-                      <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">Tags</p>
+                      <p className="text-sm text-[var(--text-secondary)]  mb-2">Tags</p>
                       <div className="flex flex-wrap gap-2">
                         {selectedEvidence.tags.map((tag: string) => (
-                          <span key={tag} className="px-2 py-1 text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-full">
+                          <span key={tag} className="px-2 py-1 text-xs bg-[var(--surface-container-low)]  text-[var(--text-secondary)]  rounded-full">
                             {tag}
                           </span>
                         ))}
@@ -329,7 +329,7 @@ export function EvidenceExplorerPage() {
                     </div>
                   )}
 
-                  <div className="flex gap-2 pt-4 border-t border-slate-100 dark:border-slate-700/50">
+                  <div className="flex gap-2 pt-4 border-t border-[var(--border-subtle)] ">
                     <Button variant="outline" size="sm" className="flex-1">
                       <Eye className="w-4 h-4" />
                       View
@@ -344,10 +344,10 @@ export function EvidenceExplorerPage() {
             ) : (
               <Card>
                 <div className="flex flex-col items-center justify-center py-12">
-                  <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
-                    <FileText className="w-8 h-8 text-slate-400" />
+                  <div className="w-16 h-16 rounded-full bg-[var(--surface-container-low)]  flex items-center justify-center mb-4">
+                    <FileText className="w-8 h-8 text-[var(--text-secondary)] " />
                   </div>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">Select an evidence item to view details</p>
+                  <p className="text-sm text-[var(--text-secondary)] ">Select an evidence item to view details</p>
                 </div>
               </Card>
             )}

@@ -31,13 +31,13 @@ const allPermissions = [
 ];
 
 const permissionGroups = [
-  { label: 'Investigations', prefix: 'investigations', color: 'text-amber-400' },
-  { label: 'Evidence', prefix: 'evidence', color: 'text-emerald-400' },
-  { label: 'Sandbox', prefix: 'sandbox', color: 'text-violet-400' },
+  { label: 'Investigations', prefix: 'investigations', color: 'text-amber-600 ' },
+  { label: 'Evidence', prefix: 'evidence', color: 'text-emerald-600 ' },
+  { label: 'Sandbox', prefix: 'sandbox', color: 'text-violet-600 ' },
   { label: 'Reports', prefix: 'reports', color: 'text-blue-400' },
-  { label: 'Threat Intel', prefix: 'threat-intel', color: 'text-rose-400' },
-  { label: 'Users', prefix: 'users', color: 'text-cyan-400' },
-  { label: 'System', prefix: 'system', color: 'text-orange-400' },
+  { label: 'Threat Intel', prefix: 'threat-intel', color: 'text-rose-600 ' },
+  { label: 'Users', prefix: 'users', color: 'text-cyan-600 ' },
+  { label: 'System', prefix: 'system', color: 'text-orange-600 ' },
 ];
 
 const roleUserCounts: Record<string, number> = {
@@ -134,7 +134,7 @@ export function RoleAssignmentPage() {
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
         <PageHeader title="Role Assignment" subtitle="Manage roles, permissions, and access control" />
         <div className="flex items-center justify-center py-24">
-          <Loader2 className="w-8 h-8 text-amber-400 animate-spin" />
+          <Loader2 className="w-8 h-8 text-amber-600  animate-spin" />
         </div>
       </motion.div>
     );
@@ -145,11 +145,11 @@ export function RoleAssignmentPage() {
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
         <PageHeader title="Role Assignment" subtitle="Manage roles, permissions, and access control" />
         <Card>
-          <div className="flex flex-col items-center justify-center py-16 text-slate-500">
-            <AlertCircle className="w-12 h-12 mb-3 text-rose-400" />
-            <p className="text-lg font-medium text-slate-300">Failed to load roles</p>
+          <div className="flex flex-col items-center justify-center py-16 text-[var(--text-secondary)]">
+            <AlertCircle className="w-12 h-12 mb-3 text-rose-600 " />
+            <p className="text-lg font-medium text-[var(--text-secondary)] ">Failed to load roles</p>
             <p className="text-sm mt-1">{error}</p>
-            <button onClick={loadRoles} className="mt-4 px-4 py-2 text-sm bg-amber-500/20 text-amber-400 rounded-lg hover:bg-amber-500/30 transition-colors">Retry</button>
+            <button onClick={loadRoles} className="mt-4 px-4 py-2 text-sm bg-amber-500/20 text-amber-600  rounded-lg hover:bg-amber-500/30 transition-colors">Retry</button>
           </div>
         </Card>
       </motion.div>
@@ -181,15 +181,15 @@ export function RoleAssignmentPage() {
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <Shield className={cn('w-4 h-4', selectedRole === role.id ? 'text-amber-400' : 'text-slate-500')} />
-                      <h3 className="text-sm font-semibold text-slate-100">{role.name}</h3>
+                      <Shield className={cn('w-4 h-4', selectedRole === role.id ? 'text-amber-600 ' : 'text-[var(--text-secondary)]')} />
+                      <h3 className="text-sm font-semibold text-[var(--text-primary)] ">{role.name}</h3>
                     </div>
-                    <div className="flex items-center gap-1 text-[10px] text-slate-500">
+                    <div className="flex items-center gap-1 text-[10px] text-[var(--text-secondary)]">
                       <Users className="w-3 h-3" />
                       {role.userCount}
                     </div>
                   </div>
-                  <p className="text-[11px] text-slate-400 line-clamp-2">{role.description}</p>
+                  <p className="text-[11px] text-[var(--text-secondary)]  line-clamp-2">{role.description}</p>
                 </div>
               </Card>
             </motion.div>
@@ -202,8 +202,8 @@ export function RoleAssignmentPage() {
               <div className="p-5">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h2 className="text-lg font-semibold text-slate-100">{selected.name}</h2>
-                    <p className="text-xs text-slate-400 mt-1">{selected.description} · {selected.userCount} users</p>
+                    <h2 className="text-lg font-semibold text-[var(--text-primary)] ">{selected.name}</h2>
+                    <p className="text-xs text-[var(--text-secondary)]  mt-1">{selected.description} · {selected.userCount} users</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm">
@@ -234,13 +234,13 @@ export function RoleAssignmentPage() {
                                   'flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] transition-colors',
                                   granted
                                     ? 'bg-emerald-500/10 text-emerald-300'
-                                    : 'bg-slate-800/50 text-slate-600'
+                                    : 'bg-[var(--surface-container-low)]  text-[var(--text-secondary)]'
                                 )}
                               >
                                 {granted ? (
-                                  <CheckCircle className="w-3 h-3 text-emerald-400 flex-shrink-0" />
+                                  <CheckCircle className="w-3 h-3 text-emerald-600  flex-shrink-0" />
                                 ) : (
-                                  <XCircle className="w-3 h-3 text-slate-600 flex-shrink-0" />
+                                  <XCircle className="w-3 h-3 text-[var(--text-secondary)] flex-shrink-0" />
                                 )}
                                 <span className="truncate">{perm.split(':')[1]}</span>
                               </div>
@@ -255,7 +255,7 @@ export function RoleAssignmentPage() {
             </Card>
           ) : (
             <Card>
-              <div className="flex items-center justify-center py-16 text-slate-500">
+              <div className="flex items-center justify-center py-16 text-[var(--text-secondary)]">
                 <p className="text-sm">Select a role to view permissions</p>
               </div>
             </Card>

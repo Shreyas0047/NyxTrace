@@ -94,7 +94,7 @@ function normalizeSession(session: any): SandboxSession & { simulator: string; e
     sessionId: session.sessionId || session.session_id,
     simulatorId: session.simulatorId || session.simulator_id || session.simulator,
     simulatorName: session.simulatorName || session.simulator_name || session.simulator_id || session.simulator,
-    simulator: session.simulator || session.simulatorId || session.simulator_id || session.simulatorName,
+    simulator: session.simulatorName || session.simulator || session.simulatorId || session.simulator_id,
     startTime: session.startTime || session.created_at || session.createdAt,
     endTime: session.endTime || session.updated_at,
     status: session.status || session.state || 'pending',

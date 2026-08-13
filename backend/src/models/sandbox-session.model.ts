@@ -84,21 +84,21 @@ const sandboxSessionSchema = new Schema({
   recentEvents: [{
     id: String,
     timestamp: String,
-    type: String,
+    type: { type: String },
     source: String,
     details: Schema.Types.Mixed,
     receivedAt: Date,
   }],
   suspiciousEvents: [{
     timestamp: String,
-    type: String,
+    type: { type: String },
     source: String,
     details: Schema.Types.Mixed,
     flaggedAt: Date,
     reason: String,
   }],
   extractedIOCs: [{
-    type: String,
+    type: { type: String },
     value: String,
     source: String,
   }],
@@ -113,7 +113,7 @@ const sandboxSessionSchema = new Schema({
     severity_score: Number,
     severity_level: String,
     anomalies: [{
-      type: String,
+      type: { type: String },
       description: String,
       severity: String,
       deviation_score: Number,

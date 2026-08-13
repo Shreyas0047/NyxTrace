@@ -129,11 +129,11 @@ export function SettingsPage() {
       />
 
       {(error || success) && (
-        <Card className={error ? 'border-red-200 dark:border-red-800' : 'border-emerald-200 dark:border-emerald-800'}>
+        <Card className={error ? 'border-red-200 ' : 'border-emerald-200 '}>
           <div className="p-4 flex items-center gap-3">
             {error ? <XCircle className="w-5 h-5 text-red-500" /> : <CheckCircle className="w-5 h-5 text-emerald-500" />}
             <div>
-              <p className={error ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}>
+              <p className={error ? 'text-red-600  ' : 'text-emerald-600  '}>
                 {error || success}
               </p>
               {validationErrors.length > 0 && (
@@ -149,7 +149,7 @@ export function SettingsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <Card className="lg:col-span-1">
           <div className="p-2">
-            <p className="px-3 py-2 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase">Configuration</p>
+            <p className="px-3 py-2 text-xs font-semibold text-[var(--text-secondary)]   uppercase">Configuration</p>
             <div className="space-y-1">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
@@ -158,8 +158,8 @@ export function SettingsPage() {
                     className={`
                       w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left
                       ${activeTab === tab.id
-                        ? 'bg-amber-500/20 text-amber-400'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                        ? 'bg-amber-500/20 text-amber-600 '
+                        : 'text-[var(--text-secondary)]  hover:bg-[var(--surface-container-lowest)] '
                       }
                     `}
                   >
@@ -176,27 +176,27 @@ export function SettingsPage() {
           <div className="p-6">
             {activeTab === 'vm' && (
               <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-[var(--text-primary)]  flex items-center gap-2">
                   <Server className="w-5 h-5 text-amber-500" />
                   Virtual Machine Configuration
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">VM Name</label>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)]  mb-1.5">VM Name</label>
                     <Input
                       value={localSettings.vm.vmName}
                       onChange={(e) => handleChange('vm', 'vmName', e.target.value)}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Snapshot Name</label>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)]  mb-1.5">Snapshot Name</label>
                     <Input
                       value={localSettings.vm.snapshotName}
                       onChange={(e) => handleChange('vm', 'snapshotName', e.target.value)}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Startup Timeout (seconds)</label>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)]  mb-1.5">Startup Timeout (seconds)</label>
                     <Input
                       type="number"
                       value={localSettings.vm.startupTimeout}
@@ -204,7 +204,7 @@ export function SettingsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Shutdown Timeout (seconds)</label>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)]  mb-1.5">Shutdown Timeout (seconds)</label>
                     <Input
                       type="number"
                       value={localSettings.vm.shutdownTimeout}
@@ -217,9 +217,9 @@ export function SettingsPage() {
                       id="headlessMode"
                       checked={localSettings.vm.headlessMode}
                       onChange={(e) => handleChange('vm', 'headlessMode', e.target.checked)}
-                      className="w-4 h-4 rounded border-slate-300 dark:border-slate-600"
+                      className="w-4 h-4 rounded border-[var(--border-default)] "
                     />
-                    <label htmlFor="headlessMode" className="text-sm font-medium text-slate-700 dark:text-slate-300">Headless Mode</label>
+                    <label htmlFor="headlessMode" className="text-sm font-medium text-[var(--text-secondary)] ">Headless Mode</label>
                   </div>
                 </div>
               </div>
@@ -227,7 +227,7 @@ export function SettingsPage() {
 
             {activeTab === 'monitoring' && (
               <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-[var(--text-primary)]  flex items-center gap-2">
                   <Eye className="w-5 h-5 text-amber-500" />
                   Monitoring Configuration
                 </h3>
@@ -237,13 +237,13 @@ export function SettingsPage() {
                     id="monitoringEnabled"
                     checked={localSettings.monitoring.enabled}
                     onChange={(e) => handleChange('monitoring', 'enabled', e.target.checked)}
-                    className="w-4 h-4 rounded border-slate-300 dark:border-slate-600"
+                    className="w-4 h-4 rounded border-[var(--border-default)] "
                   />
-                  <label htmlFor="monitoringEnabled" className="text-sm font-medium text-slate-700 dark:text-slate-300">Enable Monitoring</label>
+                  <label htmlFor="monitoringEnabled" className="text-sm font-medium text-[var(--text-secondary)] ">Enable Monitoring</label>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Polling Interval (ms)</label>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)]  mb-1.5">Polling Interval (ms)</label>
                     <Input
                       type="number"
                       value={localSettings.monitoring.pollingInterval}
@@ -252,7 +252,7 @@ export function SettingsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Log Retention (days)</label>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)]  mb-1.5">Log Retention (days)</label>
                     <Input
                       type="number"
                       value={localSettings.monitoring.logRetentionDays}
@@ -260,7 +260,7 @@ export function SettingsPage() {
                     />
                   </div>
                   <div className="space-y-3">
-                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Monitoring Targets</p>
+                    <p className="text-sm font-medium text-[var(--text-secondary)] ">Monitoring Targets</p>
                     {[
                       { key: 'processEnabled', label: 'Process Activity' },
                       { key: 'fileEnabled', label: 'File Activity' },
@@ -275,9 +275,9 @@ export function SettingsPage() {
                           checked={localSettings.monitoring[key as keyof typeof localSettings.monitoring] as boolean}
                           onChange={(e) => handleChange('monitoring', key as keyof typeof localSettings.monitoring, e.target.checked)}
                           disabled={!localSettings.monitoring.enabled}
-                          className="w-4 h-4 rounded border-slate-300 dark:border-slate-600"
+                          className="w-4 h-4 rounded border-[var(--border-default)] "
                         />
-                        <label htmlFor={key} className="text-sm text-slate-600 dark:text-slate-400">{label}</label>
+                        <label htmlFor={key} className="text-sm text-[var(--text-secondary)] ">{label}</label>
                       </div>
                     ))}
                   </div>
@@ -287,22 +287,22 @@ export function SettingsPage() {
 
             {activeTab === 'execution' && (
               <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-[var(--text-primary)]  flex items-center gap-2">
                   <Play className="w-5 h-5 text-amber-500" />
                   Execution Configuration
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Timeout (seconds)</label>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)]  mb-1.5">Timeout (seconds)</label>
                     <Input
                       type="number"
                       value={localSettings.execution.timeout}
                       onChange={(e) => handleChange('execution', 'timeout', parseInt(e.target.value) || 0)}
                     />
-                    <p className="text-xs text-slate-400 mt-1">Maximum execution time before auto-rollback (max 300s)</p>
+                    <p className="text-xs text-[var(--text-secondary)]  mt-1">Maximum execution time before auto-rollback (max 300s)</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Max Concurrent Sessions</label>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)]  mb-1.5">Max Concurrent Sessions</label>
                     <Input
                       type="number"
                       value={localSettings.execution.maxConcurrentSessions}
@@ -310,7 +310,7 @@ export function SettingsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Telemetry Limit</label>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)]  mb-1.5">Telemetry Limit</label>
                     <Input
                       type="number"
                       value={localSettings.execution.telemetryLimit}
@@ -323,9 +323,9 @@ export function SettingsPage() {
                       id="autoRollback"
                       checked={localSettings.execution.autoRollback}
                       onChange={(e) => handleChange('execution', 'autoRollback', e.target.checked)}
-                      className="w-4 h-4 rounded border-slate-300 dark:border-slate-600"
+                      className="w-4 h-4 rounded border-[var(--border-default)] "
                     />
-                    <label htmlFor="autoRollback" className="text-sm font-medium text-slate-700 dark:text-slate-300">Auto Rollback on Failure</label>
+                    <label htmlFor="autoRollback" className="text-sm font-medium text-[var(--text-secondary)] ">Auto Rollback on Failure</label>
                   </div>
                 </div>
               </div>
@@ -333,13 +333,13 @@ export function SettingsPage() {
 
             {activeTab === 'logging' && (
               <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-[var(--text-primary)]  flex items-center gap-2">
                   <FileText className="w-5 h-5 text-amber-500" />
                   Logging Configuration
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Log Level</label>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)]  mb-1.5">Log Level</label>
                     <Select
                       value={localSettings.logging.level}
                       onChange={(val) => handleChange('logging', 'level', val)}
@@ -347,7 +347,7 @@ export function SettingsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Max File Size</label>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)]  mb-1.5">Max File Size</label>
                     <Select
                       value={localSettings.logging.maxFileSize}
                       onChange={(val) => handleChange('logging', 'maxFileSize', val)}
@@ -355,7 +355,7 @@ export function SettingsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Max Files</label>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)]  mb-1.5">Max Files</label>
                     <Input
                       type="number"
                       value={localSettings.logging.maxFiles}
@@ -368,7 +368,7 @@ export function SettingsPage() {
 
             {activeTab === 'notifications' && (
               <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-[var(--text-primary)]  flex items-center gap-2">
                   <Bell className="w-5 h-5 text-amber-500" />
                   Notification Configuration
                 </h3>
@@ -379,9 +379,9 @@ export function SettingsPage() {
                       id="alertsEnabled"
                       checked={localSettings.notifications.alertsEnabled}
                       onChange={(e) => handleChange('notifications', 'alertsEnabled', e.target.checked)}
-                      className="w-4 h-4 rounded border-slate-300 dark:border-slate-600"
+                      className="w-4 h-4 rounded border-[var(--border-default)] "
                     />
-                    <label htmlFor="alertsEnabled" className="text-sm font-medium text-slate-700 dark:text-slate-300">Enable Alerts</label>
+                    <label htmlFor="alertsEnabled" className="text-sm font-medium text-[var(--text-secondary)] ">Enable Alerts</label>
                   </div>
                   <div className="flex items-center gap-3">
                     <input
@@ -389,9 +389,9 @@ export function SettingsPage() {
                       id="alertOnCompletion"
                       checked={localSettings.notifications.alertOnCompletion}
                       onChange={(e) => handleChange('notifications', 'alertOnCompletion', e.target.checked)}
-                      className="w-4 h-4 rounded border-slate-300 dark:border-slate-600"
+                      className="w-4 h-4 rounded border-[var(--border-default)] "
                     />
-                    <label htmlFor="alertOnCompletion" className="text-sm text-slate-600 dark:text-slate-400">Alert on simulation completion</label>
+                    <label htmlFor="alertOnCompletion" className="text-sm text-[var(--text-secondary)] ">Alert on simulation completion</label>
                   </div>
                   <div className="flex items-center gap-3">
                     <input
@@ -399,19 +399,19 @@ export function SettingsPage() {
                       id="alertOnError"
                       checked={localSettings.notifications.alertOnError}
                       onChange={(e) => handleChange('notifications', 'alertOnError', e.target.checked)}
-                      className="w-4 h-4 rounded border-slate-300 dark:border-slate-600"
+                      className="w-4 h-4 rounded border-[var(--border-default)] "
                     />
-                    <label htmlFor="alertOnError" className="text-sm text-slate-600 dark:text-slate-400">Alert on error</label>
+                    <label htmlFor="alertOnError" className="text-sm text-[var(--text-secondary)] ">Alert on error</label>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Webhook URL (optional)</label>
+                    <label className="block text-sm font-medium text-[var(--text-secondary)]  mb-1.5">Webhook URL (optional)</label>
                     <Input
                       type="url"
                       value={localSettings.notifications.webhookUrl || ''}
                       onChange={(e) => handleChange('notifications', 'webhookUrl', e.target.value)}
                       placeholder="https://example.com/webhook"
                     />
-                    <p className="text-xs text-slate-400 mt-1">Receive notifications via webhook</p>
+                    <p className="text-xs text-[var(--text-secondary)]  mt-1">Receive notifications via webhook</p>
                   </div>
                 </div>
               </div>

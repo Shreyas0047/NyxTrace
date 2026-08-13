@@ -67,35 +67,35 @@ const threatLevelConfig: Record<string, ThreatLevelConfig> = {
   critical: {
     label: 'Critical',
     bg: 'bg-red-500/20',
-    text: 'text-red-400',
+    text: 'text-red-600 ',
     border: 'border-red-500/30',
     icon: AlertTriangle,
   },
   high: {
     label: 'High',
     bg: 'bg-orange-500/20',
-    text: 'text-orange-400',
+    text: 'text-orange-600 ',
     border: 'border-orange-500/30',
     icon: AlertTriangle,
   },
   medium: {
     label: 'Medium',
     bg: 'bg-amber-500/20',
-    text: 'text-amber-400',
+    text: 'text-amber-600 ',
     border: 'border-amber-500/30',
     icon: Shield,
   },
   low: {
     label: 'Low',
     bg: 'bg-emerald-500/20',
-    text: 'text-emerald-400',
+    text: 'text-emerald-600 ',
     border: 'border-emerald-500/30',
     icon: Shield,
   },
   benign: {
     label: 'Benign',
     bg: 'bg-emerald-500/10',
-    text: 'text-emerald-400',
+    text: 'text-emerald-600 ',
     border: 'border-emerald-500/20',
     icon: Shield,
   },
@@ -156,8 +156,8 @@ export function AnalysisResultCard({ analysis, onClick, className }: AnalysisRes
       whileTap={{ scale: 0.995 }}
       className={cn(
         'w-full text-left rounded-xl',
-        'bg-white dark:bg-slate-800/80',
-        'border border-slate-200 dark:border-slate-700/50',
+        'bg-white ',
+        'border border-[var(--border-subtle)] ',
         'shadow-sm hover:shadow-md',
         'transition-all duration-200',
         onClick && 'cursor-pointer',
@@ -176,7 +176,7 @@ export function AnalysisResultCard({ analysis, onClick, className }: AnalysisRes
                   ? 'bg-sky-500/10 text-sky-500'
                   : analysis.type === 'ioc_collection'
                   ? 'bg-violet-500/10 text-violet-500'
-                  : 'bg-slate-500/10 text-slate-500'
+                  : 'bg-[var(--surface-container)] text-[var(--text-secondary)]'
               )}
             >
               {analysis.type === 'url' ? (
@@ -189,17 +189,17 @@ export function AnalysisResultCard({ analysis, onClick, className }: AnalysisRes
             {/* Content */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-sm font-semibold text-slate-900 dark:text-white truncate">
+                <span className="text-sm font-semibold text-[var(--text-primary)]  truncate">
                   {analysis.fileName || analysis.url || 'Unknown source'}
                 </span>
                 {analysis.fileSize && (
-                  <span className="text-[10px] text-slate-400 dark:text-slate-500 flex-shrink-0">
+                  <span className="text-[10px] text-[var(--text-secondary)]   flex-shrink-0">
                     {formatFileSize(analysis.fileSize)}
                   </span>
                 )}
               </div>
 
-              <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-3">
+              <p className="text-xs text-[var(--text-secondary)]  line-clamp-2 mb-3">
                 {analysis.summary}
               </p>
 
@@ -220,7 +220,7 @@ export function AnalysisResultCard({ analysis, onClick, className }: AnalysisRes
 
                 {/* IOC count */}
                 {iocs.length > 0 && (
-                  <span className="inline-flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+                  <span className="inline-flex items-center gap-1 text-xs text-[var(--text-secondary)] ">
                     <AlertTriangle className="w-3.5 h-3.5" />
                     {iocs.length} IOC{iocs.length !== 1 ? 's' : ''}
                   </span>
@@ -228,14 +228,14 @@ export function AnalysisResultCard({ analysis, onClick, className }: AnalysisRes
 
                 {/* Finding count */}
                 {findings.length > 0 && (
-                  <span className="inline-flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+                  <span className="inline-flex items-center gap-1 text-xs text-[var(--text-secondary)] ">
                     <Shield className="w-3.5 h-3.5" />
                     {findings.length} finding{findings.length !== 1 ? 's' : ''}
                   </span>
                 )}
 
                 {/* Timestamp */}
-                <span className="inline-flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500 ml-auto">
+                <span className="inline-flex items-center gap-1 text-xs text-[var(--text-secondary)]   ml-auto">
                   <Clock className="w-3 h-3" />
                   {formatTimestamp(analysis.analyzedAt)}
                 </span>
@@ -243,10 +243,10 @@ export function AnalysisResultCard({ analysis, onClick, className }: AnalysisRes
 
               {/* Confidence bar */}
               <div className="mt-3 flex items-center gap-2">
-                <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 flex-shrink-0">
+                <span className="text-[10px] font-medium text-[var(--text-secondary)]  flex-shrink-0">
                   Confidence
                 </span>
-                <div className="flex-1 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                <div className="flex-1 h-1.5 rounded-full bg-[var(--surface-container)]  overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${confidence}%` }}
@@ -254,7 +254,7 @@ export function AnalysisResultCard({ analysis, onClick, className }: AnalysisRes
                     className={cn('h-full rounded-full', confidenceColor(confidence))}
                   />
                 </div>
-                <span className="text-[10px] font-medium text-slate-600 dark:text-slate-300 flex-shrink-0 w-8 text-right">
+                <span className="text-[10px] font-medium text-[var(--text-secondary)]  flex-shrink-0 w-8 text-right">
                   {confidence}%
                 </span>
               </div>
@@ -265,13 +265,13 @@ export function AnalysisResultCard({ analysis, onClick, className }: AnalysisRes
                   {mitreTechniques.slice(0, 3).map((technique) => (
                     <span
                       key={technique}
-                      className="text-[10px] font-medium text-violet-500 dark:text-violet-400 bg-violet-500/10 px-1.5 py-0.5 rounded"
+                      className="text-[10px] font-medium text-violet-500   bg-violet-500/10 px-1.5 py-0.5 rounded"
                     >
                       {technique}
                     </span>
                   ))}
                   {mitreTechniques.length > 3 && (
-                    <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                    <span className="text-[10px] text-[var(--text-secondary)]  ">
                       +{mitreTechniques.length - 3} more
                     </span>
                   )}
@@ -281,7 +281,7 @@ export function AnalysisResultCard({ analysis, onClick, className }: AnalysisRes
 
             {/* Chevron */}
             {onClick && (
-              <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500 flex-shrink-0 mt-1" />
+              <ChevronRight className="w-4 h-4 text-[var(--text-secondary)]   flex-shrink-0 mt-1" />
             )}
           </div>
         </CardContent>

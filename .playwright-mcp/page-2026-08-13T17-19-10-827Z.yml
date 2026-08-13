@@ -1,0 +1,178 @@
+- generic [ref=e7]:
+  - complementary [ref=e8]:
+    - generic [ref=e20]:
+      - heading "NyxTrace" [level=1] [ref=e21]
+      - paragraph [ref=e22]: Cyber Intelligence
+    - navigation [ref=e23]:
+      - generic [ref=e24]:
+        - generic [ref=e25]: Home
+        - link "Home" [ref=e27] [cursor=pointer]:
+          - /url: /home
+      - generic [ref=e33]:
+        - generic [ref=e34]: Workspace
+        - generic [ref=e35]:
+          - link "Dashboard" [ref=e36] [cursor=pointer]:
+            - /url: /dashboard
+          - link "Evidence" [ref=e44] [cursor=pointer]:
+            - /url: /evidence
+      - generic [ref=e49]:
+        - generic [ref=e50]: Operations
+        - generic [ref=e51]:
+          - link "Sandbox" [ref=e52] [cursor=pointer]:
+            - /url: /sandbox
+          - link "Telemetry" [ref=e58] [cursor=pointer]:
+            - /url: /telemetry
+          - link "AI Analysis" [ref=e63] [cursor=pointer]:
+            - /url: /ai-analysis
+          - link "Reports" [ref=e74] [cursor=pointer]:
+            - /url: /reports
+      - generic [ref=e81]:
+        - generic [ref=e82]: Intelligence
+        - generic [ref=e83]:
+          - link "Threat Intel" [ref=e84] [cursor=pointer]:
+            - /url: /threat-intelligence
+          - link "Forensic Analytics" [ref=e89] [cursor=pointer]:
+            - /url: /forensic-analytics
+          - link "Blockchain Ops" [ref=e94] [cursor=pointer]:
+            - /url: /blockchain-operations
+      - generic [ref=e100]:
+        - generic [ref=e101]: Administration
+        - generic [ref=e102]:
+          - link "System Health" [ref=e103] [cursor=pointer]:
+            - /url: /health
+          - link "Users" [ref=e108] [cursor=pointer]:
+            - /url: /users
+          - link "Settings" [ref=e116] [cursor=pointer]:
+            - /url: /settings
+          - link "Audit Log" [ref=e122] [cursor=pointer]:
+            - /url: /audit
+    - generic [ref=e130]:
+      - generic [ref=e131]:
+        - generic [ref=e132]: Operational
+        - paragraph [ref=e136]: v2.0 · Enterprise
+      - button "Collapse" [ref=e137]
+  - generic [ref=e141]:
+    - banner [ref=e142]:
+      - navigation [ref=e144]:
+        - generic [ref=e145]: Sandbox
+        - generic [ref=e149]: /
+        - generic [ref=e150]: Sandbox Console
+      - generic [ref=e151]:
+        - button [ref=e152]
+        - generic [ref=e156]: Connected
+        - button [ref=e167]
+        - button [ref=e173]:
+          - paragraph [ref=e179]: User
+    - generic [ref=e326]:
+      - generic [ref=e330]:
+        - paragraph [ref=e331]: Session started successfully
+        - paragraph [ref=e332]: "Session ID: 321ef4f5-a762-4622-8b26-92eac944b1c9"
+      - button [ref=e333]
+    - main [ref=e183]:
+      - generic [ref=e185]:
+        - generic [ref=e186]:
+          - generic:
+            - generic:
+              - heading "Sandbox Dashboard" [level=1]
+            - paragraph: Enterprise malware analysis and forensic investigation platform
+          - generic [ref=e192]:
+            - generic [ref=e193]: Runtime Online
+            - generic [ref=e337]:
+              - generic [ref=e340]: Running Session
+              - generic [ref=e341]: 321ef4f5
+            - button "Reset VM" [ref=e196]
+            - button "Stop Session" [ref=e200]
+            - button "New Session" [disabled] [ref=e203]
+        - generic [ref=e206]:
+          - combobox [ref=e209]:
+            - option "Select Threat Simulator..."
+            - option "LockByte" [selected]
+            - option "HiveMind"
+            - option "VaultDrain"
+            - option "SilentEye"
+            - option "GhostKernel"
+            - option "NetWarp"
+          - generic [ref=e211]:
+            - generic [ref=e212]:
+              - generic [ref=e223]: "VM:"
+              - generic [ref=e224]: Unknown
+            - generic [ref=e225]:
+              - generic [ref=e230]: "Events:"
+              - generic [ref=e231]: "0"
+            - generic [ref=e232]:
+              - generic [ref=e235]: "Alerts:"
+              - generic [ref=e236]: "0"
+        - generic [ref=e344]:
+          - generic [ref=e347]:
+            - paragraph [ref=e348]: "Session Active: 321ef4f5-a76"
+            - paragraph [ref=e349]: reverting
+          - generic [ref=e350]:
+            - generic [ref=e351]:
+              - paragraph [ref=e352]: 0:00
+              - paragraph [ref=e353]: Elapsed
+            - button "Stop" [ref=e354]
+        - generic [ref=e237]:
+          - button "Sessions (2)" [ref=e357]
+          - button "Monitoring" [ref=e239]
+          - button "Timeline" [ref=e240]
+          - button "Telemetry" [ref=e241]
+          - button "Logs (5)" [ref=e358]
+        - generic [ref=e243]:
+          - generic [ref=e244]:
+            - generic [ref=e245]:
+              - combobox [ref=e248]:
+                - option "Select an option" [disabled]
+                - option "All Status" [selected]
+                - option "Running"
+                - option "Completed"
+                - option "Failed"
+                - option "Timeout"
+              - combobox [ref=e251]:
+                - option "Select an option" [disabled]
+                - option "All Simulators" [selected]
+                - option "LockByte"
+                - option "HiveMind"
+                - option "VaultDrain"
+                - option "SilentEye"
+                - option "GhostKernel"
+                - option "NetWarp"
+              - button "Clear Sessions" [ref=e253]
+            - generic [ref=e258]:
+              - generic [ref=e360] [cursor=pointer]:
+                - generic [ref=e364]:
+                  - generic [ref=e365]:
+                    - paragraph [ref=e366]: system-service-alpha
+                    - generic [ref=e367]: 321ef4f5
+                  - generic [ref=e368]:
+                    - generic [ref=e369]: sandbox-vm
+                    - generic [ref=e370]: ·
+                    - generic [ref=e371]: 0m 0s
+                    - generic [ref=e372]: ·
+                    - generic [ref=e373]: 0 events
+                - generic [ref=e374]: running
+              - generic [ref=e379] [cursor=pointer]:
+                - generic [ref=e384]:
+                  - generic [ref=e385]:
+                    - paragraph [ref=e386]: system-service-beta
+                    - generic [ref=e387]: 8b07e3af
+                  - generic [ref=e388]:
+                    - generic [ref=e389]: sandbox-vm
+                    - generic [ref=e390]: ·
+                    - generic [ref=e391]: 2m 3s
+                    - generic [ref=e392]: ·
+                    - generic [ref=e393]: 0 events
+                - generic [ref=e394]: completed
+          - paragraph [ref=e286]: Select a session to view details
+        - generic [ref=e287]:
+          - generic [ref=e291]:
+            - paragraph [ref=e292]: Total Sessions
+            - paragraph [ref=e293]: "2"
+          - generic [ref=e301]:
+            - paragraph [ref=e302]: Completed
+            - paragraph [ref=e303]: "0"
+          - generic [ref=e311]:
+            - paragraph [ref=e312]: Running
+            - paragraph [ref=e313]: "0"
+          - generic [ref=e320]:
+            - paragraph [ref=e321]: Failed/Timeout
+            - paragraph [ref=e322]: "0"

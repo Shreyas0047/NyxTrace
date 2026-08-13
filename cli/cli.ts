@@ -236,7 +236,7 @@ function healthCheck(service: ServiceConfig, timeout = 5000): Promise<boolean> {
     };
 
     const req = http.request(options, (res) => {
-      resolvePromise(res.statusCode !== undefined && res.statusCode < 500);
+      resolvePromise(res.statusCode >= 200 && res.statusCode < 300);
     });
 
     req.on('error', () => resolvePromise(false));

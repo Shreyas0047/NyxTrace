@@ -89,10 +89,10 @@ interface ChainStage {
 }
 
 const severityBadgeColors = {
-  critical: 'bg-red-500/20 text-red-400 border-red-500/30',
-  high: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-  medium: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-  low: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+  critical: 'bg-red-500/20 text-red-600  border-red-500/30',
+  high: 'bg-orange-500/20 text-orange-600  border-orange-500/30',
+  medium: 'bg-amber-500/20 text-amber-600  border-amber-500/30',
+  low: 'bg-emerald-500/20 text-emerald-600  border-emerald-500/30',
 };
 
 const getSeverityIcon = (severity: string) => {
@@ -105,9 +105,9 @@ const getSeverityIcon = (severity: string) => {
 };
 
 const getTrendIcon = (value: number) => {
-  if (value > 0) return <TrendingUp className="w-4 h-4 text-red-400" />;
-  if (value < 0) return <TrendingDown className="w-4 h-4 text-emerald-400" />;
-  return <Minus className="w-4 h-4 text-slate-400" />;
+  if (value > 0) return <TrendingUp className="w-4 h-4 text-red-600 " />;
+  if (value < 0) return <TrendingDown className="w-4 h-4 text-emerald-600 " />;
+  return <Minus className="w-4 h-4 text-[var(--text-secondary)] " />;
 };
 
 export function AIAnalysisPage() {
@@ -332,22 +332,22 @@ export function AIAnalysisPage() {
       <div className="flex items-start justify-between gap-4 mb-6">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">AI Analysis Engine</h1>
+            <h1 className="text-2xl font-semibold text-[var(--text-primary)] ">AI Analysis Engine</h1>
           </div>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Real-time forensic intelligence and threat analysis</p>
+          <p className="mt-1 text-sm text-[var(--text-secondary)] ">Real-time forensic intelligence and threat analysis</p>
         </div>
         <div className="flex items-center gap-3">
           {isLiveAnalyzing && (
             <div className="flex items-center gap-2 px-3 py-1.5 bg-red-500/20 rounded-lg border border-red-500/30">
               <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-              <span className="text-xs text-red-400 font-medium">Live: {liveEvents} events</span>
+              <span className="text-xs text-red-600  font-medium">Live: {liveEvents} events</span>
             </div>
           )}
             {activeSession && (
             <button
               onClick={handleTerminateSession}
               disabled={isExecuting}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50"
+              className="flex items-center gap-2 px-3 py-1.5 text-sm border border-red-300  text-red-600   rounded-lg hover:bg-red-50  disabled:opacity-50"
             >
               {isExecuting ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
               Terminate
@@ -355,7 +355,7 @@ export function AIAnalysisPage() {
           )}
           <button
             onClick={() => loadInsights()}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800"
+            className="flex items-center gap-2 px-3 py-1.5 text-sm border border-[var(--border-default)]  rounded-lg hover:bg-[var(--surface-container-lowest)] "
           >
             <RefreshCw className={cn('w-4 h-4', isLoadingInsights && 'animate-spin')} />
             Refresh
@@ -364,7 +364,7 @@ export function AIAnalysisPage() {
       </div>
 
       {/* Analysis Mode Selector */}
-      <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-lg w-fit">
+      <div className="flex items-center gap-1 p-1 bg-[var(--surface-container-low)]  rounded-lg w-fit">
         {([
           { id: 'sandbox' as const, label: 'Sandbox', icon: Cpu },
           { id: 'document' as const, label: 'Document', icon: FileSearch },
@@ -377,8 +377,8 @@ export function AIAnalysisPage() {
             className={cn(
               'flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-all',
               analysisMode === id
-                ? 'bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-sm'
-                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
+                ? 'bg-white  text-amber-600   shadow-sm'
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-secondary)]  '
             )}
           >
             <Icon className="w-4 h-4" />
@@ -389,12 +389,12 @@ export function AIAnalysisPage() {
 
       {analysisMode === 'sandbox' ? (
       <>
-      <div className="flex items-center gap-4 px-4 py-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+      <div className="flex items-center gap-4 px-4 py-3 bg-[var(--surface-container-lowest)]  rounded-lg">
         <div className="flex items-center gap-2">
           <select
             value={selectedSessionForAnalysis}
             onChange={(e) => setSelectedSessionForAnalysis(e.target.value)}
-            className="px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white w-72"
+            className="px-3 py-2 text-sm border border-[var(--border-subtle)]  rounded-lg bg-white  text-[var(--text-primary)]  w-72"
           >
             <option value="">Select session for analysis...</option>
             {sessions.map(s => (
@@ -410,10 +410,10 @@ export function AIAnalysisPage() {
             Analyze Session
           </button>
         </div>
-        <div className="h-6 w-px bg-slate-300 dark:bg-slate-600" />
+        <div className="h-6 w-px bg-[var(--surface-container)] " />
         <button
           onClick={() => setShowCompareModal(true)}
-          className="flex items-center gap-2 px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800"
+          className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--border-default)]  rounded-lg hover:bg-[var(--surface-container-lowest)] "
         >
           <GitCompare className="w-4 h-4" />
           Compare Sessions
@@ -421,7 +421,7 @@ export function AIAnalysisPage() {
       </div>
 
       {isLoadingStoredAnalysis && (
-        <div className="flex items-center gap-3 px-4 py-3 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-700/50 rounded-lg text-sm text-indigo-700 dark:text-indigo-300">
+        <div className="flex items-center gap-3 px-4 py-3 bg-indigo-50  border border-indigo-200  rounded-lg text-sm text-indigo-700 ">
           <Loader2 className="w-4 h-4 animate-spin" />
           Loading stored AI analysis...
         </div>
@@ -431,20 +431,20 @@ export function AIAnalysisPage() {
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-3 px-4 py-3 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700/50 rounded-lg text-sm"
+          className="flex items-center gap-3 px-4 py-3 bg-emerald-50  border border-emerald-200  rounded-lg text-sm"
         >
-          <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-          <div className="text-emerald-800 dark:text-emerald-200">
+          <CheckCircle className="w-5 h-5 text-emerald-600   shrink-0" />
+          <div className="text-emerald-800 ">
             <span className="font-semibold">AI analysis available</span> from session completion pipeline.
             {storedAIAnalysis.confidence ? (
-              <span className="ml-2 text-emerald-600 dark:text-emerald-400">
+              <span className="ml-2 text-emerald-600  ">
                 Confidence: {(storedAIAnalysis.confidence * 100).toFixed(0)}%
               </span>
             ) : null}
           </div>
           <button
             onClick={() => setStoredAIAnalysis(null)}
-            className="ml-auto text-xs px-2 py-1 rounded bg-emerald-200/50 dark:bg-emerald-800/50 hover:bg-emerald-200 dark:hover:bg-emerald-700/50 text-emerald-700 dark:text-emerald-300"
+            className="ml-auto text-xs px-2 py-1 rounded bg-emerald-200/50  hover:bg-emerald-200  text-emerald-700 "
           >
             Re-analyze
           </button>
@@ -498,7 +498,7 @@ export function AIAnalysisPage() {
           <DashboardStat
             label="Threat Confidence"
             value={threatClassification ? `${((threatClassification.confidence) * 100).toFixed(0)}%` : '—'}
-            icon={<Shield className="w-5 h-5 text-violet-600 dark:text-violet-400" />}
+            icon={<Shield className="w-5 h-5 text-violet-600  " />}
             delta={threatClassification ? 'Based on behavioral analysis' : 'No analysis data'}
           />
         </DashboardCard>
@@ -506,7 +506,7 @@ export function AIAnalysisPage() {
           <DashboardStat
             label="MITRE Techniques"
             value={mitreTechniques.length || '—'}
-            icon={<Target className="w-5 h-5 text-amber-400" />}
+            icon={<Target className="w-5 h-5 text-amber-600 " />}
             delta={mitreTechniques.length ? 'Attack pattern mapping' : 'No techniques mapped'}
           />
         </DashboardCard>
@@ -514,7 +514,7 @@ export function AIAnalysisPage() {
           <DashboardStat
             label="Heuristics Triggered"
             value={behavioralHeuristics.length ? behavioralHeuristics.filter(h => h.triggered).length : '—'}
-            icon={<Activity className="w-5 h-5 text-amber-600 dark:text-amber-400" />}
+            icon={<Activity className="w-5 h-5 text-amber-600  " />}
             delta={behavioralHeuristics.length ? `of ${behavioralHeuristics.length} total` : 'No heuristics data'}
           />
         </DashboardCard>
@@ -522,13 +522,13 @@ export function AIAnalysisPage() {
           <DashboardStat
             label="Anomalies Detected"
             value={anomalyData.length || '—'}
-            icon={<AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />}
+            icon={<AlertTriangle className="w-5 h-5 text-red-600  " />}
             delta={anomalyData.length ? 'Behavioral deviations' : 'No anomalies detected'}
           />
         </DashboardCard>
       </PageGrid>
 
-      <div className="flex gap-2 border-b border-slate-200 dark:border-slate-700">
+      <div className="flex gap-2 border-b border-[var(--border-subtle)] ">
         {([
           { id: 'overview', label: 'Overview', icon: Layers },
           { id: 'threat', label: 'Threat Classification', icon: Shield },
@@ -544,8 +544,8 @@ export function AIAnalysisPage() {
             className={cn(
               'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px',
               activeTab === id
-                ? 'border-amber-500 text-amber-400'
-                : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
+                ? 'border-amber-500 text-amber-600 '
+                : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-secondary)]  '
             )}
           >
             <Icon className="w-4 h-4" />
@@ -558,8 +558,8 @@ export function AIAnalysisPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="space-y-6">
             <Card>
-              <div className="p-4 border-b border-slate-100 dark:border-slate-700/50">
-                <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+              <div className="p-4 border-b border-[var(--border-subtle)] ">
+                <h3 className="font-semibold text-[var(--text-primary)]  flex items-center gap-2">
                   <Shield className="w-4 h-4 text-violet-600" />
                   Threat Classification
                 </h3>
@@ -569,8 +569,8 @@ export function AIAnalysisPage() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-2xl font-bold text-slate-900 dark:text-white">{threatClassification.threatType}</p>
-                        <p className="text-sm text-slate-500">Primary Threat Classification</p>
+                        <p className="text-2xl font-bold text-[var(--text-primary)] ">{threatClassification.threatType}</p>
+                        <p className="text-sm text-[var(--text-secondary)]">Primary Threat Classification</p>
                       </div>
                       <RiskScoreGauge
                         score={threatClassification.severityScore * 10}
@@ -580,12 +580,12 @@ export function AIAnalysisPage() {
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-slate-500">Confidence Score</span>
-                        <span className="text-sm font-semibold text-violet-600 dark:text-violet-400">
+                        <span className="text-sm text-[var(--text-secondary)]">Confidence Score</span>
+                        <span className="text-sm font-semibold text-violet-600  ">
                           {(threatClassification.confidence * 100).toFixed(0)}%
                         </span>
                       </div>
-                      <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                      <div className="h-2 bg-[var(--surface-container)]  rounded-full overflow-hidden">
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: `${threatClassification.confidence * 100}%` }}
@@ -599,7 +599,7 @@ export function AIAnalysisPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-slate-500">
+                  <div className="text-center py-8 text-[var(--text-secondary)]">
                     <Brain className="w-12 h-12 mx-auto mb-2 opacity-50" />
                     <p>Select a session to analyze</p>
                     <p className="text-xs mt-1">AI analysis will identify threats and behaviors</p>
@@ -609,28 +609,28 @@ export function AIAnalysisPage() {
             </Card>
 
             <Card>
-              <div className="p-4 border-b border-slate-100 dark:border-slate-700/50">
-                <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+              <div className="p-4 border-b border-[var(--border-subtle)] ">
+                <h3 className="font-semibold text-[var(--text-primary)]  flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-amber-600" />
                   Top Anomalies
                 </h3>
               </div>
-              <div className="divide-y divide-slate-100 dark:divide-slate-700/50">
+              <div className="divide-y divide-[var(--border-subtle)] ">
                 {anomalyData.length > 0 ? anomalyData.slice(0, 3).map((anomaly, idx) => (
                   <div key={idx} className="p-4 flex items-start gap-3">
                     <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center',
-                      anomaly.severity === 'critical' ? 'bg-red-100 dark:bg-red-900/20' :
-                      anomaly.severity === 'high' ? 'bg-orange-100 dark:bg-orange-900/20' :
-                      'bg-amber-100 dark:bg-amber-900/20'
+                      anomaly.severity === 'critical' ? 'bg-red-100 ' :
+                      anomaly.severity === 'high' ? 'bg-orange-100 ' :
+                      'bg-amber-100 '
                     )}>
                       {getSeverityIcon(anomaly.severity)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-900 dark:text-white">{anomaly.type}</p>
-                      <p className="text-xs text-slate-500 mt-0.5">{anomaly.description}</p>
+                      <p className="text-sm font-medium text-[var(--text-primary)] ">{anomaly.type}</p>
+                      <p className="text-xs text-[var(--text-secondary)] mt-0.5">{anomaly.description}</p>
                       <div className="flex items-center gap-2 mt-2">
                         <div className="flex items-center gap-1">
-                          <div className="w-16 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                          <div className="w-16 h-1.5 bg-[var(--surface-container)]  rounded-full overflow-hidden">
                             <div
                               className={cn('h-full rounded-full',
                                 anomaly.severity === 'critical' ? 'bg-red-500' :
@@ -639,13 +639,13 @@ export function AIAnalysisPage() {
                               style={{ width: `${anomaly.deviationScore * 100}%` }}
                             />
                           </div>
-                          <span className="text-xs text-slate-400">{(anomaly.deviationScore * 100).toFixed(0)}%</span>
+                          <span className="text-xs text-[var(--text-secondary)] ">{(anomaly.deviationScore * 100).toFixed(0)}%</span>
                         </div>
                       </div>
                     </div>
                   </div>
                 )) : (
-                  <div className="text-center py-8 text-slate-500">
+                  <div className="text-center py-8 text-[var(--text-secondary)]">
                     <AlertTriangle className="w-12 h-12 mx-auto mb-2 opacity-50" />
                     <p>No anomalies detected</p>
                     <p className="text-xs mt-1">Anomalies will appear after analysis</p>
@@ -657,9 +657,9 @@ export function AIAnalysisPage() {
 
           <div className="space-y-6">
             <Card>
-              <div className="p-4 border-b border-slate-100 dark:border-slate-700/50">
-                <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Target className="w-4 h-4 text-amber-400" />
+              <div className="p-4 border-b border-[var(--border-subtle)] ">
+                <h3 className="font-semibold text-[var(--text-primary)]  flex items-center gap-2">
+                  <Target className="w-4 h-4 text-amber-600 " />
                   MITRE ATT&CK Coverage
                 </h3>
               </div>
@@ -667,28 +667,28 @@ export function AIAnalysisPage() {
                 {mitreTechniques.length > 0 ? (
                   <div className="grid grid-cols-2 gap-3">
                     {mitreTechniques.slice(0, 4).map((tech: any) => (
-                      <div key={tech.id} className="p-3 rounded-lg border bg-slate-50 border-slate-200">
+                      <div key={tech.id} className="p-3 rounded-lg border bg-[var(--surface-container-lowest)] border-[var(--border-subtle)]">
                         <div className="flex items-center gap-2 mb-2">
                           <span className="px-2 py-0.5 text-xs font-mono bg-amber-500/15 text-amber-700 rounded">
                             {tech.id}
                           </span>
-                          <span className="text-xs text-slate-400">{tech.tactic}</span>
+                          <span className="text-xs text-[var(--text-secondary)] ">{tech.tactic}</span>
                         </div>
-                        <p className="text-sm font-medium text-slate-800">{tech.name}</p>
+                        <p className="text-sm font-medium text-[var(--text-primary)]">{tech.name}</p>
                         <div className="flex items-center gap-1 mt-2">
-                          <div className="w-12 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                          <div className="w-12 h-1.5 bg-[var(--surface-container-low)]  rounded-full overflow-hidden">
                             <div
                               className="h-full bg-amber-500 rounded-full"
                               style={{ width: `${tech.confidence * 100}%` }}
                             />
                           </div>
-                          <span className="text-xs text-slate-500">{(tech.confidence * 100).toFixed(0)}%</span>
+                          <span className="text-xs text-[var(--text-secondary)]">{(tech.confidence * 100).toFixed(0)}%</span>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-slate-500">
+                  <div className="text-center py-8 text-[var(--text-secondary)]">
                     <Target className="w-12 h-12 mx-auto mb-2 opacity-50" />
                     <p>No MITRE techniques mapped</p>
                     <p className="text-xs mt-1">Techniques will appear after analysis</p>
@@ -698,8 +698,8 @@ export function AIAnalysisPage() {
             </Card>
 
             <Card>
-              <div className="p-4 border-b border-slate-100 dark:border-slate-700/50">
-                <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+              <div className="p-4 border-b border-[var(--border-subtle)] ">
+                <h3 className="font-semibold text-[var(--text-primary)]  flex items-center gap-2">
                   <Activity className="w-4 h-4 text-emerald-600" />
                   Behavioral Heuristics
                 </h3>
@@ -710,35 +710,35 @@ export function AIAnalysisPage() {
                     'flex items-center gap-3 p-3 rounded-lg',
                     heuristic.triggered
                       ? 'bg-red-500/10 border border-red-500/20'
-                      : 'bg-slate-50 border border-slate-200'
+                      : 'bg-[var(--surface-container-lowest)] border border-[var(--border-subtle)]'
                   )}>
                     <div className={cn(
                       'w-8 h-8 rounded-lg flex items-center justify-center',
-                      heuristic.triggered ? 'bg-red-100 dark:bg-red-900/30' : 'bg-slate-200 dark:bg-slate-700'
+                      heuristic.triggered ? 'bg-red-100 ' : 'bg-[var(--surface-container)] '
                     )}>
                       {heuristic.triggered ? (
-                        <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400" />
+                        <AlertTriangle className="w-4 h-4 text-red-600  " />
                       ) : (
-                        <CheckCircle className="w-4 h-4 text-slate-400" />
+                        <CheckCircle className="w-4 h-4 text-[var(--text-secondary)] " />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-800">{heuristic.name}</p>
-                      <p className="text-xs text-slate-400 mt-0.5 truncate">{heuristic.description}</p>
+                      <p className="text-sm font-medium text-[var(--text-primary)]">{heuristic.name}</p>
+                      <p className="text-xs text-[var(--text-secondary)]  mt-0.5 truncate">{heuristic.description}</p>
                     </div>
                     <span className={cn(
                       'px-2 py-0.5 text-xs font-medium rounded capitalize',
                       heuristic.triggered
-                        ? heuristic.severity === 'critical' ? 'bg-red-500/20 text-red-400' :
-                          heuristic.severity === 'high' ? 'bg-orange-500/20 text-orange-400' :
-                          'bg-amber-500/20 text-amber-400'
-                        : 'bg-slate-600/30 text-slate-400'
+                        ? heuristic.severity === 'critical' ? 'bg-red-500/20 text-red-600 ' :
+                          heuristic.severity === 'high' ? 'bg-orange-500/20 text-orange-600 ' :
+                          'bg-amber-500/20 text-amber-600 '
+                        : 'bg-[var(--surface-container)] text-[var(--text-secondary)] '
                     )}>
                       {heuristic.triggered ? heuristic.severity : 'safe'}
                     </span>
                   </div>
                 )) : (
-                  <div className="text-center py-8 text-slate-500">
+                  <div className="text-center py-8 text-[var(--text-secondary)]">
                     <Activity className="w-12 h-12 mx-auto mb-2 opacity-50" />
                     <p>No heuristics triggered</p>
                     <p className="text-xs mt-1">Heuristics will appear after analysis</p>
@@ -754,18 +754,18 @@ export function AIAnalysisPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <Card>
-              <div className="p-4 border-b border-slate-100 dark:border-slate-700/50">
-                <h3 className="font-semibold text-slate-900 dark:text-white">Threat Classification Details</h3>
+              <div className="p-4 border-b border-[var(--border-subtle)] ">
+                <h3 className="font-semibold text-[var(--text-primary)] ">Threat Classification Details</h3>
               </div>
               <div className="p-6">
                 {threatClassification ? (
                   <div className="space-y-6">
                     <div className="flex items-center gap-6">
                       <div className="text-center">
-                        <p className="text-4xl font-bold text-violet-600 dark:text-violet-400">
+                        <p className="text-4xl font-bold text-violet-600  ">
                           {(threatClassification.confidence * 100).toFixed(0)}%
                         </p>
-                        <p className="text-xs text-slate-500 mt-1">Confidence</p>
+                        <p className="text-xs text-[var(--text-secondary)] mt-1">Confidence</p>
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-4">
@@ -775,11 +775,11 @@ export function AIAnalysisPage() {
                           )}>
                             {threatClassification.severityLevel}
                           </span>
-                          <span className="text-2xl font-bold text-slate-900 dark:text-white">
+                          <span className="text-2xl font-bold text-[var(--text-primary)] ">
                             {threatClassification.threatType}
                           </span>
                         </div>
-                        <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                        <div className="h-3 bg-[var(--surface-container)]  rounded-full overflow-hidden">
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${threatClassification.confidence * 100}%` }}
@@ -791,14 +791,14 @@ export function AIAnalysisPage() {
                     </div>
 
                     <div>
-                      <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">Classification Reasons</h4>
+                      <h4 className="text-sm font-semibold text-[var(--text-secondary)]  mb-3">Classification Reasons</h4>
                       <div className="space-y-2">
                         {(threatClassification.reasons || []).map((reason: string, idx: number) => (
-                          <div key={idx} className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                            <div className="w-6 h-6 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
-                              <span className="text-xs font-bold text-violet-600 dark:text-violet-400">{idx + 1}</span>
+                          <div key={idx} className="flex items-center gap-3 p-3 bg-[var(--surface-container-lowest)]  rounded-lg">
+                            <div className="w-6 h-6 rounded-full bg-violet-100  flex items-center justify-center">
+                              <span className="text-xs font-bold text-violet-600  ">{idx + 1}</span>
                             </div>
-                            <p className="text-sm text-slate-700 dark:text-slate-300">{reason}</p>
+                            <p className="text-sm text-[var(--text-secondary)] ">{reason}</p>
                           </div>
                         ))}
                       </div>
@@ -806,12 +806,12 @@ export function AIAnalysisPage() {
 
                     {currentSessionAnalysis && (
                       <div>
-                        <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">Threat Probability Distribution</h4>
+                        <h4 className="text-sm font-semibold text-[var(--text-secondary)]  mb-3">Threat Probability Distribution</h4>
                         <div className="space-y-2">
                           {Object.entries(currentSessionAnalysis.threatClassification).map(([type, prob]) => (
                             <div key={type} className="flex items-center gap-3">
-                              <span className="text-sm text-slate-600 dark:text-slate-400 w-40">{type}</span>
-                              <div className="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                              <span className="text-sm text-[var(--text-secondary)]  w-40">{type}</span>
+                              <div className="flex-1 h-2 bg-[var(--surface-container)]  rounded-full overflow-hidden">
                                 <motion.div
                                   initial={{ width: 0 }}
                                   animate={{ width: `${(prob as number) * 100}%` }}
@@ -823,7 +823,7 @@ export function AIAnalysisPage() {
                                   )}
                                 />
                               </div>
-                              <span className="text-sm font-mono text-slate-600 dark:text-slate-400 w-12">
+                              <span className="text-sm font-mono text-[var(--text-secondary)]  w-12">
                                 {((prob as number) * 100).toFixed(0)}%
                               </span>
                             </div>
@@ -834,17 +834,17 @@ export function AIAnalysisPage() {
                   </div>
                 ) : (
                   <div className="text-center py-12">
-                    <Shield className="w-16 h-16 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
-                    <p className="text-slate-500">No threat classification available</p>
-                    <p className="text-xs text-slate-400 mt-1">Analyze a session to generate threat classification</p>
+                    <Shield className="w-16 h-16 mx-auto mb-4 text-[var(--text-secondary)]  " />
+                    <p className="text-[var(--text-secondary)]">No threat classification available</p>
+                    <p className="text-xs text-[var(--text-secondary)]  mt-1">Analyze a session to generate threat classification</p>
                   </div>
                 )}
               </div>
             </Card>
 
             <Card>
-              <div className="p-4 border-b border-slate-100 dark:border-slate-700/50">
-                <h3 className="font-semibold text-slate-900 dark:text-white">Attack Chain Progression</h3>
+              <div className="p-4 border-b border-[var(--border-subtle)] ">
+                <h3 className="font-semibold text-[var(--text-primary)] ">Attack Chain Progression</h3>
               </div>
               <div className="p-4">
                 <div className="relative">
@@ -857,20 +857,20 @@ export function AIAnalysisPage() {
                           stage.status === 'completed' && 'bg-emerald-500 border-emerald-500',
                           stage.status === 'in-progress' && 'bg-amber-500 border-amber-500 animate-pulse',
                           stage.status === 'detected' && 'bg-amber-500 border-amber-500',
-                          stage.status === 'pending' && 'bg-slate-200 dark:bg-slate-700 border-slate-300 dark:border-slate-600'
+                          stage.status === 'pending' && 'bg-[var(--surface-container)]  border-[var(--border-default)] '
                         )} />
                         <div className={cn(
                           'flex-1 p-3 rounded-lg border',
-                          stage.status === 'completed' && 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800/30',
-                          stage.status === 'in-progress' && 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/30',
-                          stage.status === 'pending' && 'bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-700/50 opacity-50'
+                          stage.status === 'completed' && 'bg-emerald-50  border-emerald-200 ',
+                          stage.status === 'in-progress' && 'bg-amber-50  border-amber-200 ',
+                          stage.status === 'pending' && 'bg-[var(--surface-container-lowest)]  border-[var(--border-subtle)]  opacity-50'
                         )}>
                           <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-slate-900 dark:text-white">{stage.name}</span>
-                            <span className="text-xs text-slate-500">{stage.events} events</span>
+                            <span className="text-sm font-medium text-[var(--text-primary)] ">{stage.name}</span>
+                            <span className="text-xs text-[var(--text-secondary)]">{stage.events} events</span>
                           </div>
                           {stage.description && (
-                            <p className="text-xs text-slate-500 mt-1">{stage.description}</p>
+                            <p className="text-xs text-[var(--text-secondary)] mt-1">{stage.description}</p>
                           )}
                         </div>
                       </div>
@@ -883,8 +883,8 @@ export function AIAnalysisPage() {
 
           <div className="space-y-6">
             <Card>
-              <div className="p-4 border-b border-slate-100 dark:border-slate-700/50">
-                <h3 className="font-semibold text-slate-900 dark:text-white">Risk Score Gauge</h3>
+              <div className="p-4 border-b border-[var(--border-subtle)] ">
+                <h3 className="font-semibold text-[var(--text-primary)] ">Risk Score Gauge</h3>
               </div>
               <div className="p-6 flex justify-center">
                 <RiskScoreGauge
@@ -897,12 +897,12 @@ export function AIAnalysisPage() {
             </Card>
 
             <Card>
-              <div className="p-4 border-b border-slate-100 dark:border-slate-700/50">
-                <h3 className="font-semibold text-slate-900 dark:text-white">Executive Summary</h3>
+              <div className="p-4 border-b border-[var(--border-subtle)] ">
+                <h3 className="font-semibold text-[var(--text-primary)] ">Executive Summary</h3>
               </div>
               <div className="p-4">
-                <div className="prose prose-sm dark:prose-invert max-w-none">
-                  <p className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-line">
+                <div className="prose prose-sm  max-w-none">
+                  <p className="text-sm text-[var(--text-secondary)]  whitespace-pre-line">
                     {executiveSummary}
                   </p>
                 </div>
@@ -930,39 +930,39 @@ export function AIAnalysisPage() {
           />
 
           <Card>
-            <div className="p-4 border-b border-slate-100 dark:border-slate-700/50">
-              <h3 className="font-semibold text-slate-900 dark:text-white">Technique Details</h3>
+            <div className="p-4 border-b border-[var(--border-subtle)] ">
+              <h3 className="font-semibold text-[var(--text-primary)] ">Technique Details</h3>
             </div>
-            <div className="divide-y divide-slate-100 dark:divide-slate-700/50">
+            <div className="divide-y divide-[var(--border-subtle)] ">
               {mitreTechniques.map((tech) => (
                 <div key={tech.id} className="p-4">
                   <div
                     onClick={() => setExpandedTechnique(expandedTechnique === tech.id ? null : tech.id)}
-                    className="flex items-center justify-between cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/30 -mx-4 px-4 py-2"
+                    className="flex items-center justify-between cursor-pointer hover:bg-[var(--surface-container-lowest)]  -mx-4 px-4 py-2"
                   >
                     <div className="flex items-center gap-3">
                       <span className="px-2 py-1 text-xs font-mono bg-amber-500/15 text-amber-700 rounded">
                         {tech.id}
                       </span>
                       <div>
-                        <p className="text-sm font-medium text-slate-900 dark:text-white">{tech.name}</p>
-                        <p className="text-xs text-slate-500">{tech.tactic}</p>
+                        <p className="text-sm font-medium text-[var(--text-primary)] ">{tech.name}</p>
+                        <p className="text-xs text-[var(--text-secondary)]">{tech.tactic}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-1">
-                        <div className="w-16 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                        <div className="w-16 h-1.5 bg-[var(--surface-container)]  rounded-full overflow-hidden">
                           <div
                             className="h-full bg-amber-500 rounded-full"
                             style={{ width: `${tech.confidence * 100}%` }}
                           />
                         </div>
-                        <span className="text-xs text-slate-400">{(tech.confidence * 100).toFixed(0)}%</span>
+                        <span className="text-xs text-[var(--text-secondary)] ">{(tech.confidence * 100).toFixed(0)}%</span>
                       </div>
                       {expandedTechnique === tech.id ? (
-                        <ChevronDown className="w-4 h-4 text-slate-400" />
+                        <ChevronDown className="w-4 h-4 text-[var(--text-secondary)] " />
                       ) : (
-                        <ChevronRight className="w-4 h-4 text-slate-400" />
+                        <ChevronRight className="w-4 h-4 text-[var(--text-secondary)] " />
                       )}
                     </div>
                   </div>
@@ -974,12 +974,12 @@ export function AIAnalysisPage() {
                         exit={{ height: 0, opacity: 0 }}
                         className="mt-3 space-y-2"
                       >
-                        <p className="text-sm text-slate-600 dark:text-slate-400">{tech.description}</p>
+                        <p className="text-sm text-[var(--text-secondary)] ">{tech.description}</p>
                         <div>
-                          <p className="text-xs font-medium text-slate-500 mb-1">Evidence:</p>
+                          <p className="text-xs font-medium text-[var(--text-secondary)] mb-1">Evidence:</p>
                           <div className="flex flex-wrap gap-1">
                             {tech.evidence.map((ev: string, i: number) => (
-                              <span key={i} className="px-2 py-0.5 text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded font-mono">
+                              <span key={i} className="px-2 py-0.5 text-xs bg-[var(--surface-container-low)]  text-[var(--text-secondary)]  rounded font-mono">
                                 {ev}
                               </span>
                             ))}
@@ -1004,40 +1004,40 @@ export function AIAnalysisPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
-              <div className="p-4 border-b border-slate-100 dark:border-slate-700/50">
-                <h3 className="font-semibold text-slate-900 dark:text-white">Chain Statistics</h3>
+              <div className="p-4 border-b border-[var(--border-subtle)] ">
+                <h3 className="font-semibold text-[var(--text-primary)] ">Chain Statistics</h3>
               </div>
               <div className="p-4 grid grid-cols-2 gap-4">
-                <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                  <p className="text-3xl font-bold text-amber-400">
+                <div className="text-center p-4 bg-[var(--surface-container-lowest)]  rounded-lg">
+                  <p className="text-3xl font-bold text-amber-600 ">
                     {attackChainStages.filter(s => s.status !== 'pending').length}
                   </p>
-                  <p className="text-xs text-slate-500 mt-1">Stages Detected</p>
+                  <p className="text-xs text-[var(--text-secondary)] mt-1">Stages Detected</p>
                 </div>
-                <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                  <p className="text-3xl font-bold text-violet-600 dark:text-violet-400">
+                <div className="text-center p-4 bg-[var(--surface-container-lowest)]  rounded-lg">
+                  <p className="text-3xl font-bold text-violet-600  ">
                     {attackChainStages.reduce((sum, s) => sum + s.events, 0)}
                   </p>
-                  <p className="text-xs text-slate-500 mt-1">Total Events</p>
+                  <p className="text-xs text-[var(--text-secondary)] mt-1">Total Events</p>
                 </div>
-                <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                  <p className="text-3xl font-bold text-amber-600 dark:text-amber-400">
+                <div className="text-center p-4 bg-[var(--surface-container-lowest)]  rounded-lg">
+                  <p className="text-3xl font-bold text-amber-600  ">
                     {attackChainStages.filter(s => s.severity === 'critical').length}
                   </p>
-                  <p className="text-xs text-slate-500 mt-1">Critical Stages</p>
+                  <p className="text-xs text-[var(--text-secondary)] mt-1">Critical Stages</p>
                 </div>
-                <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                  <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+                <div className="text-center p-4 bg-[var(--surface-container-lowest)]  rounded-lg">
+                  <p className="text-3xl font-bold text-emerald-600  ">
                     {attackChainStages.length > 0 ? `${((currentReport?.attackChain?.confidence || sessionAnalysis?.attackChain?.confidence || 0) * 100).toFixed(0)}%` : '—'}
                   </p>
-                  <p className="text-xs text-slate-500 mt-1">Chain Confidence</p>
+                  <p className="text-xs text-[var(--text-secondary)] mt-1">Chain Confidence</p>
                 </div>
               </div>
             </Card>
 
             <Card>
-              <div className="p-4 border-b border-slate-100 dark:border-slate-700/50">
-                <h3 className="font-semibold text-slate-900 dark:text-white">Evidence Correlation Graph</h3>
+              <div className="p-4 border-b border-[var(--border-subtle)] ">
+                <h3 className="font-semibold text-[var(--text-primary)] ">Evidence Correlation Graph</h3>
               </div>
               <div className="p-4">
                 <EvidenceGraph
@@ -1060,46 +1060,46 @@ export function AIAnalysisPage() {
                   'p-4 rounded-xl border',
                   heuristic.triggered
                     ? 'bg-red-500/5 border-red-500/20'
-                    : 'bg-slate-50 border-slate-200'
+                    : 'bg-[var(--surface-container-lowest)] border-[var(--border-subtle)]'
                 )}>
                   <div className="flex items-start gap-4">
                     <div className={cn(
                       'w-10 h-10 rounded-lg flex items-center justify-center',
                       heuristic.triggered
-                        ? heuristic.severity === 'critical' ? 'bg-red-100 dark:bg-red-900/30' :
-                          heuristic.severity === 'high' ? 'bg-orange-100 dark:bg-orange-900/30' :
-                          'bg-amber-100 dark:bg-amber-900/30'
-                        : 'bg-slate-100 dark:bg-slate-700'
+                        ? heuristic.severity === 'critical' ? 'bg-red-100 ' :
+                          heuristic.severity === 'high' ? 'bg-orange-100 ' :
+                          'bg-amber-100 '
+                        : 'bg-[var(--surface-container-low)] '
                     )}>
                       {heuristic.triggered ? (
                         <AlertTriangle className={cn(
                           'w-5 h-5',
-                          heuristic.severity === 'critical' ? 'text-red-600 dark:text-red-400' :
-                          heuristic.severity === 'high' ? 'text-orange-600 dark:text-orange-400' :
-                          'text-amber-600 dark:text-amber-400'
+                          heuristic.severity === 'critical' ? 'text-red-600  ' :
+                          heuristic.severity === 'high' ? 'text-orange-600  ' :
+                          'text-amber-600  '
                         )} />
                       ) : (
-                        <CheckCircle className="w-5 h-5 text-slate-400" />
+                        <CheckCircle className="w-5 h-5 text-[var(--text-secondary)] " />
                       )}
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-1">
-                        <h4 className="text-sm font-semibold text-slate-900 dark:text-white">{heuristic.name}</h4>
+                        <h4 className="text-sm font-semibold text-[var(--text-primary)] ">{heuristic.name}</h4>
                         <span className={cn(
                           'px-2 py-0.5 text-xs font-medium rounded capitalize',
                           heuristic.triggered
-                            ? heuristic.severity === 'critical' ? 'bg-red-500/20 text-red-400' :
-                              heuristic.severity === 'high' ? 'bg-orange-500/20 text-orange-400' :
-                              'bg-amber-500/20 text-amber-400'
-                            : 'bg-slate-600/30 text-slate-400'
+                            ? heuristic.severity === 'critical' ? 'bg-red-500/20 text-red-600 ' :
+                              heuristic.severity === 'high' ? 'bg-orange-500/20 text-orange-600 ' :
+                              'bg-amber-500/20 text-amber-600 '
+                            : 'bg-[var(--surface-container)] text-[var(--text-secondary)] '
                         )}>
                           {heuristic.triggered ? heuristic.severity : 'not triggered'}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-500 mb-3">{heuristic.description}</p>
+                      <p className="text-xs text-[var(--text-secondary)] mb-3">{heuristic.description}</p>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-slate-500">Confidence:</span>
-                        <div className="flex-1 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                        <span className="text-xs text-[var(--text-secondary)]">Confidence:</span>
+                        <div className="flex-1 h-1.5 bg-[var(--surface-container)]  rounded-full overflow-hidden">
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${heuristic.confidence * 100}%` }}
@@ -1111,7 +1111,7 @@ export function AIAnalysisPage() {
                             )}
                           />
                         </div>
-                        <span className="text-xs font-mono text-slate-400">
+                        <span className="text-xs font-mono text-[var(--text-secondary)] ">
                           {(heuristic.confidence * 100).toFixed(0)}%
                         </span>
                       </div>
@@ -1123,12 +1123,12 @@ export function AIAnalysisPage() {
           </PageGrid>
 
           <Card>
-            <div className="p-4 border-b border-slate-100 dark:border-slate-700/50">
-              <h3 className="font-semibold text-slate-900 dark:text-white">Analyst Explanation</h3>
+            <div className="p-4 border-b border-[var(--border-subtle)] ">
+              <h3 className="font-semibold text-[var(--text-primary)] ">Analyst Explanation</h3>
             </div>
             <div className="p-4">
-              <div className="prose prose-sm dark:prose-invert max-w-none">
-                <p className="whitespace-pre-line text-sm text-slate-600 dark:text-slate-400">
+              <div className="prose prose-sm  max-w-none">
+                <p className="whitespace-pre-line text-sm text-[var(--text-secondary)] ">
                   {analystExplanation}
                 </p>
               </div>
@@ -1147,35 +1147,35 @@ export function AIAnalysisPage() {
                     <div className="flex items-center gap-2">
                       <div className={cn(
                         'w-8 h-8 rounded-lg flex items-center justify-center',
-                        anomaly.severity === 'critical' ? 'bg-red-100 dark:bg-red-900/30' :
-                        anomaly.severity === 'high' ? 'bg-orange-100 dark:bg-orange-900/30' :
-                        'bg-amber-100 dark:bg-amber-900/30'
+                        anomaly.severity === 'critical' ? 'bg-red-100 ' :
+                        anomaly.severity === 'high' ? 'bg-orange-100 ' :
+                        'bg-amber-100 '
                       )}>
                         {getSeverityIcon(anomaly.severity)}
                       </div>
                       <div>
-                        <h4 className="text-sm font-semibold text-slate-900 dark:text-white">{anomaly.type}</h4>
-                        <p className="text-xs text-slate-500">{new Date(anomaly.timestamp).toLocaleTimeString()}</p>
+                        <h4 className="text-sm font-semibold text-[var(--text-primary)] ">{anomaly.type}</h4>
+                        <p className="text-xs text-[var(--text-secondary)]">{new Date(anomaly.timestamp).toLocaleTimeString()}</p>
                       </div>
                     </div>
                     <span className={cn(
                       'px-2 py-0.5 text-xs font-medium rounded capitalize',
-                      anomaly.severity === 'critical' ? 'bg-red-500/20 text-red-400' :
-                      anomaly.severity === 'high' ? 'bg-orange-500/20 text-orange-400' :
-                      'bg-amber-500/20 text-amber-400'
+                      anomaly.severity === 'critical' ? 'bg-red-500/20 text-red-600 ' :
+                      anomaly.severity === 'high' ? 'bg-orange-500/20 text-orange-600 ' :
+                      'bg-amber-500/20 text-amber-600 '
                     )}>
                       {anomaly.severity}
                     </span>
                   </div>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{anomaly.description}</p>
+                  <p className="text-sm text-[var(--text-secondary)]  mb-4">{anomaly.description}</p>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-xs text-slate-500">Deviation Score</span>
-                      <span className="text-sm font-semibold text-slate-900 dark:text-white">
+                      <span className="text-xs text-[var(--text-secondary)]">Deviation Score</span>
+                      <span className="text-sm font-semibold text-[var(--text-primary)] ">
                         {(anomaly.deviationScore * 100).toFixed(0)}%
                       </span>
                     </div>
-                    <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div className="h-2 bg-[var(--surface-container)]  rounded-full overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${anomaly.deviationScore * 100}%` }}
@@ -1189,11 +1189,11 @@ export function AIAnalysisPage() {
                     </div>
                   </div>
                   {anomaly.indicators.length > 0 && (
-                    <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
-                      <p className="text-xs font-medium text-slate-500 mb-2">Indicators:</p>
+                    <div className="mt-3 pt-3 border-t border-[var(--border-subtle)] ">
+                      <p className="text-xs font-medium text-[var(--text-secondary)] mb-2">Indicators:</p>
                       <div className="flex flex-wrap gap-1">
                         {anomaly.indicators.map((ind, i) => (
-                          <span key={i} className="px-2 py-0.5 text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded font-mono">
+                          <span key={i} className="px-2 py-0.5 text-xs bg-[var(--surface-container-low)]  text-[var(--text-secondary)]  rounded font-mono">
                             {ind}
                           </span>
                         ))}
@@ -1212,35 +1212,35 @@ export function AIAnalysisPage() {
           {comparisonResult ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
-                <div className="p-4 border-b border-slate-100 dark:border-slate-700/50 bg-violet-500/5">
+                <div className="p-4 border-b border-[var(--border-subtle)]  bg-violet-500/5">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
-                      <Cpu className="w-5 h-5 text-violet-600 dark:text-violet-400" />
+                    <div className="w-10 h-10 rounded-xl bg-violet-100  flex items-center justify-center">
+                      <Cpu className="w-5 h-5 text-violet-600  " />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-slate-900 dark:text-white">Session 1</p>
-                      <p className="text-xs text-slate-500 font-mono">{comparisonResult.session1.id.slice(0, 12)}</p>
+                      <p className="text-sm font-semibold text-[var(--text-primary)] ">Session 1</p>
+                      <p className="text-xs text-[var(--text-secondary)] font-mono">{comparisonResult.session1.id.slice(0, 12)}</p>
                     </div>
                   </div>
                 </div>
                 <div className="p-4 space-y-4">
-                  <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                    <span className="text-sm text-slate-500">Threat Type</span>
-                    <span className="text-sm font-semibold text-slate-900 dark:text-white">{comparisonResult.session1.threatType}</span>
+                  <div className="flex justify-between items-center p-3 bg-[var(--surface-container-lowest)]  rounded-lg">
+                    <span className="text-sm text-[var(--text-secondary)]">Threat Type</span>
+                    <span className="text-sm font-semibold text-[var(--text-primary)] ">{comparisonResult.session1.threatType}</span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                    <span className="text-sm text-slate-500">Severity Score</span>
-                    <span className="text-sm font-semibold text-slate-900 dark:text-white">{comparisonResult.session1.severityScore}</span>
+                  <div className="flex justify-between items-center p-3 bg-[var(--surface-container-lowest)]  rounded-lg">
+                    <span className="text-sm text-[var(--text-secondary)]">Severity Score</span>
+                    <span className="text-sm font-semibold text-[var(--text-primary)] ">{comparisonResult.session1.severityScore}</span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                    <span className="text-sm text-slate-500">Heuristics Triggered</span>
-                    <span className="text-sm font-semibold text-slate-900 dark:text-white">{comparisonResult.session1.heuristicsTriggered}</span>
+                  <div className="flex justify-between items-center p-3 bg-[var(--surface-container-lowest)]  rounded-lg">
+                    <span className="text-sm text-[var(--text-secondary)]">Heuristics Triggered</span>
+                    <span className="text-sm font-semibold text-[var(--text-primary)] ">{comparisonResult.session1.heuristicsTriggered}</span>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-slate-500 mb-2">MITRE Techniques:</p>
+                    <p className="text-xs font-medium text-[var(--text-secondary)] mb-2">MITRE Techniques:</p>
                     <div className="flex flex-wrap gap-1">
                       {comparisonResult.session1.mitreTechniques.map((tech) => (
-                        <span key={tech} className="px-2 py-0.5 text-xs bg-violet-500/20 text-violet-400 rounded font-mono">
+                        <span key={tech} className="px-2 py-0.5 text-xs bg-violet-500/20 text-violet-600  rounded font-mono">
                           {tech}
                         </span>
                       ))}
@@ -1250,32 +1250,32 @@ export function AIAnalysisPage() {
               </Card>
 
               <Card>
-                <div className="p-4 border-b border-slate-100 dark:border-slate-700/50 bg-amber-500/5">
+                <div className="p-4 border-b border-[var(--border-subtle)]  bg-amber-500/5">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-amber-500/15 dark:bg-amber-900/30 flex items-center justify-center">
-                      <Cpu className="w-5 h-5 text-amber-400" />
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/15  flex items-center justify-center">
+                      <Cpu className="w-5 h-5 text-amber-600 " />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-slate-900 dark:text-white">Session 2</p>
-                      <p className="text-xs text-slate-500 font-mono">{comparisonResult.session2.id.slice(0, 12)}</p>
+                      <p className="text-sm font-semibold text-[var(--text-primary)] ">Session 2</p>
+                      <p className="text-xs text-[var(--text-secondary)] font-mono">{comparisonResult.session2.id.slice(0, 12)}</p>
                     </div>
                   </div>
                 </div>
                 <div className="p-4 space-y-4">
-                  <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                    <span className="text-sm text-slate-500">Threat Type</span>
-                    <span className="text-sm font-semibold text-slate-900 dark:text-white">{comparisonResult.session2.threatType}</span>
+                  <div className="flex justify-between items-center p-3 bg-[var(--surface-container-lowest)]  rounded-lg">
+                    <span className="text-sm text-[var(--text-secondary)]">Threat Type</span>
+                    <span className="text-sm font-semibold text-[var(--text-primary)] ">{comparisonResult.session2.threatType}</span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                    <span className="text-sm text-slate-500">Severity Score</span>
-                    <span className="text-sm font-semibold text-slate-900 dark:text-white">{comparisonResult.session2.severityScore}</span>
+                  <div className="flex justify-between items-center p-3 bg-[var(--surface-container-lowest)]  rounded-lg">
+                    <span className="text-sm text-[var(--text-secondary)]">Severity Score</span>
+                    <span className="text-sm font-semibold text-[var(--text-primary)] ">{comparisonResult.session2.severityScore}</span>
                   </div>
-                  <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                    <span className="text-sm text-slate-500">Heuristics Triggered</span>
-                    <span className="text-sm font-semibold text-slate-900 dark:text-white">{comparisonResult.session2.heuristicsTriggered}</span>
+                  <div className="flex justify-between items-center p-3 bg-[var(--surface-container-lowest)]  rounded-lg">
+                    <span className="text-sm text-[var(--text-secondary)]">Heuristics Triggered</span>
+                    <span className="text-sm font-semibold text-[var(--text-primary)] ">{comparisonResult.session2.heuristicsTriggered}</span>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-slate-500 mb-2">MITRE Techniques:</p>
+                    <p className="text-xs font-medium text-[var(--text-secondary)] mb-2">MITRE Techniques:</p>
                     <div className="flex flex-wrap gap-1">
                       {comparisonResult.session2.mitreTechniques.map((tech) => (
                         <span key={tech} className="px-2 py-0.5 text-xs bg-amber-500/15 text-amber-700 rounded font-mono">
@@ -1288,11 +1288,11 @@ export function AIAnalysisPage() {
               </Card>
 
               <Card className="lg:col-span-2">
-                <div className="p-4 border-b border-slate-100 dark:border-slate-700/50">
-                  <h3 className="font-semibold text-slate-900 dark:text-white">Comparison Analysis</h3>
+                <div className="p-4 border-b border-[var(--border-subtle)] ">
+                  <h3 className="font-semibold text-[var(--text-primary)] ">Comparison Analysis</h3>
                 </div>
                 <div className="p-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
-                  <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                  <div className="text-center p-4 bg-[var(--surface-container-lowest)]  rounded-lg">
                     <div className="flex items-center justify-center gap-2 mb-2">
                       {comparisonResult.differences.threatTypeMatch ? (
                         <CheckCircle className="w-5 h-5 text-emerald-500" />
@@ -1301,42 +1301,42 @@ export function AIAnalysisPage() {
                       )}
                       <span className="text-sm font-medium">Threat Match</span>
                     </div>
-                    <p className="text-xs text-slate-500">{comparisonResult.differences.threatTypeMatch ? 'Same threat type' : 'Different threat types'}</p>
+                    <p className="text-xs text-[var(--text-secondary)]">{comparisonResult.differences.threatTypeMatch ? 'Same threat type' : 'Different threat types'}</p>
                   </div>
-                  <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                  <div className="text-center p-4 bg-[var(--surface-container-lowest)]  rounded-lg">
                     <div className="flex items-center justify-center gap-2 mb-2">
                       {getTrendIcon(-comparisonResult.differences.severityDelta)}
                       <span className="text-sm font-medium">Severity Delta</span>
                     </div>
-                    <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                    <p className="text-2xl font-bold text-[var(--text-primary)] ">
                       {comparisonResult.differences.severityDelta.toFixed(1)}
                     </p>
                   </div>
-                  <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                  <div className="text-center p-4 bg-[var(--surface-container-lowest)]  rounded-lg">
                     <div className="flex items-center justify-center gap-2 mb-2">
                       <Link2 className="w-5 h-5 text-amber-500" />
                       <span className="text-sm font-medium">Shared Techniques</span>
                     </div>
-                    <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                    <p className="text-2xl font-bold text-[var(--text-primary)] ">
                       {comparisonResult.differences.sharedTechniques.length}
                     </p>
                   </div>
                 </div>
 
-                <div className="p-4 border-t border-slate-100 dark:border-slate-700/50">
+                <div className="p-4 border-t border-[var(--border-subtle)] ">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-xs font-medium text-slate-500 mb-2">Unique to Session 1:</p>
+                      <p className="text-xs font-medium text-[var(--text-secondary)] mb-2">Unique to Session 1:</p>
                       <div className="flex flex-wrap gap-1">
                         {comparisonResult.differences.uniqueToSession1.map((tech) => (
-                          <span key={tech} className="px-2 py-0.5 text-xs bg-violet-500/20 text-violet-400 rounded font-mono">
+                          <span key={tech} className="px-2 py-0.5 text-xs bg-violet-500/20 text-violet-600  rounded font-mono">
                             {tech}
                           </span>
                         ))}
                       </div>
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-slate-500 mb-2">Unique to Session 2:</p>
+                      <p className="text-xs font-medium text-[var(--text-secondary)] mb-2">Unique to Session 2:</p>
                       <div className="flex flex-wrap gap-1">
                         {comparisonResult.differences.uniqueToSession2.map((tech) => (
                           <span key={tech} className="px-2 py-0.5 text-xs bg-amber-500/15 text-amber-700 rounded font-mono">
@@ -1352,9 +1352,9 @@ export function AIAnalysisPage() {
           ) : (
             <Card>
               <div className="flex flex-col items-center justify-center py-16">
-                <GitCompare className="w-16 h-16 text-slate-300 dark:text-slate-600 mb-4" />
-                <p className="text-lg font-medium text-slate-700 dark:text-slate-300 mb-2">Session Comparison</p>
-                <p className="text-sm text-slate-500 mb-4">Select two sessions to compare their forensic analysis</p>
+                <GitCompare className="w-16 h-16 text-[var(--text-secondary)]   mb-4" />
+                <p className="text-lg font-medium text-[var(--text-secondary)]  mb-2">Session Comparison</p>
+                <p className="text-sm text-[var(--text-secondary)] mb-4">Select two sessions to compare their forensic analysis</p>
                 <Button onClick={() => setShowCompareModal(true)}>
                   Select Sessions
                 </Button>
@@ -1366,11 +1366,11 @@ export function AIAnalysisPage() {
 
       <Modal isOpen={showCompareModal} onClose={() => setShowCompareModal(false)} title="Compare Sessions" size="lg">
         <div className="space-y-4">
-          <p className="text-sm text-slate-500">Select two sessions to compare their forensic analysis results.</p>
+          <p className="text-sm text-[var(--text-secondary)]">Select two sessions to compare their forensic analysis results.</p>
 
           <div className="grid grid-cols-2 gap-4 max-h-80 overflow-y-auto p-1">
             {sessions.length === 0 ? (
-              <div className="col-span-2 text-center py-8 text-slate-500">
+              <div className="col-span-2 text-center py-8 text-[var(--text-secondary)]">
                 <p className="text-sm">No sessions available</p>
                 <p className="text-xs mt-1">Start a sandbox session first</p>
               </div>
@@ -1382,13 +1382,13 @@ export function AIAnalysisPage() {
                   'p-4 rounded-lg border cursor-pointer transition-colors',
                   selectedComparisonSessions.includes(session.sessionId)
                     ? 'bg-amber-500/10 border-amber-500/30'
-                    : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-700'
+                    : 'bg-[var(--surface-container-lowest)]  border-[var(--border-subtle)]  hover:border-amber-300 '
                 )}
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-slate-900 dark:text-white">{session.simulatorName}</p>
-                    <p className="text-xs text-slate-500 font-mono">{session.sessionId.slice(0, 12)}...</p>
+                    <p className="text-sm font-medium text-[var(--text-primary)] ">{session.simulatorName}</p>
+                    <p className="text-xs text-[var(--text-secondary)] font-mono">{session.sessionId.slice(0, 12)}...</p>
                   </div>
                   {selectedComparisonSessions.includes(session.sessionId) && (
                     <CheckCircle className="w-5 h-5 text-amber-500" />
@@ -1398,7 +1398,7 @@ export function AIAnalysisPage() {
             ))}
           </div>
 
-          <div className="flex justify-end gap-2 pt-4 border-t border-slate-200 dark:border-slate-700">
+          <div className="flex justify-end gap-2 pt-4 border-t border-[var(--border-subtle)] ">
             <Button variant="outline" onClick={() => setShowCompareModal(false)}>
               Cancel
             </Button>
@@ -1452,10 +1452,10 @@ export function AIAnalysisPage() {
           )}
 
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Recent Threat Analyses</h2>
+            <h2 className="text-lg font-semibold text-[var(--text-primary)] ">Recent Threat Analyses</h2>
             <button
               onClick={() => loadHistory()}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800"
+              className="flex items-center gap-2 px-3 py-1.5 text-sm border border-[var(--border-default)]  rounded-lg hover:bg-[var(--surface-container-lowest)] "
             >
               <RefreshCw className={cn('w-4 h-4', threatIntelLoading && 'animate-spin')} />
               Refresh
@@ -1481,9 +1481,9 @@ export function AIAnalysisPage() {
             </div>
           ) : (
             <div className="text-center py-20">
-              <LayoutDashboard className="w-16 h-16 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
-              <p className="text-lg font-medium text-slate-700 dark:text-slate-300 mb-2">Threat Intelligence Workspace</p>
-              <p className="text-sm text-slate-500 mb-6">Run document or URL analyses to see results here</p>
+              <LayoutDashboard className="w-16 h-16 mx-auto mb-4 text-[var(--text-secondary)]  " />
+              <p className="text-lg font-medium text-[var(--text-secondary)]  mb-2">Threat Intelligence Workspace</p>
+              <p className="text-sm text-[var(--text-secondary)] mb-6">Run document or URL analyses to see results here</p>
               <div className="flex items-center justify-center gap-4">
                 <button
                   onClick={() => setAnalysisMode('document')}
@@ -1494,7 +1494,7 @@ export function AIAnalysisPage() {
                 </button>
                 <button
                   onClick={() => setAnalysisMode('url')}
-                  className="flex items-center gap-2 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-medium text-slate-700 dark:text-slate-300"
+                  className="flex items-center gap-2 px-4 py-2 border border-[var(--border-default)]  rounded-lg hover:bg-[var(--surface-container-lowest)]  text-sm font-medium text-[var(--text-secondary)] "
                 >
                   <Globe className="w-4 h-4" />
                   Analyze URL

@@ -20,23 +20,23 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
   return (
     <div className={cn('flex flex-col gap-1.5', fullWidth && 'w-full')}>
       {label && (
-        <label htmlFor={inputId} className="text-sm font-medium text-[#a8a294] font-body">
+        <label htmlFor={inputId} className="text-sm font-medium text-[var(--text-secondary)] font-body">
           {label}
         </label>
       )}
       <div className="relative">
-        {leftIcon && <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6c675c]">{leftIcon}</div>}
+        {leftIcon && <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]">{leftIcon}</div>}
         <input
           ref={ref}
           id={inputId}
           className={cn(
             'w-full px-3 py-2 text-sm rounded-[10px] font-body',
-            'bg-[#171510] text-[#f0ede4]',
-            'placeholder:text-[#6c675c]',
+            'bg-[var(--surface-raised)] text-[var(--text-primary)]',
+            'placeholder:text-[var(--text-tertiary)]',
             'border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0',
             error
-              ? 'border-rose-800/60 focus:ring-rose-500/40 focus:border-rose-500'
-              : 'border-[rgba(245,240,230,0.08)] focus:ring-amber-500/40 focus:border-amber-500/60',
+              ? 'border-rose-500/60 focus:ring-rose-500/40 focus:border-rose-500'
+              : 'border-[var(--border-default)] focus:ring-amber-500/40 focus:border-amber-500/60',
             leftIcon && 'pl-10', rightIcon && 'pr-10', fullWidth && 'w-full', className
           )}
           {...props}
@@ -48,7 +48,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(({
         )}
       </div>
       {(error || helperText) && (
-        <p className={cn('text-xs font-body', error ? 'text-rose-400' : 'text-[#6c675c]')}>
+        <p className={cn('text-xs font-body', error ? 'text-rose-500' : 'text-[var(--text-tertiary)]')}>
           {error || helperText}
         </p>
       )}
@@ -73,22 +73,22 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(({
 
   return (
     <div className={cn('flex flex-col gap-1.5', fullWidth && 'w-full')}>
-      {label && <label htmlFor={textareaId} className="text-sm font-medium text-[#a8a294] font-body">{label}</label>}
+      {label && <label htmlFor={textareaId} className="text-sm font-medium text-[var(--text-secondary)] font-body">{label}</label>}
       <textarea
         ref={ref}
         id={textareaId}
         className={cn(
           'w-full px-3 py-2 text-sm rounded-[10px] resize-y min-h-[80px] font-body',
-          'bg-[#171510] text-[#f0ede4]',
-          'placeholder:text-[#6c675c]',
+          'bg-[var(--surface-raised)] text-[var(--text-primary)]',
+          'placeholder:text-[var(--text-tertiary)]',
           'border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0',
-          error ? 'border-rose-800/60 focus:ring-rose-500/40 focus:border-rose-500' : 'border-[rgba(245,240,230,0.08)] focus:ring-amber-500/40 focus:border-amber-500/60',
+          error ? 'border-rose-500/60 focus:ring-rose-500/40 focus:border-rose-500' : 'border-[var(--border-default)] focus:ring-amber-500/40 focus:border-amber-500/60',
           fullWidth && 'w-full', className
         )}
         {...props}
       />
       {(error || helperText) && (
-        <p className={cn('text-xs font-body', error ? 'text-rose-400' : 'text-[#6c675c]')}>
+        <p className={cn('text-xs font-body', error ? 'text-rose-500' : 'text-[var(--text-tertiary)]')}>
           {error || helperText}
         </p>
       )}

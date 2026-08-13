@@ -136,9 +136,16 @@ async function startServer(): Promise<void> {
 
     // Start listening
     const { port, nodeEnv } = config.server;
-
-    // Initialize WebSocket service
-    const server = app.listen(port, () => {
+    const server = app.listen(port);
+    server.once('error', (err: NodeJS.ErrnoException) => {
+      if (err.code === 'EADDRINUSE') {
+        logger.error(`Port ${port} is already in use.`);
+      } else {
+        logger.error(`Listen error: ${err.message}`);
+      }
+      process.exit(1);
+    });
+    server.on('listening', () => {
       websocketService.initialize(server);
       logger.info([
         '============================================================',

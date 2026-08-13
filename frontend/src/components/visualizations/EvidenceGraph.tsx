@@ -110,24 +110,24 @@ export function EvidenceGraph({
   return (
     <div className={cn(
       'rounded-2xl border overflow-hidden',
-      isDark ? 'bg-slate-800/50 border-slate-700/50' : 'bg-white border-slate-200'
+      isDark ? 'bg-[var(--surface-container-low)]  border-[var(--border-subtle)] ' : 'bg-white border-[var(--border-subtle)]'
     )}>
       {/* Header */}
       <div className={cn(
         'flex items-center justify-between px-5 py-4 border-b',
-        isDark ? 'border-slate-700/50' : 'border-slate-200'
+        isDark ? 'border-[var(--border-subtle)] ' : 'border-[var(--border-subtle)]'
       )}>
         <div className="flex items-center gap-3">
-          <Link2 className={cn('w-5 h-5', isDark ? 'text-slate-400' : 'text-slate-500')} />
+          <Link2 className={cn('w-5 h-5', isDark ? 'text-[var(--text-secondary)] ' : 'text-[var(--text-secondary)]')} />
           <h3 className={cn(
             'text-base font-semibold',
-            isDark ? 'text-slate-100' : 'text-slate-800'
+            isDark ? 'text-[var(--text-primary)] ' : 'text-[var(--text-primary)]'
           )}>
             {title}
           </h3>
           <span className={cn(
             'px-2 py-0.5 text-xs rounded-full',
-            isDark ? 'bg-slate-700 text-slate-400' : 'bg-slate-100 text-slate-500'
+            isDark ? 'bg-[var(--surface-container-low)]  text-[var(--text-secondary)] ' : 'bg-[var(--surface-container-low)] text-[var(--text-secondary)]'
           )}>
             {filteredNodes.length} nodes
           </span>
@@ -139,7 +139,7 @@ export function EvidenceGraph({
           <div className="relative">
             <Search className={cn(
               'absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4',
-              isDark ? 'text-slate-500' : 'text-slate-400'
+              isDark ? 'text-[var(--text-secondary)]' : 'text-[var(--text-secondary)] '
             )} />
             <input
               type="text"
@@ -150,8 +150,8 @@ export function EvidenceGraph({
                 'pl-9 pr-3 py-1.5 text-sm rounded-lg w-40',
                 'bg-transparent border outline-none',
                 isDark
-                  ? 'border-slate-600 focus:border-blue-500 text-slate-300 placeholder:text-slate-500'
-                  : 'border-slate-200 focus:border-blue-500 text-slate-700 placeholder:text-slate-400'
+                  ? 'border-[var(--border-default)]  focus:border-blue-500 text-[var(--text-secondary)]  placeholder:text-[var(--text-tertiary)]'
+                  : 'border-[var(--border-subtle)] focus:border-blue-500 text-[var(--text-secondary)] placeholder:text-[var(--text-tertiary)] '
               )}
             />
           </div>
@@ -163,8 +163,8 @@ export function EvidenceGraph({
             className={cn(
               'px-3 py-1.5 text-sm rounded-lg border outline-none',
               isDark
-                ? 'bg-slate-700 border-slate-600 text-slate-300'
-                : 'bg-white border-slate-200 text-slate-700'
+                ? 'bg-[var(--surface-container-low)]  border-[var(--border-default)]  text-[var(--text-secondary)] '
+                : 'bg-white border-[var(--border-subtle)] text-[var(--text-secondary)]'
             )}
           >
             <option value="all">All Types</option>
@@ -179,20 +179,20 @@ export function EvidenceGraph({
           {/* Zoom Controls */}
           <div className={cn(
             'flex items-center gap-1 p-1 rounded-lg',
-            isDark ? 'bg-slate-700' : 'bg-slate-100'
+            isDark ? 'bg-[var(--surface-container-low)] ' : 'bg-[var(--surface-container-low)]'
           )}>
             <button
               onClick={() => setZoom(Math.max(0.5, zoom - 0.1))}
               className={cn(
                 'p-1.5 rounded transition-colors',
-                isDark ? 'hover:bg-slate-600' : 'hover:bg-slate-200'
+                isDark ? 'hover:bg-slate-600' : 'hover:bg-[var(--surface-container)]'
               )}
             >
               <ZoomOut className="w-4 h-4" />
             </button>
             <span className={cn(
               'text-xs font-medium px-2',
-              isDark ? 'text-slate-400' : 'text-slate-500'
+              isDark ? 'text-[var(--text-secondary)] ' : 'text-[var(--text-secondary)]'
             )}>
               {Math.round(zoom * 100)}%
             </span>
@@ -200,7 +200,7 @@ export function EvidenceGraph({
               onClick={() => setZoom(Math.min(1.5, zoom + 0.1))}
               className={cn(
                 'p-1.5 rounded transition-colors',
-                isDark ? 'hover:bg-slate-600' : 'hover:bg-slate-200'
+                isDark ? 'hover:bg-slate-600' : 'hover:bg-[var(--surface-container)]'
               )}
             >
               <ZoomIn className="w-4 h-4" />
@@ -213,9 +213,9 @@ export function EvidenceGraph({
       <div className="relative p-5">
         {nodes.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
-            <Link2 className="w-12 h-12 text-slate-400 mb-3" />
-            <p className="text-sm font-medium text-slate-500">No evidence graph data available</p>
-            <p className="text-xs text-slate-400 mt-1">Evidence relationships will appear after analysis</p>
+            <Link2 className="w-12 h-12 text-[var(--text-secondary)]  mb-3" />
+            <p className="text-sm font-medium text-[var(--text-secondary)]">No evidence graph data available</p>
+            <p className="text-xs text-[var(--text-secondary)]  mt-1">Evidence relationships will appear after analysis</p>
           </div>
         ) : (
           <div>
@@ -326,14 +326,14 @@ export function EvidenceGraph({
         {/* Legend */}
         <div className={cn(
           'flex flex-wrap items-center justify-center gap-4 mt-4 pt-4 border-t',
-          isDark ? 'border-slate-700/50' : 'border-slate-200'
+          isDark ? 'border-[var(--border-subtle)] ' : 'border-[var(--border-subtle)]'
         )}>
           {Object.entries(nodeTypeColors).map(([type, colors]) => (
             <div key={type} className="flex items-center gap-2">
               <div className={cn('w-3 h-3 rounded-full', colors.bg)} />
               <span className={cn(
                 'text-xs capitalize',
-                isDark ? 'text-slate-400' : 'text-slate-500'
+                isDark ? 'text-[var(--text-secondary)] ' : 'text-[var(--text-secondary)]'
               )}>
                 {type}
               </span>
@@ -353,13 +353,13 @@ export function EvidenceGraph({
             exit={{ x: 300, opacity: 0 }}
             className={cn(
               'absolute right-0 top-16 bottom-0 w-80 p-5 overflow-y-auto',
-              isDark ? 'bg-slate-900 border-l border-slate-700' : 'bg-white border-l border-slate-200'
+              isDark ? 'bg-slate-900 border-l border-[var(--border-subtle)] ' : 'bg-white border-l border-[var(--border-subtle)]'
             )}
           >
             <div className="flex items-center justify-between mb-4">
               <h4 className={cn(
                 'text-lg font-semibold',
-                isDark ? 'text-slate-100' : 'text-slate-800'
+                isDark ? 'text-[var(--text-primary)] ' : 'text-[var(--text-primary)]'
               )}>
                 Node Details
               </h4>
@@ -367,7 +367,7 @@ export function EvidenceGraph({
                 onClick={() => setSelectedNode(null)}
                 className={cn(
                   'p-1.5 rounded-lg transition-colors',
-                  isDark ? 'hover:bg-slate-800' : 'hover:bg-slate-100'
+                  isDark ? 'hover:bg-[var(--surface-container)] ' : 'hover:bg-[var(--surface-container-low)]'
                 )}
               >
                 <X className="w-4 h-4" />
@@ -377,7 +377,7 @@ export function EvidenceGraph({
             <div className="space-y-4">
               <div className={cn(
                 'flex items-center gap-3 p-3 rounded-xl',
-                isDark ? 'bg-slate-800' : 'bg-slate-50'
+                isDark ? 'bg-[var(--surface-container-low)] ' : 'bg-[var(--surface-container-lowest)]'
               )}>
                 <div className={cn(
                   'w-10 h-10 rounded-lg flex items-center justify-center',
@@ -392,13 +392,13 @@ export function EvidenceGraph({
                 <div>
                   <p className={cn(
                     'font-semibold',
-                    isDark ? 'text-slate-200' : 'text-slate-700'
+                    isDark ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'
                   )}>
                     {selectedNode.label}
                   </p>
                   <p className={cn(
                     'text-xs capitalize',
-                    isDark ? 'text-slate-500' : 'text-slate-400'
+                    isDark ? 'text-[var(--text-secondary)]' : 'text-[var(--text-secondary)] '
                   )}>
                     {selectedNode.type}
                   </p>
@@ -409,7 +409,7 @@ export function EvidenceGraph({
                 <div>
                   <p className={cn(
                     'text-xs font-medium mb-2',
-                    isDark ? 'text-slate-500' : 'text-slate-400'
+                    isDark ? 'text-[var(--text-secondary)]' : 'text-[var(--text-secondary)] '
                   )}>
                     Severity
                   </p>
@@ -427,25 +427,25 @@ export function EvidenceGraph({
                 <div>
                   <p className={cn(
                     'text-xs font-medium mb-2',
-                    isDark ? 'text-slate-500' : 'text-slate-400'
+                    isDark ? 'text-[var(--text-secondary)]' : 'text-[var(--text-secondary)] '
                   )}>
                     Metadata
                   </p>
                   <div className={cn(
                     'space-y-2 p-3 rounded-xl',
-                    isDark ? 'bg-slate-800' : 'bg-slate-50'
+                    isDark ? 'bg-[var(--surface-container-low)] ' : 'bg-[var(--surface-container-lowest)]'
                   )}>
                     {Object.entries(selectedNode.metadata).map(([key, value]) => (
                       <div key={key} className="flex justify-between">
                         <span className={cn(
                           'text-xs',
-                          isDark ? 'text-slate-500' : 'text-slate-400'
+                          isDark ? 'text-[var(--text-secondary)]' : 'text-[var(--text-secondary)] '
                         )}>
                           {key}
                         </span>
                         <span className={cn(
                           'text-xs font-mono',
-                          isDark ? 'text-slate-300' : 'text-slate-600'
+                          isDark ? 'text-[var(--text-secondary)] ' : 'text-[var(--text-secondary)]'
                         )}>
                           {value}
                         </span>
@@ -458,7 +458,7 @@ export function EvidenceGraph({
               <div className="space-y-2">
                 <p className={cn(
                   'text-xs font-medium',
-                  isDark ? 'text-slate-500' : 'text-slate-400'
+                  isDark ? 'text-[var(--text-secondary)]' : 'text-[var(--text-secondary)] '
                 )}>
                   Connected To
                 </p>
@@ -476,18 +476,18 @@ export function EvidenceGraph({
                         className={cn(
                           'w-full flex items-center justify-between p-2 rounded-lg',
                           'transition-colors',
-                          isDark ? 'hover:bg-slate-800' : 'hover:bg-slate-50'
+                          isDark ? 'hover:bg-[var(--surface-container)] ' : 'hover:bg-[var(--surface-container-lowest)]'
                         )}
                       >
                         <span className={cn(
                           'text-sm',
-                          isDark ? 'text-slate-300' : 'text-slate-600'
+                          isDark ? 'text-[var(--text-secondary)] ' : 'text-[var(--text-secondary)]'
                         )}>
                           {connectedNode.label}
                         </span>
                         <ChevronRight className={cn(
                           'w-4 h-4',
-                          isDark ? 'text-slate-500' : 'text-slate-400'
+                          isDark ? 'text-[var(--text-secondary)]' : 'text-[var(--text-secondary)] '
                         )} />
                       </button>
                     );

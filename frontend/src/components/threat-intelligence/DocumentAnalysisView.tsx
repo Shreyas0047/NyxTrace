@@ -38,6 +38,7 @@ import { Card, CardContent, CardHeader } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { IocPanel } from './IocPanel';
 import AiInsightsCard from './AiInsightsCard';
+import { VerdictBanner } from './VerdictBanner';
 import { useThreatIntelStore } from '../../stores/threatIntelStore';
 import type { AnalysisFinding, DocumentSection } from '../../types';
 
@@ -46,19 +47,19 @@ import type { AnalysisFinding, DocumentSection } from '../../types';
 // ============================================
 
 const severityColors: Record<string, string> = {
-  critical: 'bg-red-500/20 text-red-400 border-red-500/30',
-  high: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-  medium: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-  low: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-  benign: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
+  critical: 'bg-red-500/20 text-red-600  border-red-500/30',
+  high: 'bg-orange-500/20 text-orange-600  border-orange-500/30',
+  medium: 'bg-amber-500/20 text-amber-600  border-amber-500/30',
+  low: 'bg-emerald-500/20 text-emerald-600  border-emerald-500/30',
+  benign: 'bg-[var(--surface-container)] text-[var(--text-secondary)]  border-[var(--border-default)] ',
 };
 
 const threatLevelConfig: Record<string, { label: string; color: string; barColor: string; icon: React.ComponentType<{ className?: string }> }> = {
-  critical: { label: 'Critical', color: 'text-red-400', barColor: 'bg-red-500', icon: AlertTriangle },
-  high: { label: 'High', color: 'text-orange-400', barColor: 'bg-orange-500', icon: AlertTriangle },
-  medium: { label: 'Medium', color: 'text-amber-400', barColor: 'bg-amber-500', icon: Shield },
-  low: { label: 'Low', color: 'text-emerald-400', barColor: 'bg-emerald-500', icon: Shield },
-  benign: { label: 'Benign', color: 'text-slate-400', barColor: 'bg-slate-500', icon: Shield },
+  critical: { label: 'Critical', color: 'text-red-600 ', barColor: 'bg-red-500', icon: AlertTriangle },
+  high: { label: 'High', color: 'text-orange-600 ', barColor: 'bg-orange-500', icon: AlertTriangle },
+  medium: { label: 'Medium', color: 'text-amber-600 ', barColor: 'bg-amber-500', icon: Shield },
+  low: { label: 'Low', color: 'text-emerald-600 ', barColor: 'bg-emerald-500', icon: Shield },
+  benign: { label: 'Benign', color: 'text-[var(--text-secondary)] ', barColor: 'bg-slate-500', icon: Shield },
 };
 
 const findingCategoryConfig: Record<string, { label: string; icon: React.ComponentType<{ className?: string }> }> = {
@@ -113,13 +114,13 @@ function getScoreBarColor(score: number): string {
 
 function getFileTypeIcon(file: File): React.ReactNode {
   const name = file.name.toLowerCase();
-  if (name.endsWith('.pdf')) return <FileText className="w-8 h-8 text-red-400" />;
+  if (name.endsWith('.pdf')) return <FileText className="w-8 h-8 text-red-600 " />;
   if (name.endsWith('.docx') || name.endsWith('.doc')) return <FileText className="w-8 h-8 text-blue-400" />;
-  if (name.endsWith('.txt')) return <FileText className="w-8 h-8 text-slate-400" />;
+  if (name.endsWith('.txt')) return <FileText className="w-8 h-8 text-[var(--text-secondary)] " />;
   if (name.endsWith('.xlsx') || name.endsWith('.xls') || name.endsWith('.csv')) {
-    return <FileSpreadsheet className="w-8 h-8 text-emerald-400" />;
+    return <FileSpreadsheet className="w-8 h-8 text-emerald-600 " />;
   }
-  return <File className="w-8 h-8 text-slate-400" />;
+  return <File className="w-8 h-8 text-[var(--text-secondary)] " />;
 }
 
 // ============================================
@@ -139,8 +140,8 @@ function SeverityBadge({ severity }: { severity: string }) {
 /** Evidence chip */
 function EvidenceChip({ text }: { text: string }) {
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono bg-slate-700/50 text-slate-300 border border-slate-600/30 truncate max-w-[200px]">
-      <FileText className="w-3 h-3 flex-shrink-0 text-slate-400" />
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono bg-[var(--surface-container-low)]  text-[var(--text-secondary)]  border border-[var(--border-default)]   truncate max-w-[200px]">
+      <FileText className="w-3 h-3 flex-shrink-0 text-[var(--text-secondary)] " />
       {text}
     </span>
   );
@@ -157,30 +158,30 @@ function FindingCard({ finding, index }: { finding: AnalysisFinding; index: numb
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, delay: index * 0.04 }}
-      className="rounded-lg border border-slate-700/40 bg-slate-800/40 overflow-hidden"
+      className="rounded-lg border border-[var(--border-subtle)]  bg-[var(--surface-container-low)]  overflow-hidden"
     >
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-start gap-3 p-3 text-left hover:bg-slate-700/30 transition-colors duration-150"
+        className="w-full flex items-start gap-3 p-3 text-left hover:bg-[var(--surface-container-low)]  transition-colors duration-150"
       >
         <div className={cn(
           'flex items-center justify-center w-8 h-8 rounded-lg flex-shrink-0 mt-0.5',
-          finding.severity === 'critical' ? 'bg-red-500/10 text-red-400' :
-          finding.severity === 'high' ? 'bg-orange-500/10 text-orange-400' :
-          finding.severity === 'medium' ? 'bg-amber-500/10 text-amber-400' :
-          'bg-slate-500/10 text-slate-400'
+          finding.severity === 'critical' ? 'bg-red-500/10 text-red-600 ' :
+          finding.severity === 'high' ? 'bg-orange-500/10 text-orange-600 ' :
+          finding.severity === 'medium' ? 'bg-amber-500/10 text-amber-600 ' :
+          'bg-[var(--surface-container)] text-[var(--text-secondary)] '
         )}>
           <CategoryIcon className="w-4 h-4" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-medium text-slate-200">{finding.title}</span>
+            <span className="text-sm font-medium text-[var(--text-primary)]">{finding.title}</span>
             <SeverityBadge severity={finding.severity} />
           </div>
-          <p className="mt-1 text-xs text-slate-400 line-clamp-2">{finding.description}</p>
+          <p className="mt-1 text-xs text-[var(--text-secondary)]  line-clamp-2">{finding.description}</p>
         </div>
         <div className="flex-shrink-0 mt-1">
-          {expanded ? <ChevronDown className="w-4 h-4 text-slate-500" /> : <ChevronRight className="w-4 h-4 text-slate-500" />}
+          {expanded ? <ChevronDown className="w-4 h-4 text-[var(--text-secondary)]" /> : <ChevronRight className="w-4 h-4 text-[var(--text-secondary)]" />}
         </div>
       </button>
 
@@ -193,11 +194,11 @@ function FindingCard({ finding, index }: { finding: AnalysisFinding; index: numb
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="px-3 pb-3 space-y-2 border-t border-slate-700/30 pt-2">
+            <div className="px-3 pb-3 space-y-2 border-t border-[var(--border-subtle)]  pt-2">
               {/* Evidence chips */}
               {finding.evidence.length > 0 && (
                 <div>
-                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block mb-1.5">
+                  <span className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider block mb-1.5">
                     Evidence
                   </span>
                   <div className="flex flex-wrap gap-1.5">
@@ -209,7 +210,7 @@ function FindingCard({ finding, index }: { finding: AnalysisFinding; index: numb
               )}
 
               {/* Category & confidence */}
-              <div className="flex items-center gap-3 text-[10px] text-slate-500">
+              <div className="flex items-center gap-3 text-[10px] text-[var(--text-secondary)]">
                 {catConfig && (
                   <span className="inline-flex items-center gap-1">
                     <CategoryIcon className="w-3 h-3" />
@@ -240,31 +241,31 @@ function DocumentSectionRow({ section, index }: { section: DocumentSection; inde
         'flex items-start gap-3 p-3 rounded-lg border transition-colors duration-150',
         section.suspicious
           ? 'bg-red-500/5 border-red-500/20'
-          : 'bg-slate-800/20 border-slate-700/30'
+          : 'bg-[var(--surface-container-low)]  border-[var(--border-subtle)] '
       )}
     >
       <div className={cn(
         'flex items-center justify-center w-8 h-8 rounded-lg flex-shrink-0',
-        section.suspicious ? 'bg-red-500/10 text-red-400' : 'bg-slate-700/30 text-slate-400'
+        section.suspicious ? 'bg-red-500/10 text-red-600 ' : 'bg-[var(--surface-container-low)]  text-[var(--text-secondary)] '
       )}>
         <Layers className="w-4 h-4" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-medium text-slate-200">{section.heading}</span>
-          <span className="text-[10px] text-slate-500">p.{section.pageNumber}</span>
+          <span className="text-sm font-medium text-[var(--text-primary)]">{section.heading}</span>
+          <span className="text-[10px] text-[var(--text-secondary)]">p.{section.pageNumber}</span>
           {section.suspicious && (
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-red-500/20 text-red-400 border border-red-500/30">
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-red-500/20 text-red-600  border border-red-500/30">
               <AlertTriangle className="w-3 h-3" />
               Suspicious
             </span>
           )}
         </div>
-        <p className="mt-0.5 text-xs text-slate-400 line-clamp-2">{section.content}</p>
+        <p className="mt-0.5 text-xs text-[var(--text-secondary)]  line-clamp-2">{section.content}</p>
         {section.riskIndicators.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-1.5">
             {section.riskIndicators.map((indicator, i) => (
-              <span key={i} className="text-[10px] font-medium text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">
+              <span key={i} className="text-[10px] font-medium text-amber-600  bg-amber-500/10 px-1.5 py-0.5 rounded">
                 {indicator}
               </span>
             ))}
@@ -334,8 +335,8 @@ function UploadZone({
         dragActive
           ? 'border-cyan-400 bg-cyan-500/5 shadow-lg shadow-cyan-500/10'
           : selectedFile
-            ? 'border-slate-600/60 bg-slate-800/40'
-            : 'border-slate-600/30 bg-slate-800/20 hover:border-slate-500/50 hover:bg-slate-800/30',
+            ? 'border-[var(--border-default)]   bg-[var(--surface-container-low)] '
+            : 'border-[var(--border-default)]   bg-[var(--surface-container-low)]  hover:border-[var(--border-default)]  hover:bg-[var(--surface-container)] ',
         'cursor-pointer group'
       )}
     >
@@ -363,22 +364,22 @@ function UploadZone({
               transition={{ type: 'spring', stiffness: 300, damping: 15 }}
               className={cn(
                 'flex items-center justify-center w-16 h-16 rounded-2xl mb-4 transition-colors duration-200',
-                dragActive ? 'bg-cyan-500/20 text-cyan-400' : 'bg-slate-700/40 text-slate-500 group-hover:text-slate-400'
+                dragActive ? 'bg-cyan-500/20 text-cyan-600 ' : 'bg-[var(--surface-container-low)]  text-[var(--text-secondary)] group-hover:text-[var(--text-secondary)] '
               )}
             >
               <Upload className="w-8 h-8" />
             </motion.div>
-            <p className="text-base font-medium text-slate-300 mb-1">
+            <p className="text-base font-medium text-[var(--text-secondary)]  mb-1">
               {dragActive ? 'Drop your file here' : 'Drop your document here'}
             </p>
-            <p className="text-sm text-slate-500 mb-4">
-              or <span className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2">browse files</span>
+            <p className="text-sm text-[var(--text-secondary)] mb-4">
+              or <span className="text-cyan-600  hover:text-cyan-300 underline underline-offset-2">browse files</span>
             </p>
-            <div className="flex items-center gap-1.5 text-[10px] text-slate-600">
+            <div className="flex items-center gap-1.5 text-[10px] text-[var(--text-secondary)]">
               <FileText className="w-3 h-3" />
               <span>Supported: PDF, DOCX, TXT, RTF, XLSX, CSV</span>
             </div>
-            <p className="mt-2 text-[10px] text-slate-600">Max file size: 50 MB</p>
+            <p className="mt-2 text-[10px] text-[var(--text-secondary)]">Max file size: 50 MB</p>
           </motion.div>
         ) : (
           /* File selected - show preview + actions */
@@ -392,16 +393,16 @@ function UploadZone({
             <div className="flex items-center gap-4">
               {getFileTypeIcon(selectedFile)}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-200 truncate">
+                <p className="text-sm font-semibold text-[var(--text-primary)] truncate">
                   {selectedFile.name}
                 </p>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-[var(--text-secondary)] mt-0.5">
                   {formatFileSize(selectedFile.size)} &middot; {selectedFile.type || 'Unknown type'}
                 </p>
               </div>
               <button
                 onClick={(e) => { e.stopPropagation(); onClear(); }}
-                className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-slate-700/50 text-slate-500 hover:text-slate-300 transition-colors"
+                className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-[var(--surface-container-low)]  text-[var(--text-secondary)] hover:text-[var(--text-secondary)]  transition-colors"
                 aria-label="Remove file"
               >
                 <X className="w-4 h-4" />
@@ -451,9 +452,9 @@ function ThreatScoreGauge({ score, threatLevel }: { score: number; threatLevel: 
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-slate-300">Threat Score</span>
+            <span className="text-sm font-semibold text-[var(--text-secondary)] ">Threat Score</span>
             <span className="text-2xl font-bold text-white">{score}</span>
-            <span className="text-sm text-slate-500">/ 100</span>
+            <span className="text-sm text-[var(--text-secondary)]">/ 100</span>
           </div>
           <span className={cn(
             'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border',
@@ -465,7 +466,7 @@ function ThreatScoreGauge({ score, threatLevel }: { score: number; threatLevel: 
         </div>
 
         {/* Gauge bar */}
-        <div className="relative h-3 rounded-full bg-slate-700/50 overflow-hidden">
+        <div className="relative h-3 rounded-full bg-[var(--surface-container-low)]  overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${score}%` }}
@@ -490,7 +491,7 @@ function ThreatScoreGauge({ score, threatLevel }: { score: number; threatLevel: 
               key={tier.label}
               className={cn(
                 'text-[10px] transition-colors duration-300',
-                score <= tier.max ? 'text-slate-500' : tier.color.replace('bg-', 'text-')
+                score <= tier.max ? 'text-[var(--text-secondary)]' : tier.color.replace('bg-', 'text-')
               )}
             >
               {tier.label}
@@ -517,14 +518,14 @@ function AnalysisSummaryCard({ analysis }: { analysis: any }) {
             analysis.threatLevel === 'critical' ? 'bg-red-500/10' :
             analysis.threatLevel === 'high' ? 'bg-orange-500/10' :
             analysis.threatLevel === 'medium' ? 'bg-amber-500/10' :
-            'bg-slate-500/10'
+            'bg-[var(--surface-container)]'
           )}>
             <FileText className={cn(
               'w-5 h-5',
-              analysis.threatLevel === 'critical' ? 'text-red-400' :
-              analysis.threatLevel === 'high' ? 'text-orange-400' :
-              analysis.threatLevel === 'medium' ? 'text-amber-400' :
-              'text-slate-400'
+              analysis.threatLevel === 'critical' ? 'text-red-600 ' :
+              analysis.threatLevel === 'high' ? 'text-orange-600 ' :
+              analysis.threatLevel === 'medium' ? 'text-amber-600 ' :
+              'text-[var(--text-secondary)] '
             )} />
           </div>
           <div className="flex-1 min-w-0">
@@ -533,12 +534,12 @@ function AnalysisSummaryCard({ analysis }: { analysis: any }) {
                 {analysis.fileName || 'Document Analysis'}
               </h3>
               {analysis.fileSize && (
-                <span className="text-[11px] text-slate-500 flex-shrink-0">
+                <span className="text-[11px] text-[var(--text-secondary)] flex-shrink-0">
                   {formatFileSize(analysis.fileSize)}
                 </span>
               )}
             </div>
-            <p className="mt-0.5 text-xs text-slate-400 line-clamp-2">{analysis.summary}</p>
+            <p className="mt-0.5 text-xs text-[var(--text-secondary)]  line-clamp-2">{analysis.summary}</p>
           </div>
           <span className={cn(
             'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider border flex-shrink-0',
@@ -551,27 +552,27 @@ function AnalysisSummaryCard({ analysis }: { analysis: any }) {
 
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="rounded-lg bg-slate-800/50 border border-slate-700/30 p-3 text-center">
-            <p className="text-lg font-bold text-slate-200">{analysis.threatScore}</p>
-            <p className="text-[10px] text-slate-500 mt-0.5">Threat Score</p>
+          <div className="rounded-lg bg-[var(--surface-container-low)]  border border-[var(--border-subtle)]  p-3 text-center">
+            <p className="text-lg font-bold text-[var(--text-primary)]">{analysis.threatScore}</p>
+            <p className="text-[10px] text-[var(--text-secondary)] mt-0.5">Threat Score</p>
           </div>
-          <div className="rounded-lg bg-slate-800/50 border border-slate-700/30 p-3 text-center">
-            <p className="text-lg font-bold text-slate-200">{analysis.iocs?.length || 0}</p>
-            <p className="text-[10px] text-slate-500 mt-0.5">IOCs</p>
+          <div className="rounded-lg bg-[var(--surface-container-low)]  border border-[var(--border-subtle)]  p-3 text-center">
+            <p className="text-lg font-bold text-[var(--text-primary)]">{analysis.iocs?.length || 0}</p>
+            <p className="text-[10px] text-[var(--text-secondary)] mt-0.5">IOCs</p>
           </div>
-          <div className="rounded-lg bg-slate-800/50 border border-slate-700/30 p-3 text-center">
-            <p className="text-lg font-bold text-slate-200">{analysis.findings?.length || 0}</p>
-            <p className="text-[10px] text-slate-500 mt-0.5">Findings</p>
+          <div className="rounded-lg bg-[var(--surface-container-low)]  border border-[var(--border-subtle)]  p-3 text-center">
+            <p className="text-lg font-bold text-[var(--text-primary)]">{analysis.findings?.length || 0}</p>
+            <p className="text-[10px] text-[var(--text-secondary)] mt-0.5">Findings</p>
           </div>
         </div>
 
         {/* Confidence bar */}
         <div>
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-medium text-slate-400">Analysis Confidence</span>
-            <span className="text-xs font-bold text-slate-300">{analysis.confidence}%</span>
+            <span className="text-xs font-medium text-[var(--text-secondary)] ">Analysis Confidence</span>
+            <span className="text-xs font-bold text-[var(--text-secondary)] ">{analysis.confidence}%</span>
           </div>
-          <div className="h-2 rounded-full bg-slate-700/50 overflow-hidden">
+          <div className="h-2 rounded-full bg-[var(--surface-container-low)]  overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${analysis.confidence}%` }}
@@ -588,7 +589,7 @@ function AnalysisSummaryCard({ analysis }: { analysis: any }) {
 
         {/* Analyzed timestamp */}
         {analysis.analyzedAt && (
-          <p className="text-[10px] text-slate-600 text-right">
+          <p className="text-[10px] text-[var(--text-secondary)] text-right">
             Analyzed {formatTimestamp(analysis.analyzedAt)}
           </p>
         )}
@@ -610,14 +611,14 @@ function MitreTechniquesSection({ techniques, tactics }: { techniques: string[];
       <CardContent className="space-y-3">
         {tactics.length > 0 && (
           <div>
-            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">
+            <span className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider block mb-1.5">
               Tactics
             </span>
             <div className="flex flex-wrap gap-1.5">
               {tactics.map((tactic) => (
                 <span
                   key={tactic}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-violet-500/10 text-violet-400 border border-violet-500/20"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-violet-500/10 text-violet-600  border border-violet-500/20"
                 >
                   <Shield className="w-3 h-3" />
                   {tactic}
@@ -628,16 +629,16 @@ function MitreTechniquesSection({ techniques, tactics }: { techniques: string[];
         )}
         {techniques.length > 0 && (
           <div>
-            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block mb-1.5">
+            <span className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider block mb-1.5">
               Techniques
             </span>
             <div className="flex flex-wrap gap-1.5">
               {techniques.map((technique) => (
                 <span
                   key={technique}
-                  className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-mono font-medium bg-slate-700/40 text-slate-300 border border-slate-600/30"
+                  className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-mono font-medium bg-[var(--surface-container-low)]  text-[var(--text-secondary)]  border border-[var(--border-default)]  "
                 >
-                  <Brain className="w-3 h-3 text-slate-500" />
+                  <Brain className="w-3 h-3 text-[var(--text-secondary)]" />
                   {technique}
                 </span>
               ))}
@@ -689,12 +690,12 @@ function FindingsSection({ findings }: { findings: AnalysisFinding[] }) {
         action={
           <div className="flex items-center gap-2">
             {criticalCount > 0 && (
-              <span className="text-[10px] font-semibold text-red-400 bg-red-500/10 px-2 py-0.5 rounded">
+              <span className="text-[10px] font-semibold text-red-600  bg-red-500/10 px-2 py-0.5 rounded">
                 {criticalCount} critical
               </span>
             )}
             {highCount > 0 && (
-              <span className="text-[10px] font-semibold text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded">
+              <span className="text-[10px] font-semibold text-orange-600  bg-orange-500/10 px-2 py-0.5 rounded">
                 {highCount} high
               </span>
             )}
@@ -727,27 +728,27 @@ function UploadingOverlay() {
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
-          className="w-16 h-16 rounded-full border-4 border-slate-700 border-t-cyan-500"
+          className="w-16 h-16 rounded-full border-4 border-[var(--border-subtle)]  border-t-cyan-500"
         />
         <motion.div
           animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
           transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
           className="absolute inset-0 flex items-center justify-center"
         >
-          <Brain className="w-6 h-6 text-cyan-400" />
+          <Brain className="w-6 h-6 text-cyan-600 " />
         </motion.div>
       </div>
       <motion.p
         animate={{ opacity: [0.6, 1, 0.6] }}
         transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-        className="text-base font-medium text-slate-300 mb-2"
+        className="text-base font-medium text-[var(--text-secondary)]  mb-2"
       >
         Analyzing Document
       </motion.p>
-      <p className="text-sm text-slate-500 mb-6 text-center max-w-md">
+      <p className="text-sm text-[var(--text-secondary)] mb-6 text-center max-w-md">
         Scanning for threats, extracting IOCs, and classifying content...
       </p>
-      <div className="w-64 h-1.5 rounded-full bg-slate-700/50 overflow-hidden">
+      <div className="w-64 h-1.5 rounded-full bg-[var(--surface-container-low)]  overflow-hidden">
         <motion.div
           animate={{ x: ['-100%', '200%'] }}
           transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
@@ -772,10 +773,10 @@ function ErrorState({ error, onRetry, onClear }: { error: string; onRetry: () =>
         transition={{ type: 'spring', stiffness: 200, damping: 12 }}
         className="flex items-center justify-center w-20 h-20 rounded-full bg-red-500/10 mb-5"
       >
-        <XCircle className="w-10 h-10 text-red-400" />
+        <XCircle className="w-10 h-10 text-red-600 " />
       </motion.div>
-      <h3 className="text-lg font-semibold text-slate-200 mb-2">Analysis Failed</h3>
-      <p className="text-sm text-slate-400 text-center max-w-md mb-6">{error}</p>
+      <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">Analysis Failed</h3>
+      <p className="text-sm text-[var(--text-secondary)]  text-center max-w-md mb-6">{error}</p>
       <div className="flex items-center gap-3">
         <Button variant="primary" size="md" onClick={onRetry} leftIcon={<Loader2 className="w-4 h-4" />}>
           Try Again
@@ -869,11 +870,11 @@ export function DocumentAnalysisView({ className }: DocumentAnalysisViewProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-cyan-500/10">
-            <FileSearch className="w-4 h-4 text-cyan-400" />
+            <FileSearch className="w-4 h-4 text-cyan-600 " />
           </div>
           <div>
             <h2 className="text-lg font-bold text-white">Document Analysis</h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-[var(--text-secondary)]">
               {viewMode === 'upload' && 'Upload a document for threat intelligence analysis'}
               {viewMode === 'uploading' && 'Analyzing document content...'}
               {viewMode === 'completed' && 'Analysis complete — review findings below'}
@@ -962,6 +963,13 @@ export function DocumentAnalysisView({ className }: DocumentAnalysisViewProps) {
                 <ThreatScoreGauge
                   score={currentAnalysis.threatScore}
                   threatLevel={currentAnalysis.threatLevel}
+                />
+
+                {/* 1.5 Verdict Banner */}
+                <VerdictBanner
+                  threatType={currentAnalysis.threatLevel}
+                  confidence={currentAnalysis.confidence}
+                  artifactLabel={currentAnalysis.fileName}
                 />
 
                 {/* 2. Summary Card */}

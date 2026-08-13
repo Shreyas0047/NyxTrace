@@ -14,8 +14,20 @@ import type {
   CategoryCounts
 } from '../types/reports';
 
-const REPORTS_DIR = path.resolve(process.cwd(), 'uploads/reports');
-const MONITORING_DIR = path.resolve(process.cwd(), 'logs/monitoring');
+function resolveReportDirs(...pathSegments: string[]): string[] {
+  const dirs: string[] = [];
+  // Collect every existing candidate across base directories (max 4 levels up from cwd)
+  for (let i = 0; i < 4; i += 1) {
+    const base = i === 0 ? process.cwd() : path.resolve(process.cwd(), ...new Array(i).fill('..'));
+    const candidate = path.join(base, ...pathSegments);
+    if (fs.existsSync(candidate) && !dirs.includes(candidate)) dirs.push(candidate);
+  }
+  if (dirs.length > 0) return dirs;
+  return [path.resolve(process.cwd(), ...pathSegments)];
+}
+
+const REPORTS_DIRS = resolveReportDirs('uploads/reports');
+const MONITORING_DIRS = resolveReportDirs('logs/monitoring');
 
 function countSeverity(events: Array<{ severity?: string }>): SeverityCounts {
   const counts: SeverityCounts = { critical: 0, high: 0, medium: 0, low: 0, info: 0 };
@@ -133,8 +145,8 @@ export class ReportsService {
     const limit = Math.min(100, Math.max(1, options.limit || 20));
     const reports: ForensicReportSummary[] = [];
 
-    // Primary: uploads/reports/
-    const reportDirs = [REPORTS_DIR, MONITORING_DIR];
+    // Primary: uploads/reports/ (all candidate locations, e.g. backend/ and project root)
+    const reportDirs = [...REPORTS_DIRS, ...MONITORING_DIRS];
 
     for (const dir of reportDirs) {
       if (!fs.existsSync(dir)) continue;
@@ -192,7 +204,7 @@ export class ReportsService {
   }
 
   async getReportById(id: string): Promise<ForensicReportDetail | null> {
-    const searchPaths = [REPORTS_DIR, MONITORING_DIR];
+    const searchPaths = [...REPORTS_DIRS, ...MONITORING_DIRS];
 
     for (const dir of searchPaths) {
       if (!fs.existsSync(dir)) continue;

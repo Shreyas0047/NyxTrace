@@ -168,8 +168,8 @@ export function RegisterPage() {
             className="space-y-6 text-center"
           >
             <div className="space-y-1">
-              <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-slate-100">You're in!</h1>
-              <p className="text-[1.25rem] text-slate-400 font-light">Account created</p>
+              <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-[var(--text-primary)] ">You're in!</h1>
+              <p className="text-[1.25rem] text-[var(--text-secondary)]  font-light">Account created</p>
             </div>
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
@@ -198,23 +198,23 @@ export function RegisterPage() {
             {step === 'role' && (
               <motion.div key="role" initial={{ opacity: 0, x: -100 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -100 }} transition={{ duration: 0.4, ease: 'easeOut' }} className="space-y-6 text-center">
                 <div className="space-y-1">
-                  <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-slate-100">Create Identity</h1>
-                  <p className="text-[1.8rem] text-slate-400 font-light">Choose your role</p>
+                  <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-[var(--text-primary)] ">Create Identity</h1>
+                  <p className="text-[1.8rem] text-[var(--text-secondary)]  font-light">Choose your role</p>
                 </div>
                 <div className="space-y-4">
-                  <button onClick={() => handleRoleSelect('analyst')} className="w-full p-6 border border-slate-700 rounded-2xl hover:border-slate-500 transition-all text-left group/btn">
+                  <button onClick={() => handleRoleSelect('analyst')} className="w-full p-6 border border-[var(--border-subtle)]  rounded-2xl hover:border-slate-500 transition-all text-left group/btn">
                     <div className="flex items-center justify-between mb-2">
-                      <div className="font-bold text-slate-100">Analyst</div>
-                      <svg className="w-5 h-5 text-slate-500 group-hover/btn:text-slate-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                      <div className="font-bold text-[var(--text-primary)] ">Analyst</div>
+                      <svg className="w-5 h-5 text-[var(--text-secondary)] group-hover/btn:text-[var(--text-secondary)]  transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                     </div>
-                    <div className="text-sm text-slate-500">Investigate digital evidence and intelligence</div>
+                    <div className="text-sm text-[var(--text-secondary)]">Investigate digital evidence and intelligence</div>
                   </button>
-                  <button onClick={() => handleRoleSelect('admin')} className="w-full p-6 border border-slate-700 rounded-2xl hover:border-slate-500 transition-all text-left group/btn">
+                  <button onClick={() => handleRoleSelect('admin')} className="w-full p-6 border border-[var(--border-subtle)]  rounded-2xl hover:border-slate-500 transition-all text-left group/btn">
                     <div className="flex items-center justify-between mb-2">
-                      <div className="font-bold text-slate-100">Administrator</div>
-                      <svg className="w-5 h-5 text-slate-500 group-hover/btn:text-slate-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                      <div className="font-bold text-[var(--text-primary)] ">Administrator</div>
+                      <svg className="w-5 h-5 text-[var(--text-secondary)] group-hover/btn:text-[var(--text-secondary)]  transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                     </div>
-                    <div className="text-sm text-slate-500">Full system control and user governance</div>
+                    <div className="text-sm text-[var(--text-secondary)]">Full system control and user governance</div>
                   </button>
                 </div>
               </motion.div>
@@ -223,25 +223,25 @@ export function RegisterPage() {
             {step === 'email' && (
               <motion.div key="email" initial={{ opacity: 0, x: 100 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 100 }} transition={{ duration: 0.4, ease: 'easeOut' }} className="space-y-6 text-center">
                 <div className="space-y-1">
-                  <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-slate-100">Identity Verification</h1>
-                  <p className="text-[1.8rem] text-slate-400 font-light">Enter your email</p>
+                  <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-[var(--text-primary)] ">Identity Verification</h1>
+                  <p className="text-[1.8rem] text-[var(--text-secondary)]  font-light">Enter your email</p>
                 </div>
-                <div className="p-4 border border-slate-700 rounded-xl text-xs font-mono tracking-wider text-slate-500">
-                  REGISTERING AS: <span className="text-slate-100 uppercase">{role}</span>
+                <div className="p-4 border border-[var(--border-subtle)]  rounded-xl text-xs font-mono tracking-wider text-[var(--text-secondary)]">
+                  REGISTERING AS: <span className="text-[var(--text-primary)]  uppercase">{role}</span>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => setStep('role')} className="text-xs font-mono uppercase tracking-widest text-slate-500 hover:text-slate-300 transition-colors">&lt; Back</button>
+                  <button onClick={() => setStep('role')} className="text-xs font-mono uppercase tracking-widest text-[var(--text-secondary)] hover:text-[var(--text-secondary)]  transition-colors">&lt; Back</button>
                 </div>
                 <input
                   type="email"
                   placeholder="name@organization.com"
                   value={email}
                   onChange={(e) => { setEmail(e.target.value); setOtp(''); setEmailVerificationToken(''); }}
-                  className="w-full text-slate-100 border border-slate-700 rounded-full py-3 px-4 focus:outline-none focus:border-amber-500/50 text-center placeholder-slate-500"
+                  className="w-full text-[var(--text-primary)]  border border-[var(--border-subtle)]  rounded-full py-3 px-4 focus:outline-none focus:border-amber-500/50 text-center placeholder-slate-500"
                   required
                 />
-                {error && <div className="text-red-400 text-sm">{error}</div>}
-                {success && <div className="text-amber-400 text-sm">{success}</div>}
+                {error && <div className="text-red-600  text-sm">{error}</div>}
+                {success && <div className="text-amber-600  text-sm">{success}</div>}
                 <button onClick={handleSendOTP} className="w-full rounded-full bg-amber-500 text-black font-medium py-3 hover:bg-amber-400 transition-colors disabled:opacity-50" disabled={loading}>
                   {loading ? <span className="inline-block w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : 'Request Access Code'}
                 </button>
@@ -251,16 +251,16 @@ export function RegisterPage() {
             {step === 'otp' && (
               <motion.div key="otp" initial={{ opacity: 0, x: 100 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 100 }} transition={{ duration: 0.4, ease: 'easeOut' }} className="space-y-6 text-center">
                 <div className="space-y-1">
-                  <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-slate-100">Verify Code</h1>
-                  <p className="text-[1.25rem] text-slate-400 font-light">Check your inbox</p>
+                  <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-[var(--text-primary)] ">Verify Code</h1>
+                  <p className="text-[1.25rem] text-[var(--text-secondary)]  font-light">Check your inbox</p>
                 </div>
-                <div className="p-4 border border-slate-700 rounded-xl text-xs font-mono tracking-wider text-slate-500">
-                  CODE SENT TO: <span className="text-slate-100">{email}</span>
+                <div className="p-4 border border-[var(--border-subtle)]  rounded-xl text-xs font-mono tracking-wider text-[var(--text-secondary)]">
+                  CODE SENT TO: <span className="text-[var(--text-primary)] ">{email}</span>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => setStep('email')} className="text-xs font-mono uppercase tracking-widest text-slate-500 hover:text-slate-300 transition-colors">&lt; Back</button>
+                  <button onClick={() => setStep('email')} className="text-xs font-mono uppercase tracking-widest text-[var(--text-secondary)] hover:text-[var(--text-secondary)]  transition-colors">&lt; Back</button>
                 </div>
-                <div className="relative rounded-full py-4 px-5 border border-slate-700">
+                <div className="relative rounded-full py-4 px-5 border border-[var(--border-subtle)] ">
                   <div className="flex items-center justify-center">
                     {[0, 1, 2, 3, 4, 5].map((i) => (
                       <div key={i} className="flex items-center">
@@ -287,25 +287,25 @@ export function RegisterPage() {
                               }
                             }}
                             data-otp={i}
-                            className="w-8 text-center text-xl bg-transparent text-slate-100 border-none focus:outline-none focus:ring-0 appearance-none"
+                            className="w-8 text-center text-xl bg-transparent text-[var(--text-primary)]  border-none focus:outline-none focus:ring-0 appearance-none"
                             style={{ caretColor: 'transparent' }}
                           />
                           {!otp[i] && (
                             <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center pointer-events-none">
-                              <span className="text-xl text-slate-600">0</span>
+                              <span className="text-xl text-[var(--text-secondary)]">0</span>
                             </div>
                           )}
                         </div>
-                        {i < 5 && <span className="text-slate-600 text-xl">|</span>}
+                        {i < 5 && <span className="text-[var(--text-secondary)] text-xl">|</span>}
                       </div>
                     ))}
                   </div>
                 </div>
-                {error && <div className="text-red-400 text-sm">{error}</div>}
+                {error && <div className="text-red-600  text-sm">{error}</div>}
                 <button onClick={handleVerifyOTP} className="w-full rounded-full bg-amber-500 text-black font-medium py-3 hover:bg-amber-400 transition-colors disabled:opacity-50" disabled={loading || otp.length !== 6}>
                   {loading ? <span className="inline-block w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : 'Sign Up'}
                 </button>
-                <button onClick={handleResendOTP} disabled={otpCooldown > 0 || loading} className="text-xs font-mono uppercase tracking-widest text-slate-500 hover:text-slate-300 disabled:opacity-50 transition-colors">
+                <button onClick={handleResendOTP} disabled={otpCooldown > 0 || loading} className="text-xs font-mono uppercase tracking-widest text-[var(--text-secondary)] hover:text-[var(--text-secondary)]  disabled:opacity-50 transition-colors">
                   {otpCooldown > 0 ? `Retry in ${otpCooldown}s` : 'Request New Code'}
                 </button>
               </motion.div>
@@ -314,29 +314,29 @@ export function RegisterPage() {
             {step === 'password' && (
               <motion.div key="password" initial={{ opacity: 0, x: 100 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 100 }} transition={{ duration: 0.4, ease: 'easeOut' }} className="space-y-6 text-center">
                 <div className="space-y-1">
-                  <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-slate-100">Finalize Identity</h1>
-                  <p className="text-[1.8rem] text-slate-400 font-light">Set your credentials</p>
+                  <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-[var(--text-primary)] ">Finalize Identity</h1>
+                  <p className="text-[1.8rem] text-[var(--text-secondary)]  font-light">Set your credentials</p>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => setStep('otp')} className="text-xs font-mono uppercase tracking-widest text-slate-500 hover:text-slate-300 transition-colors">&lt; Back</button>
+                  <button onClick={() => setStep('otp')} className="text-xs font-mono uppercase tracking-widest text-[var(--text-secondary)] hover:text-[var(--text-secondary)]  transition-colors">&lt; Back</button>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <input type="text" placeholder="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)}
-                    className="text-slate-100 border border-slate-700 rounded-full py-3 px-4 focus:outline-none focus:border-amber-500/50 text-center placeholder-slate-500" />
+                    className="text-[var(--text-primary)]  border border-[var(--border-subtle)]  rounded-full py-3 px-4 focus:outline-none focus:border-amber-500/50 text-center placeholder-slate-500" />
                   <input type="text" placeholder="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)}
-                    className="text-slate-100 border border-slate-700 rounded-full py-3 px-4 focus:outline-none focus:border-amber-500/50 text-center placeholder-slate-500" />
+                    className="text-[var(--text-primary)]  border border-[var(--border-subtle)]  rounded-full py-3 px-4 focus:outline-none focus:border-amber-500/50 text-center placeholder-slate-500" />
                 </div>
                 <div className="relative">
                   <input type={showPassword ? 'text' : 'password'} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)}
-                    className="w-full text-slate-100 border border-slate-700 rounded-full py-3 px-4 pr-12 focus:outline-none focus:border-amber-500/50 text-center placeholder-slate-500" />
+                    className="w-full text-[var(--text-primary)]  border border-[var(--border-subtle)]  rounded-full py-3 px-4 pr-12 focus:outline-none focus:border-amber-500/50 text-center placeholder-slate-500" />
                   <button type="button" onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors text-sm">{showPassword ? 'Hide' : 'Show'}</button>
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-[var(--text-secondary)]  transition-colors text-sm">{showPassword ? 'Hide' : 'Show'}</button>
                 </div>
                 <div className="relative">
                   <input type={showPassword ? 'text' : 'password'} placeholder="Confirm Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full text-slate-100 border border-slate-700 rounded-full py-3 px-4 focus:outline-none focus:border-amber-500/50 text-center placeholder-slate-500" />
+                    className="w-full text-[var(--text-primary)]  border border-[var(--border-subtle)]  rounded-full py-3 px-4 focus:outline-none focus:border-amber-500/50 text-center placeholder-slate-500" />
                 </div>
-                {error && <div className="text-red-400 text-sm">{error}</div>}
+                {error && <div className="text-red-600  text-sm">{error}</div>}
                 <button onClick={handleRegister} className="w-full rounded-full bg-amber-500 text-black font-medium py-3 hover:bg-amber-400 transition-colors disabled:opacity-50" disabled={loading}>
                   {loading ? <span className="inline-block w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : 'Establish Identity'}
                 </button>
@@ -347,9 +347,9 @@ export function RegisterPage() {
 
         {!registerSuccess && (
           <div className="mt-10 text-center">
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-[var(--text-secondary)]">
               Existing operative?{' '}
-              <Link to="/login" className="text-slate-400 hover:text-slate-200 underline underline-offset-4 transition-colors">Sign In</Link>
+              <Link to="/login" className="text-[var(--text-secondary)]  hover:text-[var(--text-primary)] underline underline-offset-4 transition-colors">Sign In</Link>
             </p>
           </div>
         )}

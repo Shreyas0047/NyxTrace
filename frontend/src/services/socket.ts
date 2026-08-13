@@ -124,8 +124,14 @@ class SocketService {
   // Get the WebSocket URL from environment or use default
   private getSocketUrl(): string {
     const wsUrl = import.meta.env.VITE_WS_URL;
+    if (wsUrl) return wsUrl;
     const apiUrl = import.meta.env.VITE_API_URL || '/api/v1';
-    return wsUrl || apiUrl.replace('/api/v1', '');
+    if (apiUrl.startsWith('/')) {
+      // Relative API path (dev default): backend serves socket.io on the same
+      // origin as the API server, not the Vite dev server.
+      return import.meta.env.DEV ? 'http://localhost:3000' : window.location.origin;
+    }
+    return apiUrl.replace(/\/api\/v1\/?$/, '');
   }
 
   // Connect to WebSocket server

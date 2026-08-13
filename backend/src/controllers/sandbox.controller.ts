@@ -12,16 +12,22 @@ import { websocketService } from '../services/websocket.service';
 import { SandboxSession } from '../models';
 
 const SIMULATOR_DISPLAY_NAMES: Record<string, string> = {
-  'system_service_1': 'Sample Alpha',
-  'system_service_2': 'Sample Beta',
-  'system_service_3': 'Sample Gamma',
-  'system_service_4': 'Sample Delta',
-  'system_service_5': 'Sample Epsilon',
-  'ransomware-simulator': 'Sample Alpha',
-  'spyware-simulator': 'Sample Beta',
-  'trojan-simulator': 'Sample Gamma',
-  'botnet-simulator': 'Sample Delta',
-  'credential-stealer': 'Sample Epsilon',
+  'system-service-alpha': 'LockByte',
+  'system-service-beta': 'HiveMind',
+  'system-service-gamma': 'VaultDrain',
+  'system-service-delta': 'SilentEye',
+  'system-service-epsilon': 'GhostKernel',
+  'system-service-lateral': 'NetWarp',
+  'system_service_1': 'LockByte',
+  'system_service_2': 'HiveMind',
+  'system_service_3': 'VaultDrain',
+  'system_service_4': 'SilentEye',
+  'system_service_5': 'GhostKernel',
+  'ransomware-simulator': 'LockByte',
+  'spyware-simulator': 'SilentEye',
+  'trojan-simulator': 'Wraith',
+  'botnet-simulator': 'HiveMind',
+  'credential-stealer': 'VaultDrain',
 };
 
 function formatSimulatorName(simulatorId: string): string {
@@ -192,7 +198,7 @@ export class SandboxController {
         message: error.message || 'Failed to start session',
         stage: 'START',
       });
-      res.status(500).json({
+      res.status(error.statusCode || 500).json({
         success: false,
         message: error.message || 'Failed to start session',
       });
@@ -212,10 +218,17 @@ export class SandboxController {
       status,
     });
 
+    const sessions = result.sessions.map((session: any) => ({
+      ...session,
+      simulatorName: formatSimulatorName(
+        session.simulatorId || session.simulator_id || session.simulator
+      ),
+    }));
+
     const response: ApiResponse = {
       success: true,
       message: 'Sessions retrieved',
-      data: result.sessions,
+      data: sessions,
       meta: {
         page: Number(page),
         limit: Number(limit),
@@ -234,10 +247,19 @@ export class SandboxController {
   async findById(req: AuthenticatedRequest, res: Response): Promise<void> {
     const session = await sandboxSyncService.findById(req.params.sessionId);
 
+    const enriched = session
+      ? {
+          ...session,
+          simulatorName: formatSimulatorName(
+            session.simulatorId || session.simulator_id || session.simulator
+          ),
+        }
+      : session;
+
     const response: ApiResponse = {
       success: true,
       message: 'Session retrieved',
-      data: { session },
+      data: { session: enriched },
     };
 
     res.json(response);
@@ -282,7 +304,7 @@ export class SandboxController {
 
       res.json(response);
     } catch (error: any) {
-      res.status(500).json({
+      res.status(error.statusCode || 500).json({
         success: false,
         message: error.message || 'Failed to stop session',
       });
@@ -328,7 +350,7 @@ export class SandboxController {
 
       res.json(response);
     } catch (error: any) {
-      res.status(500).json({
+      res.status(error.statusCode || 500).json({
         success: false,
         message: error.message || 'Failed to terminate session',
       });
@@ -401,7 +423,7 @@ export class SandboxController {
       const data = await sandboxSyncService.getSessionMonitoring(req.params.sessionId);
       res.json({ success: true, data });
     } catch (error: any) {
-      res.status(500).json({
+      res.status(error.statusCode || 500).json({
         success: false,
         message: error.message || 'Failed to get session monitoring data',
       });
@@ -426,7 +448,7 @@ export class SandboxController {
         data: { aiAnalysis },
       });
     } catch (error: any) {
-      res.status(500).json({
+      res.status(error.statusCode || 500).json({
         success: false,
         message: error.message || 'Failed to get AI analysis',
       });
@@ -449,7 +471,7 @@ export class SandboxController {
 
       res.json(response);
     } catch (error: any) {
-      res.status(500).json({
+      res.status(error.statusCode || 500).json({
         success: false,
         message: error.message || 'Failed to reset VM',
       });
@@ -472,7 +494,7 @@ export class SandboxController {
 
       res.json(response);
     } catch (error: any) {
-      res.status(500).json({
+      res.status(error.statusCode || 500).json({
         success: false,
         message: error.message || 'Failed to get VM status',
       });
@@ -495,7 +517,7 @@ export class SandboxController {
 
       res.json(response);
     } catch (error: any) {
-      res.status(500).json({
+      res.status(error.statusCode || 500).json({
         success: false,
         message: error.message || 'Failed to get monitoring status',
       });
@@ -518,7 +540,7 @@ export class SandboxController {
 
       res.json(response);
     } catch (error: any) {
-      res.status(500).json({
+      res.status(error.statusCode || 500).json({
         success: false,
         message: error.message || 'Failed to get execution status',
       });
@@ -545,7 +567,7 @@ export class SandboxController {
 
       res.json(response);
     } catch (error: any) {
-      res.status(500).json({
+      res.status(error.statusCode || 500).json({
         success: false,
         message: error.message || 'Failed to get logs',
       });

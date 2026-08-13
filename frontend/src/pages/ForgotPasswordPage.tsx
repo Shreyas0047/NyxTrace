@@ -126,8 +126,8 @@ export function ForgotPasswordPage() {
               className="space-y-6 text-center"
             >
               <div className="space-y-1">
-                <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-slate-100">Reset Password</h1>
-                <p className="text-[1.25rem] text-slate-400 font-light">Enter your email</p>
+                <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-[var(--text-primary)] ">Reset Password</h1>
+                <p className="text-[1.25rem] text-[var(--text-secondary)]  font-light">Enter your email</p>
               </div>
 
               <form onSubmit={handleSendOtp} className="space-y-4">
@@ -137,13 +137,13 @@ export function ForgotPasswordPage() {
                     placeholder="name@organization.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full text-slate-100 border border-slate-700 rounded-full py-3 px-4 focus:outline-none focus:border-amber-500/50 text-center placeholder-slate-500"
+                    className="w-full text-[var(--text-primary)]  border border-[var(--border-subtle)]  rounded-full py-3 px-4 focus:outline-none focus:border-amber-500/50 text-center placeholder-slate-500"
                     required
                   />
                 </div>
 
                 {error && (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-400 text-sm">
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-600  text-sm">
                     {error}
                   </motion.div>
                 )}
@@ -162,7 +162,7 @@ export function ForgotPasswordPage() {
               </form>
 
               <div>
-                <Link to="/login" className="text-slate-500 hover:text-slate-300 transition-colors text-sm underline underline-offset-4">
+                <Link to="/login" className="text-[var(--text-secondary)] hover:text-[var(--text-secondary)]  transition-colors text-sm underline underline-offset-4">
                   Back to Login
                 </Link>
               </div>
@@ -179,21 +179,21 @@ export function ForgotPasswordPage() {
               className="space-y-6 text-center"
             >
               <div className="space-y-1">
-                <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-slate-100">Verify Code</h1>
-                <p className="text-[1.25rem] text-slate-400 font-light">Check your inbox</p>
+                <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-[var(--text-primary)] ">Verify Code</h1>
+                <p className="text-[1.25rem] text-[var(--text-secondary)]  font-light">Check your inbox</p>
               </div>
 
-              <div className="p-4 border border-slate-700 rounded-xl text-xs font-mono tracking-wider text-slate-500">
-                CODE SENT TO: <span className="text-slate-100">{email}</span>
+              <div className="p-4 border border-[var(--border-subtle)]  rounded-xl text-xs font-mono tracking-wider text-[var(--text-secondary)]">
+                CODE SENT TO: <span className="text-[var(--text-primary)] ">{email}</span>
               </div>
 
               <div className="flex gap-2">
-                <button onClick={() => { setStep('email'); setError(null); }} className="text-xs font-mono uppercase tracking-widest text-slate-500 hover:text-slate-300 transition-colors">
+                <button onClick={() => { setStep('email'); setError(null); }} className="text-xs font-mono uppercase tracking-widest text-[var(--text-secondary)] hover:text-[var(--text-secondary)]  transition-colors">
                   &lt; Back
                 </button>
               </div>
 
-              <div className="relative rounded-full py-4 px-5 border border-slate-700">
+              <div className="relative rounded-full py-4 px-5 border border-[var(--border-subtle)] ">
                 <div className="flex items-center justify-center">
                   {[0, 1, 2, 3, 4, 5].map((i) => (
                     <div key={i} className="flex items-center">
@@ -220,29 +220,29 @@ export function ForgotPasswordPage() {
                             }
                           }}
                           data-fp-otp={i}
-                          className="w-8 text-center text-xl bg-transparent text-slate-100 border-none focus:outline-none focus:ring-0 appearance-none"
+                          className="w-8 text-center text-xl bg-transparent text-[var(--text-primary)]  border-none focus:outline-none focus:ring-0 appearance-none"
                           style={{ caretColor: 'transparent' }}
                         />
                         {!otp[i] && (
                           <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center pointer-events-none">
-                            <span className="text-xl text-slate-600">0</span>
+                            <span className="text-xl text-[var(--text-secondary)]">0</span>
                           </div>
                         )}
                       </div>
-                      {i < 5 && <span className="text-slate-600 text-xl">|</span>}
+                      {i < 5 && <span className="text-[var(--text-secondary)] text-xl">|</span>}
                     </div>
                   ))}
                 </div>
               </div>
 
               {devOtp && (
-                <div className="text-amber-400 text-xs font-mono">
+                <div className="text-amber-600  text-xs font-mono">
                   [DEV MODE] OTP: {devOtp}
                 </div>
               )}
 
               {error && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-400 text-sm">
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-600  text-sm">
                   {error}
                 </motion.div>
               )}
@@ -262,7 +262,7 @@ export function ForgotPasswordPage() {
               <button
                 onClick={handleResendOtp}
                 disabled={cooldown > 0 || isLoading}
-                className="text-xs font-mono uppercase tracking-widest text-slate-500 hover:text-slate-300 disabled:opacity-50 transition-colors"
+                className="text-xs font-mono uppercase tracking-widest text-[var(--text-secondary)] hover:text-[var(--text-secondary)]  disabled:opacity-50 transition-colors"
               >
                 {cooldown > 0 ? `Resend code in ${cooldown}s` : 'Resend Code'}
               </button>
@@ -279,12 +279,12 @@ export function ForgotPasswordPage() {
               className="space-y-6 text-center"
             >
               <div className="space-y-1">
-                <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-slate-100">New Password</h1>
-                <p className="text-[1.25rem] text-slate-400 font-light">Choose a strong password</p>
+                <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-[var(--text-primary)] ">New Password</h1>
+                <p className="text-[1.25rem] text-[var(--text-secondary)]  font-light">Choose a strong password</p>
               </div>
 
               <div className="flex gap-2">
-                <button onClick={() => { setStep('otp'); setError(null); }} className="text-xs font-mono uppercase tracking-widest text-slate-500 hover:text-slate-300 transition-colors">
+                <button onClick={() => { setStep('otp'); setError(null); }} className="text-xs font-mono uppercase tracking-widest text-[var(--text-secondary)] hover:text-[var(--text-secondary)]  transition-colors">
                   &lt; Back
                 </button>
               </div>
@@ -296,13 +296,13 @@ export function ForgotPasswordPage() {
                     placeholder="New Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full text-slate-100 border border-slate-700 rounded-full py-3 px-4 pr-12 focus:outline-none focus:border-amber-500/50 text-center placeholder-slate-500"
+                    className="w-full text-[var(--text-primary)]  border border-[var(--border-subtle)]  rounded-full py-3 px-4 pr-12 focus:outline-none focus:border-amber-500/50 text-center placeholder-slate-500"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors text-sm"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-[var(--text-secondary)]  transition-colors text-sm"
                   >
                     {showPassword ? 'Hide' : 'Show'}
                   </button>
@@ -314,13 +314,13 @@ export function ForgotPasswordPage() {
                     placeholder="Confirm Password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full text-slate-100 border border-slate-700 rounded-full py-3 px-4 focus:outline-none focus:border-amber-500/50 text-center placeholder-slate-500"
+                    className="w-full text-[var(--text-primary)]  border border-[var(--border-subtle)]  rounded-full py-3 px-4 focus:outline-none focus:border-amber-500/50 text-center placeholder-slate-500"
                     required
                   />
                 </div>
 
                 {error && (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-400 text-sm">
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-600  text-sm">
                     {error}
                   </motion.div>
                 )}
@@ -349,8 +349,8 @@ export function ForgotPasswordPage() {
               className="space-y-6 text-center"
             >
               <div className="space-y-1">
-                <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-slate-100">Password Reset!</h1>
-                <p className="text-[1.25rem] text-slate-400 font-light">Your password has been reset</p>
+                <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-[var(--text-primary)] ">Password Reset!</h1>
+                <p className="text-[1.25rem] text-[var(--text-secondary)]  font-light">Your password has been reset</p>
               </div>
 
               <motion.div

@@ -88,10 +88,10 @@ fi
 # ─── Backend ─────────────────────────────────────────────────────────────
 if [ -z "${SKIP_BACKEND:-}" ]; then
   log "Starting Backend (Express.js)..."
-  cd "$ROOT_DIR/backend"
+  # Kill any stale process on port 3000 to prevent EADDRINUSE crash  stale_pid=$(ss -tlnp 'sport = :3000' 2>/dev/null | grep -oP 'pid=[0-9]+' | head -1 | cut -d= -f2)  if [ -n "$stale_pid" ]; then    log "Port 3000 in use by PID $stale_pid — attempting cleanup"    kill "$stale_pid" 2>/dev/null || true    sleep 1  fi  cd "$ROOT_DIR/backend"
   npm run dev > "$LOG_DIR/backend.log" 2>&1 &
   _pid=$!
-  health_ok "http://localhost:3000/api/v1/operations/live" "Backend" 60 || true
+  health_ok "http://localhost:3000/api/v1/operations/live" "Backend" 60 || log "Backend health check failed"
   cd "$ROOT_DIR"
 else
   warn "Skipping Backend"

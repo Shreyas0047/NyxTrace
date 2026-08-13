@@ -23,10 +23,10 @@ export const BlockchainOperationsPage: React.FC = () => {
       <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {/* Page Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+          <h1 className="text-3xl font-bold text-[var(--text-primary)] ">
             Blockchain Operations
           </h1>
-          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+          <p className="mt-2 text-sm text-[var(--text-secondary)] ">
             Monitor and manage blockchain synchronization, verification queues, and system health
           </p>
         </div>
@@ -38,7 +38,7 @@ export const BlockchainOperationsPage: React.FC = () => {
               <span className="text-amber-500 text-xl">!</span>
               <div>
                 <h3 className="text-sm font-semibold text-amber-300">Blockchain Offline — Local Verification Only</h3>
-                <p className="text-xs text-amber-400/80 mt-1">
+                <p className="text-xs text-amber-600  mt-1">
                   No blockchain provider is connected. Evidence hashes are verified locally but are NOT anchored on-chain.
                   "Verified" badges reflect local integrity checks only. Configure BLOCKCHAIN_RPC_URL to enable on-chain verification.
                 </p>

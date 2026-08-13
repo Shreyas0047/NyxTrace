@@ -94,10 +94,10 @@ export class SandboxSyncService {
 
     const normalizedEvents = data.events.map((event: any, index) => ({
       sessionId: data.sessionId,
-      eventType: event.type || event.eventType || event.event_type || 'unknown',
+      eventType: event.type || event.eventType || event.event_type || event.category || 'unknown',
       timestamp: new Date(event.timestamp || Date.now()),
       processId: event.processId || event.process_id || event.pid,
-      processName: event.processName || event.process_name || event.source,
+      processName: event.processName || event.process_name || event.source_process || event.source,
       metadata: event.details || event.data || event.metadata || {},
       raw: event,
     }));
@@ -112,7 +112,7 @@ export class SandboxSyncService {
       ...data.events.map((event: any, index) => ({
         id: event.id || `${data.sessionId}-${Date.now()}-${index}`,
         timestamp: event.timestamp || new Date().toISOString(),
-        type: event.type || event.eventType || event.event_type || 'unknown',
+        type: event.type || event.eventType || event.event_type || event.category || 'unknown',
         source: event.source || event.processName || event.process_name || 'sandbox',
         details: event.details || event.data || event.metadata || {},
         receivedAt: new Date(),

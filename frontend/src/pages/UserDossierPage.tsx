@@ -37,17 +37,17 @@ const activityIcons: Record<string, typeof Activity> = {
 };
 
 const activityColors: Record<string, string> = {
-  login: 'bg-amber-500/15 text-amber-400',
+  login: 'bg-amber-500/15 text-amber-600 ',
   case_create: 'bg-blue-500/15 text-blue-400',
-  evidence_verify: 'bg-emerald-500/15 text-emerald-400',
-  report_generate: 'bg-violet-500/15 text-violet-400',
-  settings_change: 'bg-slate-500/15 text-slate-400',
+  evidence_verify: 'bg-emerald-500/15 text-emerald-600 ',
+  report_generate: 'bg-violet-500/15 text-violet-600 ',
+  settings_change: 'bg-[var(--surface-container)] text-[var(--text-secondary)] ',
 };
 
 const statusColors: Record<string, string> = {
-  active: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+  active: 'bg-emerald-500/15 text-emerald-600  border-emerald-500/30',
   resolved: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
-  closed: 'bg-slate-500/15 text-slate-400 border-slate-500/30',
+  closed: 'bg-[var(--surface-container)] text-[var(--text-secondary)]  border-[var(--border-default)] ',
 };
 
 const priorityColors: Record<string, string> = {
@@ -123,7 +123,7 @@ export function UserDossierPage() {
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
         <PageHeader title="User Dossier" subtitle="Detailed operator profile and activity record" />
         <div className="flex items-center justify-center py-24">
-          <Loader2 className="w-8 h-8 text-amber-400 animate-spin" />
+          <Loader2 className="w-8 h-8 text-amber-600  animate-spin" />
         </div>
       </motion.div>
     );
@@ -134,11 +134,11 @@ export function UserDossierPage() {
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
         <PageHeader title="User Dossier" subtitle="Detailed operator profile and activity record" />
         <Card>
-          <div className="flex flex-col items-center justify-center py-16 text-slate-500">
-            <AlertCircle className="w-12 h-12 mb-3 text-rose-400" />
-            <p className="text-lg font-medium text-slate-300">Failed to load user data</p>
+          <div className="flex flex-col items-center justify-center py-16 text-[var(--text-secondary)]">
+            <AlertCircle className="w-12 h-12 mb-3 text-rose-600 " />
+            <p className="text-lg font-medium text-[var(--text-secondary)] ">Failed to load user data</p>
             <p className="text-sm mt-1">{error}</p>
-            <button onClick={loadUserData} className="mt-4 px-4 py-2 text-sm bg-amber-500/20 text-amber-400 rounded-lg hover:bg-amber-500/30 transition-colors">Retry</button>
+            <button onClick={loadUserData} className="mt-4 px-4 py-2 text-sm bg-amber-500/20 text-amber-600  rounded-lg hover:bg-amber-500/30 transition-colors">Retry</button>
           </div>
         </Card>
       </motion.div>
@@ -167,27 +167,27 @@ export function UserDossierPage() {
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-amber-500 to-violet-500 flex items-center justify-center">
                 <span className="text-xl font-bold text-black">{initials}</span>
               </div>
-              <h2 className="text-lg font-semibold text-slate-100">{name}</h2>
-              <p className="text-xs text-slate-400 mt-1">{email}</p>
-              <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+              <h2 className="text-lg font-semibold text-[var(--text-primary)] ">{name}</h2>
+              <p className="text-xs text-[var(--text-secondary)]  mt-1">{email}</p>
+              <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium bg-emerald-500/15 text-emerald-600  border border-emerald-500/30">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 active
               </div>
               <div className="mt-5 space-y-2 text-left">
-                <div className="flex items-center gap-2 text-xs text-slate-400">
-                  <Shield className="w-3.5 h-3.5 text-amber-400" />
+                <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] ">
+                  <Shield className="w-3.5 h-3.5 text-amber-600 " />
                   <span className="capitalize">{role.replace(/_/g, ' ')}</span>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-slate-400">
-                  <MapPin className="w-3.5 h-3.5 text-amber-400" />
+                <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] ">
+                  <MapPin className="w-3.5 h-3.5 text-amber-600 " />
                   <span>{department}</span>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-slate-400">
-                  <Calendar className="w-3.5 h-3.5 text-amber-400" />
+                <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] ">
+                  <Calendar className="w-3.5 h-3.5 text-amber-600 " />
                   <span>Joined {joined}</span>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-slate-400">
-                  <Clock className="w-3.5 h-3.5 text-amber-400" />
+                <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] ">
+                  <Clock className="w-3.5 h-3.5 text-amber-600 " />
                   <span>Last active {lastActive}</span>
                 </div>
               </div>
@@ -198,21 +198,21 @@ export function UserDossierPage() {
         <div className="lg:col-span-3 space-y-6">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { label: 'Cases Assigned', value: mockCases.length, color: 'text-amber-400' },
-              { label: 'Activities', value: activity.length, color: 'text-emerald-400' },
-              { label: 'Role Level', value: role.split('_')[0], color: 'text-violet-400' },
+              { label: 'Cases Assigned', value: mockCases.length, color: 'text-amber-600 ' },
+              { label: 'Activities', value: activity.length, color: 'text-emerald-600 ' },
+              { label: 'Role Level', value: role.split('_')[0], color: 'text-violet-600 ' },
               { label: 'Status', value: 'Active', color: 'text-blue-400' },
             ].map((stat) => (
               <Card key={stat.label}>
                 <div className="p-4 text-center">
                   <p className={cn('text-2xl font-bold tabular-nums capitalize', stat.color)}>{typeof stat.value === 'number' ? stat.value : stat.value}</p>
-                  <p className="text-[10px] text-slate-500 mt-1 uppercase tracking-wider">{stat.label}</p>
+                  <p className="text-[10px] text-[var(--text-secondary)] mt-1 uppercase tracking-wider">{stat.label}</p>
                 </div>
               </Card>
             ))}
           </div>
 
-          <div className="flex items-center gap-1 border-b border-slate-700">
+          <div className="flex items-center gap-1 border-b border-[var(--border-subtle)] ">
             {tabs.map((tab) => (
               <button
                 key={tab}
@@ -220,8 +220,8 @@ export function UserDossierPage() {
                 className={cn(
                   'px-4 py-2.5 text-xs font-medium transition-colors border-b-2 -mb-[1px]',
                   activeTab === tab
-                    ? 'border-amber-500 text-amber-400'
-                    : 'border-transparent text-slate-500 hover:text-slate-300'
+                    ? 'border-amber-500 text-amber-600 '
+                    : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-secondary)] '
                 )}
               >
                 {tab}
@@ -236,10 +236,10 @@ export function UserDossierPage() {
                   <Card hover className="cursor-pointer" onClick={() => navigate(`/investigations/${c.id}`)}>
                     <div className="p-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <FileText className="w-4 h-4 text-slate-500" />
+                        <FileText className="w-4 h-4 text-[var(--text-secondary)]" />
                         <div>
-                          <p className="text-sm font-medium text-slate-100">{c.title}</p>
-                          <p className="text-[10px] text-slate-500 font-mono mt-0.5">{c.id}</p>
+                          <p className="text-sm font-medium text-[var(--text-primary)] ">{c.title}</p>
+                          <p className="text-[10px] text-[var(--text-secondary)] font-mono mt-0.5">{c.id}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -260,10 +260,10 @@ export function UserDossierPage() {
                   <Card hover className="cursor-pointer" onClick={() => navigate(`/investigations/${c.id}`)}>
                     <div className="p-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <FileText className="w-4 h-4 text-slate-500" />
+                        <FileText className="w-4 h-4 text-[var(--text-secondary)]" />
                         <div>
-                          <p className="text-sm font-medium text-slate-100">{c.title}</p>
-                          <p className="text-[10px] text-slate-500 font-mono mt-0.5">{c.id} · {c.date}</p>
+                          <p className="text-sm font-medium text-[var(--text-primary)] ">{c.title}</p>
+                          <p className="text-[10px] text-[var(--text-secondary)] font-mono mt-0.5">{c.id} · {c.date}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -279,20 +279,20 @@ export function UserDossierPage() {
 
           {activeTab === 'Activity' && (
             <div className="relative">
-              <div className="absolute left-5 top-0 bottom-0 w-px bg-slate-700" />
+              <div className="absolute left-5 top-0 bottom-0 w-px bg-[var(--surface-container-low)] " />
               <div className="space-y-0">
                 {activity.length === 0 ? (
-                  <div className="py-8 text-center text-slate-500 text-sm">No activity recorded</div>
+                  <div className="py-8 text-center text-[var(--text-secondary)] text-sm">No activity recorded</div>
                 ) : activity.map((event) => {
                   const Icon = activityIcons[event.type] || Activity;
                   return (
                     <motion.div key={event.id} variants={fadeUp} className="relative flex items-start gap-4 pb-6">
-                      <div className={cn('relative z-10 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0', activityColors[event.type] || 'bg-slate-500/15 text-slate-400')}>
+                      <div className={cn('relative z-10 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0', activityColors[event.type] || 'bg-[var(--surface-container)] text-[var(--text-secondary)] ')}>
                         <Icon className="w-4 h-4" />
                       </div>
                       <div className="flex-1 min-w-0 pt-1.5">
-                        <p className="text-sm text-slate-100">{event.description}</p>
-                        <p className="text-[10px] text-slate-500 mt-1">{event.timestamp}</p>
+                        <p className="text-sm text-[var(--text-primary)] ">{event.description}</p>
+                        <p className="text-[10px] text-[var(--text-secondary)] mt-1">{event.timestamp}</p>
                       </div>
                     </motion.div>
                   );
@@ -304,7 +304,7 @@ export function UserDossierPage() {
           {activeTab === 'Permissions' && (
             <Card>
               <div className="p-5 space-y-4">
-                <h3 className="text-sm font-semibold text-slate-100 capitalize">Role: {role.replace(/_/g, ' ')}</h3>
+                <h3 className="text-sm font-semibold text-[var(--text-primary)]  capitalize">Role: {role.replace(/_/g, ' ')}</h3>
                 <div className="grid grid-cols-2 gap-3">
                   {[
                     { label: 'Create Investigations', granted: ['super_admin', 'admin', 'forensic_analyst'].includes(role) },
@@ -320,11 +320,11 @@ export function UserDossierPage() {
                   ].map((perm) => (
                     <div key={perm.label} className="flex items-center gap-2">
                       {perm.granted ? (
-                        <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                        <CheckCircle className="w-4 h-4 text-emerald-600  flex-shrink-0" />
                       ) : (
-                        <XCircle className="w-4 h-4 text-slate-600 flex-shrink-0" />
+                        <XCircle className="w-4 h-4 text-[var(--text-secondary)] flex-shrink-0" />
                       )}
-                      <span className={cn('text-xs', perm.granted ? 'text-slate-200' : 'text-slate-500')}>{perm.label}</span>
+                      <span className={cn('text-xs', perm.granted ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]')}>{perm.label}</span>
                     </div>
                   ))}
                 </div>

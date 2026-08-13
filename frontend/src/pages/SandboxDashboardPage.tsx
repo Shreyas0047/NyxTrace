@@ -53,10 +53,10 @@ type TabType = 'sessions' | 'monitoring' | 'timeline' | 'telemetry' | 'logs';
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
 
 const levelColors: Record<string, string> = {
-  ERROR: 'bg-red-500/20 text-red-400 border-red-500/30',
-  WARNING: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-  INFO: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-  DEBUG: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
+  ERROR: 'bg-red-500/20 text-red-600  border-red-500/30',
+  WARNING: 'bg-amber-500/20 text-amber-600  border-amber-500/30',
+  INFO: 'bg-amber-500/20 text-amber-600  border-amber-500/30',
+  DEBUG: 'bg-[var(--surface-container)] text-[var(--text-secondary)]  border-[var(--border-default)] ',
 };
 
 const levelBorderColors: Record<string, string> = {
@@ -76,12 +76,12 @@ const categoryIcons: Record<string, React.ReactNode> = {
 };
 
 const categoryColors: Record<string, string> = {
-  process: 'bg-amber-500/20 text-amber-400',
-  file: 'bg-violet-500/20 text-violet-400',
-  registry: 'bg-amber-500/20 text-amber-400',
+  process: 'bg-amber-500/20 text-amber-600 ',
+  file: 'bg-violet-500/20 text-violet-600 ',
+  registry: 'bg-amber-500/20 text-amber-600 ',
   network: 'bg-blue-500/20 text-blue-400',
-  threat: 'bg-red-500/20 text-red-400',
-  anomaly: 'bg-orange-500/20 text-orange-400',
+  threat: 'bg-red-500/20 text-red-600 ',
+  anomaly: 'bg-orange-500/20 text-orange-600 ',
 };
 
 export function SandboxDashboardPage() {
@@ -366,40 +366,40 @@ export function SandboxDashboardPage() {
                 Start Runtime
               </Button>
             ) : (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50  rounded-lg">
                 <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                <span className="text-xs text-emerald-700 dark:text-emerald-400">Runtime Online</span>
+                <span className="text-xs text-emerald-700  ">Runtime Online</span>
               </div>
             )}
 
             {isSessionRunning && activeSession && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800/50">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50  rounded-lg border border-blue-200 ">
                 <Loader2 className="w-3.5 h-3.5 text-blue-500 animate-spin" />
-                <span className="text-xs font-medium text-blue-700 dark:text-blue-400">Running Session</span>
-                <span className="text-xs text-blue-500 dark:text-blue-500 font-mono">{activeSession.session_id.slice(0, 8)}</span>
+                <span className="text-xs font-medium text-blue-700 ">Running Session</span>
+                <span className="text-xs text-blue-500  font-mono">{activeSession.session_id.slice(0, 8)}</span>
               </div>
             )}
 
             {activeSession && activeSession.state === 'completed' && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-800/50">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50  rounded-lg border border-emerald-200 ">
                 <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
-                <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">Session Completed</span>
+                <span className="text-xs font-medium text-emerald-700  ">Session Completed</span>
               </div>
             )}
 
             {activeSession && ['timeout', 'rolled_back'].includes(activeSession.state) && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800/50">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50  rounded-lg border border-amber-200 ">
                 <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-                <span className="text-xs font-medium text-amber-700 dark:text-amber-400">
+                <span className="text-xs font-medium text-amber-700  ">
                   {activeSession.state === 'timeout' ? 'Session Timed Out' : 'Session Interrupted'}
                 </span>
               </div>
             )}
 
             {activeSession && activeSession.state === 'failed' && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800/50">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-red-50  rounded-lg border border-red-200 ">
                 <XCircle className="w-3.5 h-3.5 text-red-500" />
-                <span className="text-xs font-medium text-red-700 dark:text-red-400">Session Failed</span>
+                <span className="text-xs font-medium text-red-700  ">Session Failed</span>
               </div>
             )}
 
@@ -412,7 +412,7 @@ export function SandboxDashboardPage() {
               size="sm"
               onClick={handleStopSession}
               disabled={!isSessionRunning || isLoading}
-              className="text-red-600 dark:text-red-400 border-red-300 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20"
+              className="text-red-600   border-red-300  hover:bg-red-50 "
             >
               <Square className="w-4 h-4" />
               Stop Session
@@ -433,7 +433,7 @@ export function SandboxDashboardPage() {
         }
       />
 
-      <div className="flex items-center gap-4 px-4 py-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+      <div className="flex items-center gap-4 px-4 py-3 bg-[var(--surface-container-lowest)]  rounded-lg">
         <Select
           value={selectedSimulator}
           onChange={(val) => setSelectedSimulator(val)}
@@ -450,7 +450,7 @@ export function SandboxDashboardPage() {
           ]}
           className="w-64"
         />
-        <div className="h-6 w-px bg-slate-300 dark:bg-slate-600" />
+        <div className="h-6 w-px bg-[var(--surface-container)] " />
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <div className={cn(
@@ -460,14 +460,14 @@ export function SandboxDashboardPage() {
               health?.vm_status?.error ? 'bg-red-500' :
               'bg-slate-400'
             )} />
-            <Bug className="w-4 h-4 text-amber-400" />
-            <span className="text-sm text-slate-600 dark:text-slate-400">VM:</span>
+            <Bug className="w-4 h-4 text-amber-600 " />
+            <span className="text-sm text-[var(--text-secondary)] ">VM:</span>
             <span className={cn(
               "text-sm font-medium",
-              health?.vm_status?.state === 'running' ? 'text-emerald-600 dark:text-emerald-400' :
-              health?.vm_status?.state === 'stopped' ? 'text-slate-500' :
-              health?.vm_status?.error ? 'text-red-600 dark:text-red-400' :
-              'text-slate-500'
+              health?.vm_status?.state === 'running' ? 'text-emerald-600  ' :
+              health?.vm_status?.state === 'stopped' ? 'text-[var(--text-secondary)]' :
+              health?.vm_status?.error ? 'text-red-600  ' :
+              'text-[var(--text-secondary)]'
             )}>
               {health?.vm_status?.state === 'running' ? 'Running' :
                health?.vm_status?.state === 'stopped' ? 'Stopped' :
@@ -477,13 +477,13 @@ export function SandboxDashboardPage() {
           </div>
           <div className="flex items-center gap-2">
             <Layers className="w-4 h-4 text-violet-600" />
-            <span className="text-sm text-slate-600 dark:text-slate-400">Events:</span>
-            <span className="text-sm font-medium text-slate-900 dark:text-white">{totalEvents}</span>
+            <span className="text-sm text-[var(--text-secondary)] ">Events:</span>
+            <span className="text-sm font-medium text-[var(--text-primary)] ">{totalEvents}</span>
           </div>
           <div className="flex items-center gap-2">
             <Shield className="w-4 h-4 text-amber-600" />
-            <span className="text-sm text-slate-600 dark:text-slate-400">Alerts:</span>
-            <span className="text-sm font-medium text-slate-900 dark:text-white">{behaviorAlerts}</span>
+            <span className="text-sm text-[var(--text-secondary)] ">Alerts:</span>
+            <span className="text-sm font-medium text-[var(--text-primary)] ">{behaviorAlerts}</span>
           </div>
         </div>
       </div>
@@ -514,7 +514,7 @@ export function SandboxDashboardPage() {
         </motion.div>
       )}
 
-      <div className="flex gap-2 border-b border-slate-200 dark:border-slate-700">
+      <div className="flex gap-2 border-b border-[var(--border-subtle)] ">
         {(['sessions', 'monitoring', 'timeline', 'telemetry', 'logs'] as TabType[]).map((tab) => (
           <button
             key={tab}
@@ -522,8 +522,8 @@ export function SandboxDashboardPage() {
             className={cn(
               'px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px',
               activeTab === tab
-                ? 'border-amber-500 text-amber-400'
-                : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
+                ? 'border-amber-500 text-amber-600 '
+                : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-secondary)]  '
             )}
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -573,7 +573,7 @@ export function SandboxDashboardPage() {
                     fetchStats();
                     showStatus('success', 'Sessions cleared', 'All session history has been removed');
                   }}
-                  className="text-red-600 dark:text-red-400 border-red-300 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  className="text-red-600   border-red-300  hover:bg-red-50 "
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   Clear Sessions
@@ -583,18 +583,18 @@ export function SandboxDashboardPage() {
 
             <Card>
               {isLoading ? (
-                <div className="p-8 text-center text-slate-500">Loading sessions...</div>
+                <div className="p-8 text-center text-[var(--text-secondary)]">Loading sessions...</div>
               ) : filteredSessions.length === 0 ? (
-                <div className="p-8 text-center text-slate-500">No sessions found. Start a new session to begin analysis.</div>
+                <div className="p-8 text-center text-[var(--text-secondary)]">No sessions found. Start a new session to begin analysis.</div>
               ) : (
-                <div className="divide-y divide-slate-100 dark:divide-slate-700/50 max-h-[400px] overflow-y-auto">
+                <div className="divide-y divide-[var(--border-subtle)]  max-h-[400px] overflow-y-auto">
                   {filteredSessions.map((session) => (
                     <motion.div
                       key={session.id}
                       variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } }}
                       onClick={() => setSelectedSession(session)}
                       className={cn(
-                        'px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors',
+                        'px-5 py-4 hover:bg-[var(--surface-container-lowest)]  cursor-pointer transition-colors',
                         selectedSession?.id === session.id && 'bg-amber-500/10'
                       )}
                     >
@@ -603,28 +603,28 @@ export function SandboxDashboardPage() {
                           className={cn(
                             'w-10 h-10 rounded-xl flex items-center justify-center',
                             session.status === 'running' && 'bg-amber-500/15',
-                            session.status === 'completed' && 'bg-emerald-100 dark:bg-emerald-900/20',
-                            session.status === 'failed' && 'bg-red-100 dark:bg-red-900/20',
-                            session.status === 'timeout' && 'bg-amber-100 dark:bg-amber-900/20',
-                            !['running', 'completed', 'failed', 'timeout'].includes(session.status) && 'bg-slate-100 dark:bg-slate-800'
+                            session.status === 'completed' && 'bg-emerald-100 ',
+                            session.status === 'failed' && 'bg-red-100 ',
+                            session.status === 'timeout' && 'bg-amber-100 ',
+                            !['running', 'completed', 'failed', 'timeout'].includes(session.status) && 'bg-[var(--surface-container-low)] '
                           )}
                         >
-                          {session.status === 'running' && <Play className="w-5 h-5 text-amber-400" />}
-                          {session.status === 'completed' && <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />}
-                          {session.status === 'failed' && <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />}
-                          {session.status === 'timeout' && <Timer className="w-5 h-5 text-amber-600 dark:text-amber-400" />}
-                          {!['running', 'completed', 'failed', 'timeout'].includes(session.status) && <Loader2 className="w-5 h-5 text-slate-500 animate-spin" />}
+                          {session.status === 'running' && <Play className="w-5 h-5 text-amber-600 " />}
+                          {session.status === 'completed' && <CheckCircle className="w-5 h-5 text-emerald-600  " />}
+                          {session.status === 'failed' && <XCircle className="w-5 h-5 text-red-600  " />}
+                          {session.status === 'timeout' && <Timer className="w-5 h-5 text-amber-600  " />}
+                          {!['running', 'completed', 'failed', 'timeout'].includes(session.status) && <Loader2 className="w-5 h-5 text-[var(--text-secondary)] animate-spin" />}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <p className="font-medium text-slate-900 dark:text-white">
+                            <p className="font-medium text-[var(--text-primary)] ">
                               {session.simulatorName || session.simulatorId}
                             </p>
-                            <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">
+                            <span className="text-xs text-[var(--text-secondary)]   font-mono">
                               {session.sessionId?.slice(0, 8)}
                             </span>
                           </div>
-                          <div className="flex items-center gap-3 mt-1 text-xs text-slate-400 dark:text-slate-500">
+                          <div className="flex items-center gap-3 mt-1 text-xs text-[var(--text-secondary)]  ">
                             <span>{session.vmName}</span>
                             <span>·</span>
                             <span>{formatSessionDuration(session.duration)}</span>
@@ -655,63 +655,63 @@ export function SandboxDashboardPage() {
             {selectedSession ? (
               <Card>
                 <div className="p-5">
-                  <h3 className="font-semibold text-slate-900 dark:text-white mb-4">Session Details</h3>
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg mb-4">
+                  <h3 className="font-semibold text-[var(--text-primary)]  mb-4">Session Details</h3>
+                  <div className="p-4 bg-[var(--surface-container-lowest)]  rounded-lg mb-4">
                     <div className="flex items-center gap-3 mb-2">
                       <div
                         className={cn(
-                          'w-10 h-10 rounded-xl flex items-center justify-center bg-slate-100 dark:bg-slate-700'
+                          'w-10 h-10 rounded-xl flex items-center justify-center bg-[var(--surface-container-low)] '
                         )}
                       >
                         <Terminal className="w-5 h-5" />
                       </div>
                       <div>
-                        <p className="font-medium text-slate-900 dark:text-white">
+                        <p className="font-medium text-[var(--text-primary)] ">
                           {selectedSession.simulatorName || selectedSession.simulatorId}
                         </p>
-                        <p className="text-xs text-slate-400 dark:text-slate-500">
+                        <p className="text-xs text-[var(--text-secondary)]  ">
                           {selectedSession.sessionId?.slice(0, 8)}
                         </p>
                       </div>
                     </div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                    <p className="text-sm text-[var(--text-secondary)] ">
                       Execution session
                     </p>
                   </div>
 
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-slate-500 dark:text-slate-400">Status</span>
+                      <span className="text-[var(--text-secondary)] ">Status</span>
                       <StatusBadge status={selectedSession.status} size="sm" />
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500 dark:text-slate-400">VM</span>
-                      <span className="text-slate-700 dark:text-slate-300">{selectedSession.vmName}</span>
+                      <span className="text-[var(--text-secondary)] ">VM</span>
+                      <span className="text-[var(--text-secondary)] ">{selectedSession.vmName}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500 dark:text-slate-400">Duration</span>
-                      <span className="text-slate-700 dark:text-slate-300">{formatSessionDuration(selectedSession.duration)}</span>
+                      <span className="text-[var(--text-secondary)] ">Duration</span>
+                      <span className="text-[var(--text-secondary)] ">{formatSessionDuration(selectedSession.duration)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500 dark:text-slate-400">Events</span>
-                      <span className="text-slate-700 dark:text-slate-300">{selectedSession.eventsCollected || 0}</span>
+                      <span className="text-[var(--text-secondary)] ">Events</span>
+                      <span className="text-[var(--text-secondary)] ">{selectedSession.eventsCollected || 0}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500 dark:text-slate-400">Evidence</span>
-                      <span className="text-slate-700 dark:text-slate-300">{selectedSession.evidenceFiles?.length || 0}</span>
+                      <span className="text-[var(--text-secondary)] ">Evidence</span>
+                      <span className="text-[var(--text-secondary)] ">{selectedSession.evidenceFiles?.length || 0}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500 dark:text-slate-400">Started</span>
-                      <span className="text-slate-700 dark:text-slate-300">
+                      <span className="text-[var(--text-secondary)] ">Started</span>
+                      <span className="text-[var(--text-secondary)] ">
                         {selectedSession.startTime ? new Date(selectedSession.startTime).toLocaleString() : 'N/A'}
                       </span>
                     </div>
                   </div>
 
                   {(selectedSession as any).error && (
-                    <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-lg mt-4">
-                      <p className="text-sm text-red-700 dark:text-red-400 font-medium mb-1">Error</p>
-                      <p className="text-xs text-red-600 dark:text-red-500">{(selectedSession as any).error}</p>
+                    <div className="p-3 bg-red-50  border border-red-200  rounded-lg mt-4">
+                      <p className="text-sm text-red-700   font-medium mb-1">Error</p>
+                      <p className="text-xs text-red-600 ">{(selectedSession as any).error}</p>
                     </div>
                   )}
                 </div>
@@ -719,10 +719,10 @@ export function SandboxDashboardPage() {
             ) : (
               <Card>
                 <div className="flex flex-col items-center justify-center py-12">
-                  <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
-                    <Server className="w-8 h-8 text-slate-400" />
+                  <div className="w-16 h-16 rounded-full bg-[var(--surface-container-low)]  flex items-center justify-center mb-4">
+                    <Server className="w-8 h-8 text-[var(--text-secondary)] " />
                   </div>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">Select a session to view details</p>
+                  <p className="text-sm text-[var(--text-secondary)] ">Select a session to view details</p>
                 </div>
               </Card>
             )}
@@ -736,7 +736,7 @@ export function SandboxDashboardPage() {
             <DashboardStat
               label="Process Events"
               value={processCount}
-              icon={<Cpu className="w-5 h-5 text-amber-400" />}
+              icon={<Cpu className="w-5 h-5 text-amber-600 " />}
               delta="Live monitoring"
             />
           </DashboardCard>
@@ -744,7 +744,7 @@ export function SandboxDashboardPage() {
             <DashboardStat
               label="File Operations"
               value={fileCount}
-              icon={<FileText className="w-5 h-5 text-violet-600 dark:text-violet-400" />}
+              icon={<FileText className="w-5 h-5 text-violet-600  " />}
               delta="File system activity"
             />
           </DashboardCard>
@@ -752,7 +752,7 @@ export function SandboxDashboardPage() {
             <DashboardStat
               label="Registry Changes"
               value={registryCount}
-              icon={<Hash className="w-5 h-5 text-amber-600 dark:text-amber-400" />}
+              icon={<Hash className="w-5 h-5 text-amber-600  " />}
               delta="Registry modifications"
             />
           </DashboardCard>
@@ -760,7 +760,7 @@ export function SandboxDashboardPage() {
             <DashboardStat
               label="Network Events"
               value={networkCount}
-              icon={<Network className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
+              icon={<Network className="w-5 h-5 text-blue-600 " />}
               delta="Network activity"
             />
           </DashboardCard>
@@ -770,9 +770,9 @@ export function SandboxDashboardPage() {
       {activeTab === 'monitoring' && !monitoringStatus && !persistedMonitoring && (
         <Card>
           <div className="flex flex-col items-center justify-center py-16">
-            <Activity className="w-12 h-12 text-slate-400 mb-3" />
-            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">No monitoring data available</p>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Start the runtime and run a session to see live monitoring data</p>
+            <Activity className="w-12 h-12 text-[var(--text-secondary)]  mb-3" />
+            <p className="text-sm font-medium text-[var(--text-secondary)] ">No monitoring data available</p>
+            <p className="text-xs text-[var(--text-secondary)]   mt-1">Start the runtime and run a session to see live monitoring data</p>
           </div>
         </Card>
       )}
@@ -783,8 +783,8 @@ export function SandboxDashboardPage() {
           {persistedMonitoring && (
             <Card>
               <div className="p-4">
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Session Summary</p>
-                <p className="text-sm text-slate-700 dark:text-slate-300">
+                <p className="text-xs font-medium text-[var(--text-secondary)]  mb-1">Session Summary</p>
+                <p className="text-sm text-[var(--text-secondary)] ">
                   {persistedMonitoring.totalEvents} events · {persistedMonitoring.process} process · {persistedMonitoring.file} file · {persistedMonitoring.registry} registry · {persistedMonitoring.network} network
                 </p>
               </div>
@@ -793,9 +793,9 @@ export function SandboxDashboardPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
-              <div className="p-4 border-b border-slate-100 dark:border-slate-700/50">
-                <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-amber-400" />
+              <div className="p-4 border-b border-[var(--border-subtle)] ">
+                <h3 className="font-semibold text-[var(--text-primary)]  flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-amber-600 " />
                   Event Categories
                 </h3>
               </div>
@@ -807,12 +807,12 @@ export function SandboxDashboardPage() {
                       ? Object.entries(persistedMonitoring).filter(([k]) => ['process', 'file', 'registry', 'network', 'credential'].includes(k) && typeof persistedMonitoring[k] === 'number' && persistedMonitoring[k] > 0)
                       : [];
                   return cats.length === 0 ? (
-                    <p className="text-sm text-slate-400 text-center py-4">No events captured yet</p>
+                    <p className="text-sm text-[var(--text-secondary)]  text-center py-4">No events captured yet</p>
                   ) : (
                     cats.map(([category, count]) => (
                       <div key={category} className="flex items-center justify-between">
-                        <span className="text-sm text-slate-600 dark:text-slate-400 capitalize">{category.replace(/_/g, ' ')}</span>
-                        <span className="text-sm font-medium text-slate-900 dark:text-white">{count as number}</span>
+                        <span className="text-sm text-[var(--text-secondary)]  capitalize">{category.replace(/_/g, ' ')}</span>
+                        <span className="text-sm font-medium text-[var(--text-primary)] ">{count as number}</span>
                       </div>
                     ))
                   );
@@ -821,8 +821,8 @@ export function SandboxDashboardPage() {
             </Card>
 
             <Card>
-              <div className="p-4 border-b border-slate-100 dark:border-slate-700/50">
-                <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+              <div className="p-4 border-b border-[var(--border-subtle)] ">
+                <h3 className="font-semibold text-[var(--text-primary)]  flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-amber-600" />
                   Events by Severity
                 </h3>
@@ -835,19 +835,19 @@ export function SandboxDashboardPage() {
                       ? Object.entries(persistedMonitoring.severityCounts).filter(([, c]) => (c as number) > 0)
                       : [];
                   return sevs.length === 0 ? (
-                    <p className="text-sm text-slate-400 text-center py-4">No severity data yet</p>
+                    <p className="text-sm text-[var(--text-secondary)]  text-center py-4">No severity data yet</p>
                   ) : (
                     sevs.map(([severity, count]) => (
                       <div key={severity} className="flex items-center justify-between">
                         <span className={cn(
                           'text-sm capitalize px-2 py-0.5 rounded',
-                          severity === 'critical' && 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-                          severity === 'high' && 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
-                          severity === 'medium' && 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-                          severity === 'low' && 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-                          severity === 'info' && 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+                          severity === 'critical' && 'bg-red-100 text-red-700   ',
+                          severity === 'high' && 'bg-orange-100 text-orange-700   ',
+                          severity === 'medium' && 'bg-amber-100 text-amber-700   ',
+                          severity === 'low' && 'bg-emerald-100 text-emerald-700   ',
+                          severity === 'info' && 'bg-blue-100 text-blue-700  ',
                         )}>{severity}</span>
-                        <span className="text-sm font-medium text-slate-900 dark:text-white">{count as number}</span>
+                        <span className="text-sm font-medium text-[var(--text-primary)] ">{count as number}</span>
                       </div>
                     ))
                   );
@@ -857,13 +857,13 @@ export function SandboxDashboardPage() {
 
             {monitoringStatus?.suspicious_activities && monitoringStatus.suspicious_activities.length > 0 && (
               <Card className="lg:col-span-2">
-                <div className="p-4 border-b border-slate-100 dark:border-slate-700/50">
-                  <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                <div className="p-4 border-b border-[var(--border-subtle)] ">
+                  <h3 className="font-semibold text-[var(--text-primary)]  flex items-center gap-2">
                     <Shield className="w-4 h-4 text-red-600" />
                     Suspicious Activities Detected
                   </h3>
                 </div>
-                <div className="divide-y divide-slate-100 dark:divide-slate-700/50">
+                <div className="divide-y divide-[var(--border-subtle)] ">
                   {(monitoringStatus.suspicious_activities as Array<{indicator?: string; description?: string; severity?: string}>).map((activity, idx) => (
                     <div key={idx} className="p-4 flex items-start gap-4">
                       <div className={cn(
@@ -874,8 +874,8 @@ export function SandboxDashboardPage() {
                         activity.severity === 'low' && 'bg-emerald-500',
                       )} />
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-slate-900 dark:text-white">{activity.indicator || 'Unknown'}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{activity.description || ''}</p>
+                        <p className="text-sm font-medium text-[var(--text-primary)] ">{activity.indicator || 'Unknown'}</p>
+                        <p className="text-xs text-[var(--text-secondary)]  mt-1">{activity.description || ''}</p>
                       </div>
                       {activity.severity && (
                         <SeverityBadge severity={activity.severity as 'critical' | 'high' | 'medium' | 'low'} size="sm" />
@@ -888,19 +888,19 @@ export function SandboxDashboardPage() {
 
             {persistedMonitoring?.suspiciousActivities && persistedMonitoring.suspiciousActivities.length > 0 && (
               <Card className="lg:col-span-2">
-                <div className="p-4 border-b border-slate-100 dark:border-slate-700/50">
-                  <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                <div className="p-4 border-b border-[var(--border-subtle)] ">
+                  <h3 className="font-semibold text-[var(--text-primary)]  flex items-center gap-2">
                     <Shield className="w-4 h-4 text-red-600" />
                     Suspicious Activities (Persisted)
                   </h3>
                 </div>
-                <div className="divide-y divide-slate-100 dark:divide-slate-700/50">
+                <div className="divide-y divide-[var(--border-subtle)] ">
                   {persistedMonitoring.suspiciousActivities.map((activity: any, idx: number) => (
                     <div key={idx} className="p-4 flex items-start gap-4">
                       <div className="w-2 h-2 rounded-full mt-2 bg-amber-500" />
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-slate-900 dark:text-white">{activity.eventType || 'Event'}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{activity.severity || 'info'} severity</p>
+                        <p className="text-sm font-medium text-[var(--text-primary)] ">{activity.eventType || 'Event'}</p>
+                        <p className="text-xs text-[var(--text-secondary)]  mt-1">{activity.severity || 'info'} severity</p>
                       </div>
                     </div>
                   ))}
@@ -913,13 +913,13 @@ export function SandboxDashboardPage() {
 
       {activeTab === 'timeline' && (
         <Card className="h-[550px] flex flex-col">
-          <div className="p-3 border-b border-slate-100 dark:border-slate-700/50 flex items-center justify-between bg-slate-50 dark:bg-slate-800/30">
+          <div className="p-3 border-b border-[var(--border-subtle)]  flex items-center justify-between bg-[var(--surface-container-lowest)] ">
             <div className="flex items-center gap-3">
               <Timer className="w-4 h-4 text-amber-500" />
-              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              <span className="text-sm font-medium text-[var(--text-secondary)] ">
                 Event Timeline
               </span>
-              <span className="text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-xs text-[var(--text-secondary)] ">
                 ({telemetry.events.length} events, chronological)
               </span>
             </div>
@@ -927,9 +927,9 @@ export function SandboxDashboardPage() {
           <div className="flex-1 overflow-y-auto p-4">
             {telemetry.events.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center">
-                <Timer className="w-12 h-12 text-slate-300 dark:text-slate-600 mb-3" />
-                <p className="text-sm text-slate-500 dark:text-slate-400">No timeline events yet</p>
-                <p className="text-xs text-slate-400 mt-1">Start a sandbox session to see events in chronological order</p>
+                <Timer className="w-12 h-12 text-[var(--text-secondary)]   mb-3" />
+                <p className="text-sm text-[var(--text-secondary)] ">No timeline events yet</p>
+                <p className="text-xs text-[var(--text-secondary)]  mt-1">Start a sandbox session to see events in chronological order</p>
               </div>
             ) : (
               <div className="relative pl-6">
@@ -951,24 +951,24 @@ export function SandboxDashboardPage() {
                       'bg-slate-500';
                     return (
                       <div key={idx} className="relative mb-4 ml-4">
-                        <div className={cn('absolute -left-[26px] top-1.5 w-3 h-3 rounded-full ring-4 ring-white dark:ring-slate-900', dotColor)} />
-                        <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-3 border border-slate-200 dark:border-slate-700/50">
+                        <div className={cn('absolute -left-[26px] top-1.5 w-3 h-3 rounded-full ring-4 ring-white ', dotColor)} />
+                        <div className="bg-[var(--surface-container-lowest)]  rounded-lg p-3 border border-[var(--border-subtle)] ">
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
+                            <span className="text-xs font-mono text-[var(--text-secondary)] ">
                               {ts.toLocaleTimeString('en-US', { hour12: false })}.{String(ts.getMilliseconds()).padStart(3, '0')}
                             </span>
-                            <span className={cn('px-2 py-0.5 text-[10px] font-mono rounded uppercase', categoryColors[cat] || 'bg-slate-500/20 text-slate-400')}>
+                            <span className={cn('px-2 py-0.5 text-[10px] font-mono rounded uppercase', categoryColors[cat] || 'bg-[var(--surface-container)] text-[var(--text-secondary)] ')}>
                               {cat}
                             </span>
                           </div>
-                          <p className="text-sm font-medium text-slate-900 dark:text-white">
+                          <p className="text-sm font-medium text-[var(--text-primary)] ">
                             {event.event_type || event.type || 'Event'}
                           </p>
                           {event.message && (
-                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{event.message}</p>
+                            <p className="text-xs text-[var(--text-secondary)]  mt-1">{event.message}</p>
                           )}
                           {event.details && typeof event.details === 'object' && (
-                            <div className="mt-1 text-xs font-mono text-slate-500 dark:text-slate-400 truncate">
+                            <div className="mt-1 text-xs font-mono text-[var(--text-secondary)]  truncate">
                               {Object.entries(event.details).slice(0, 2).map(([k, v]) => (
                                 <span key={k} className="mr-3">{k}={String(v).slice(0, 60)}</span>
                               ))}
@@ -986,35 +986,35 @@ export function SandboxDashboardPage() {
 
       {activeTab === 'telemetry' && (
         <Card className="h-[550px] flex flex-col">
-          <div className="p-3 border-b border-slate-100 dark:border-slate-700/50 flex items-center justify-between bg-slate-50 dark:bg-slate-800/30">
+          <div className="p-3 border-b border-[var(--border-subtle)]  flex items-center justify-between bg-[var(--surface-container-lowest)] ">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <div className={cn('w-2 h-2 rounded-full', telemetry.isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-red-500')} />
-                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                <span className="text-xs font-medium text-[var(--text-secondary)] ">
                   {telemetry.isConnected ? 'Live' : 'Disconnected'}
                 </span>
               </div>
-              <div className="h-4 w-px bg-slate-300 dark:bg-slate-600" />
+              <div className="h-4 w-px bg-[var(--surface-container)] " />
               <div className="flex items-center gap-3 text-xs">
                 <span className="flex items-center gap-1">
                   <Cpu className="w-3 h-3 text-amber-500" />
-                  <span className="text-slate-500">Process:</span>
-                  <span className="font-medium text-slate-700 dark:text-slate-300">{telemetryCounts.process || 0}</span>
+                  <span className="text-[var(--text-secondary)]">Process:</span>
+                  <span className="font-medium text-[var(--text-secondary)] ">{telemetryCounts.process || 0}</span>
                 </span>
                 <span className="flex items-center gap-1">
                   <FileText className="w-3 h-3 text-violet-500" />
-                  <span className="text-slate-500">File:</span>
-                  <span className="font-medium text-slate-700 dark:text-slate-300">{telemetryCounts.file || 0}</span>
+                  <span className="text-[var(--text-secondary)]">File:</span>
+                  <span className="font-medium text-[var(--text-secondary)] ">{telemetryCounts.file || 0}</span>
                 </span>
                 <span className="flex items-center gap-1">
                   <Lock className="w-3 h-3 text-amber-500" />
-                  <span className="text-slate-500">Registry:</span>
-                  <span className="font-medium text-slate-700 dark:text-slate-300">{telemetryCounts.registry || 0}</span>
+                  <span className="text-[var(--text-secondary)]">Registry:</span>
+                  <span className="font-medium text-[var(--text-secondary)] ">{telemetryCounts.registry || 0}</span>
                 </span>
                 <span className="flex items-center gap-1">
                   <Globe className="w-3 h-3 text-blue-500" />
-                  <span className="text-slate-500">Network:</span>
-                  <span className="font-medium text-slate-700 dark:text-slate-300">{telemetryCounts.network || 0}</span>
+                  <span className="text-[var(--text-secondary)]">Network:</span>
+                  <span className="font-medium text-[var(--text-secondary)] ">{telemetryCounts.network || 0}</span>
                 </span>
               </div>
             </div>
@@ -1023,7 +1023,7 @@ export function SandboxDashboardPage() {
                 onClick={() => telemetry.toggleAutoScroll()}
                 className={cn(
                   'p-1.5 rounded transition-colors',
-                  telemetry.autoScroll ? 'bg-amber-500/20 text-amber-400' : 'text-slate-400 hover:text-slate-600'
+                  telemetry.autoScroll ? 'bg-amber-500/20 text-amber-600 ' : 'text-[var(--text-secondary)]  hover:text-[var(--text-secondary)]'
                 )}
                 title={telemetry.autoScroll ? 'Auto-scroll ON' : 'Auto-scroll OFF'}
               >
@@ -1033,7 +1033,7 @@ export function SandboxDashboardPage() {
                 onClick={() => telemetry.togglePause()}
                 className={cn(
                   'p-1.5 rounded transition-colors',
-                  telemetry.isPaused ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600' : 'text-slate-400 hover:text-slate-600'
+                  telemetry.isPaused ? 'bg-amber-100  text-amber-600' : 'text-[var(--text-secondary)]  hover:text-[var(--text-secondary)]'
                 )}
                 title={telemetry.isPaused ? 'Resume' : 'Pause'}
               >
@@ -1041,7 +1041,7 @@ export function SandboxDashboardPage() {
               </button>
               <button
                 onClick={() => telemetry.clear()}
-                className="p-1.5 rounded text-slate-400 hover:text-slate-600 transition-colors"
+                className="p-1.5 rounded text-[var(--text-secondary)]  hover:text-[var(--text-secondary)] transition-colors"
                 title="Clear"
               >
                 <Trash2 className="w-4 h-4" />
@@ -1066,7 +1066,7 @@ export function SandboxDashboardPage() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.15 }}
                   className={cn(
-                    'flex items-start gap-2 p-2 rounded border-l-2 bg-slate-800/50',
+                    'flex items-start gap-2 p-2 rounded border-l-2 bg-slate-100 ',
                     event.category === 'process' ? 'border-l-amber-500' :
                     event.category === 'file' ? 'border-l-violet-500' :
                     event.category === 'registry' ? 'border-l-amber-500' :
@@ -1081,12 +1081,12 @@ export function SandboxDashboardPage() {
                   </span>
                   <span className={cn(
                     'px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0 flex items-center gap-1',
-                    categoryColors[event.category] || 'bg-slate-700 text-slate-400'
+                    categoryColors[event.category] || 'bg-slate-100  text-slate-500 '
                   )}>
                     {categoryIcons[event.category]}
                     {event.category}
                   </span>
-                  <span className="text-slate-300 truncate flex-1">
+                  <span className="text-slate-600  truncate flex-1">
                     {event.event_type}
                   </span>
                   {event.data && Object.keys(event.data).length > 0 && (
@@ -1104,31 +1104,31 @@ export function SandboxDashboardPage() {
 
       {activeTab === 'logs' && (
         <Card className="h-[550px] flex flex-col">
-          <div className="p-3 border-b border-slate-100 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/30">
+          <div className="p-3 border-b border-[var(--border-subtle)]  bg-[var(--surface-container-lowest)] ">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
                   <div className={cn('w-2 h-2 rounded-full', logs.isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-red-500')} />
-                  <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  <span className="text-xs font-medium text-[var(--text-secondary)] ">
                     {logs.isConnected ? 'Live Stream' : 'Disconnected'}
                   </span>
                 </div>
-                <div className="h-4 w-px bg-slate-300 dark:bg-slate-600" />
-                <span className="text-xs text-slate-500">{logs.entries.length} entries</span>
-                <span className="text-xs text-slate-500">·</span>
-                <span className="text-xs text-slate-500">{filteredLogs.length} shown</span>
+                <div className="h-4 w-px bg-[var(--surface-container)] " />
+                <span className="text-xs text-[var(--text-secondary)]">{logs.entries.length} entries</span>
+                <span className="text-xs text-[var(--text-secondary)]">·</span>
+                <span className="text-xs text-[var(--text-secondary)]">{filteredLogs.length} shown</span>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={exportLogs}
-                  className="p-1.5 rounded text-slate-400 hover:text-slate-600 transition-colors"
+                  className="p-1.5 rounded text-[var(--text-secondary)]  hover:text-[var(--text-secondary)] transition-colors"
                   title="Export Logs"
                 >
                   <ArrowDown className="w-4 h-4" />
                 </button>
                 <button
                   onClick={copyLogs}
-                  className="p-1.5 rounded text-slate-400 hover:text-slate-600 transition-colors"
+                  className="p-1.5 rounded text-[var(--text-secondary)]  hover:text-[var(--text-secondary)] transition-colors"
                   title="Copy Logs"
                 >
                   <Copy className="w-4 h-4" />
@@ -1137,7 +1137,7 @@ export function SandboxDashboardPage() {
                   onClick={() => logs.togglePause()}
                   className={cn(
                     'p-1.5 rounded transition-colors',
-                    logs.isPaused ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600' : 'text-slate-400 hover:text-slate-600'
+                    logs.isPaused ? 'bg-amber-100  text-amber-600' : 'text-[var(--text-secondary)]  hover:text-[var(--text-secondary)]'
                   )}
                   title={logs.isPaused ? 'Resume' : 'Pause'}
                 >
@@ -1147,7 +1147,7 @@ export function SandboxDashboardPage() {
                   onClick={() => logs.toggleAutoScroll()}
                   className={cn(
                     'p-1.5 rounded transition-colors',
-                    logs.autoScroll ? 'bg-amber-500/20 text-amber-400' : 'text-slate-400 hover:text-slate-600'
+                    logs.autoScroll ? 'bg-amber-500/20 text-amber-600 ' : 'text-[var(--text-secondary)]  hover:text-[var(--text-secondary)]'
                   )}
                   title={logs.autoScroll ? 'Auto-scroll ON' : 'Auto-scroll OFF'}
                 >
@@ -1155,14 +1155,14 @@ export function SandboxDashboardPage() {
                 </button>
                 <button
                   onClick={() => logs.clear()}
-                  className="p-1.5 rounded text-slate-400 hover:text-slate-600 transition-colors"
+                  className="p-1.5 rounded text-[var(--text-secondary)]  hover:text-[var(--text-secondary)] transition-colors"
                   title="Clear Logs"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => logs.fetchHistorical(200)}
-                  className="p-1.5 rounded text-slate-400 hover:text-slate-600 transition-colors"
+                  className="p-1.5 rounded text-[var(--text-secondary)]  hover:text-[var(--text-secondary)] transition-colors"
                   title="Refresh"
                 >
                   <RefreshCw className="w-4 h-4" />
@@ -1171,13 +1171,13 @@ export function SandboxDashboardPage() {
             </div>
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] " />
                 <input
                   type="text"
                   placeholder="Search logs..."
                   value={logs.filterText}
                   onChange={(e) => logs.setFilterText(e.target.value)}
-                  className="w-full pl-9 pr-3 py-1.5 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                  className="w-full pl-9 pr-3 py-1.5 text-sm border border-[var(--border-subtle)]  rounded-lg bg-white  text-[var(--text-primary)] "
                 />
               </div>
               <Select
@@ -1218,7 +1218,7 @@ export function SandboxDashboardPage() {
                   </span>
                   <span className={cn(
                     'mr-2 px-1.5 py-0.5 rounded text-[10px] font-medium border',
-                    levelColors[log.level] || 'bg-slate-700 text-slate-400 border-slate-600'
+                    levelColors[log.level] || 'bg-slate-100  text-slate-500  border-slate-300 '
                   )}>
                     {log.level}
                   </span>
@@ -1227,7 +1227,7 @@ export function SandboxDashboardPage() {
                       [{log.session_id.slice(0, 8)}]
                     </span>
                   )}
-                  <span className="text-slate-300">{log.message}</span>
+                  <span className="text-slate-600 ">{log.message}</span>
                 </div>
               ))
             )}
@@ -1241,28 +1241,28 @@ export function SandboxDashboardPage() {
           <DashboardStat
             label="Total Sessions"
             value={stats?.total || sessions.length}
-            icon={<Server className="w-5 h-5 text-amber-400" />}
+            icon={<Server className="w-5 h-5 text-amber-600 " />}
           />
         </DashboardCard>
         <DashboardCard>
           <DashboardStat
             label="Completed"
             value={completedCount}
-            icon={<CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />}
+            icon={<CheckCircle className="w-5 h-5 text-emerald-600  " />}
           />
         </DashboardCard>
         <DashboardCard>
           <DashboardStat
             label="Running"
             value={runningCount}
-            icon={<Activity className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
+            icon={<Activity className="w-5 h-5 text-blue-600 " />}
           />
         </DashboardCard>
         <DashboardCard>
           <DashboardStat
             label="Failed/Timeout"
             value={failedCount}
-            icon={<AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />}
+            icon={<AlertTriangle className="w-5 h-5 text-red-600  " />}
           />
         </DashboardCard>
       </div>

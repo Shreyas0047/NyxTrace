@@ -56,12 +56,12 @@ _log_buffer: deque = deque(maxlen=1000)
 
 # Simulator registry
 SIMULATORS = [
-    SimulatorInfo(id="system-service-alpha", display_name="System Service Alpha", description="Performs file system operations, encryption routines, and system modification behaviors", category="system"),
-    SimulatorInfo(id="system-service-beta", display_name="System Service Beta", description="Establishes network connections, creates persistence mechanisms, and spawns child processes", category="system"),
-    SimulatorInfo(id="system-service-gamma", display_name="System Service Gamma", description="Accesses credential stores, reads sensitive registry hives, and stages data for transfer", category="system"),
-    SimulatorInfo(id="system-service-delta", display_name="System Service Delta", description="Monitors user activity, captures screen data, and scans for sensitive documents", category="system"),
-    SimulatorInfo(id="system-service-epsilon", display_name="System Service Epsilon", description="Installs deep persistence, modifies boot configuration, and performs process injection", category="system"),
-    SimulatorInfo(id="system-service-lateral", display_name="System Service Lateral", description="Performs network discovery, SMB enumeration, pass-the-hash, and remote execution for lateral movement", category="system"),
+    SimulatorInfo(id="system-service-alpha", display_name="LockByte", description="Simulates ransomware: encrypts target file types, removes shadow copies, and drops a ransom note", category="system"),
+    SimulatorInfo(id="system-service-beta", display_name="HiveMind", description="Simulates a botnet agent: C2 beaconing, spawning child processes, and registry persistence", category="system"),
+    SimulatorInfo(id="system-service-gamma", display_name="VaultDrain", description="Simulates credential theft: reads SAM and LSASS credential stores, dumps browser credentials, and stages exfiltration", category="system"),
+    SimulatorInfo(id="system-service-delta", display_name="SilentEye", description="Simulates spyware: keylogging, screen capture, and sensitive document harvesting", category="system"),
+    SimulatorInfo(id="system-service-epsilon", display_name="GhostKernel", description="Simulates evasion: deep persistence, boot configuration modification, and process injection", category="system"),
+    SimulatorInfo(id="system-service-lateral", display_name="NetWarp", description="Simulates lateral movement: network discovery, SMB enumeration, pass-the-hash, and remote execution", category="system"),
 ]
 
 

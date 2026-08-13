@@ -128,7 +128,7 @@ function StatBox({ config, value, index }: StatBoxProps) {
             >
               {value.toLocaleString()}
             </motion.span>
-            <span className="block text-xs text-slate-500 dark:text-slate-400 truncate">
+            <span className="block text-xs text-[var(--text-secondary)]  truncate">
               {config.label}
             </span>
           </div>

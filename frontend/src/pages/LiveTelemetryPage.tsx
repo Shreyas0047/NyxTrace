@@ -102,7 +102,7 @@ export function LiveTelemetryPage() {
           <DashboardStat
             label="Total Events"
             value={stats.totalEvents}
-            icon={<Activity className="w-5 h-5 text-amber-400" />}
+            icon={<Activity className="w-5 h-5 text-amber-600 " />}
             delta={telemetry.isConnected ? 'Live stream active' : 'Disconnected'}
           />
         </DashboardCard>
@@ -110,7 +110,7 @@ export function LiveTelemetryPage() {
           <DashboardStat
             label="Process Events"
             value={stats.processCount}
-            icon={<Cpu className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
+            icon={<Cpu className="w-5 h-5 text-blue-600 " />}
             delta="Process activity"
           />
         </DashboardCard>
@@ -118,7 +118,7 @@ export function LiveTelemetryPage() {
           <DashboardStat
             label="File Events"
             value={stats.fileCount}
-            icon={<FileText className="w-5 h-5 text-orange-600 dark:text-orange-400" />}
+            icon={<FileText className="w-5 h-5 text-orange-600  " />}
             delta="File system activity"
           />
         </DashboardCard>
@@ -126,7 +126,7 @@ export function LiveTelemetryPage() {
           <DashboardStat
             label="Network Events"
             value={stats.networkCount}
-            icon={<Network className="w-5 h-5 text-red-600 dark:text-red-400" />}
+            icon={<Network className="w-5 h-5 text-red-600  " />}
             delta="Network activity"
           />
         </DashboardCard>
@@ -135,8 +135,8 @@ export function LiveTelemetryPage() {
       <Card>
         <div className="p-4 flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-slate-400" />
-            <span className="text-sm text-slate-500 dark:text-slate-400">Filters:</span>
+            <Filter className="w-4 h-4 text-[var(--text-secondary)] " />
+            <span className="text-sm text-[var(--text-secondary)] ">Filters:</span>
           </div>
           <Select
             value={typeFilter}
@@ -167,7 +167,7 @@ export function LiveTelemetryPage() {
               onClick={() => telemetry.toggleAutoScroll()}
               className={cn(
                 'p-1.5 rounded transition-colors',
-                telemetry.autoScroll ? 'bg-amber-500/20 text-amber-400' : 'text-slate-400 hover:text-slate-600'
+                telemetry.autoScroll ? 'bg-amber-500/20 text-amber-600 ' : 'text-[var(--text-secondary)]  hover:text-[var(--text-secondary)]'
               )}
               title={telemetry.autoScroll ? 'Auto-scroll ON' : 'Auto-scroll OFF'}
             >
@@ -175,7 +175,7 @@ export function LiveTelemetryPage() {
             </button>
             <button
               onClick={() => telemetry.clear()}
-              className="p-1.5 rounded text-slate-400 hover:text-slate-600 transition-colors"
+              className="p-1.5 rounded text-[var(--text-secondary)]  hover:text-[var(--text-secondary)] transition-colors"
               title="Clear"
             >
               <Trash2 className="w-4 h-4" />
@@ -185,22 +185,22 @@ export function LiveTelemetryPage() {
       </Card>
 
       <Card>
-        <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-700/50">
+        <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--border-subtle)] ">
           <div className="flex items-center gap-3">
-            <h2 className="font-semibold text-slate-900 dark:text-white">Event Stream</h2>
-            <span className="text-xs text-slate-400">{filteredEvents.length} events</span>
+            <h2 className="font-semibold text-[var(--text-primary)] ">Event Stream</h2>
+            <span className="text-xs text-[var(--text-secondary)] ">{filteredEvents.length} events</span>
           </div>
           <div className="flex items-center gap-2">
             <div className={cn('w-2 h-2 rounded-full', telemetry.isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-red-500')} />
-            <span className="text-xs text-slate-500">{telemetry.isConnected ? 'Live' : 'Disconnected'}</span>
+            <span className="text-xs text-[var(--text-secondary)]">{telemetry.isConnected ? 'Live' : 'Disconnected'}</span>
           </div>
         </div>
         <div
           ref={streamContainerRef}
-          className="divide-y divide-slate-100 dark:divide-slate-700/50 max-h-[600px] overflow-y-auto"
+          className="divide-y divide-[var(--border-subtle)]  max-h-[600px] overflow-y-auto"
         >
           {filteredEvents.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-slate-500">
+            <div className="flex flex-col items-center justify-center py-20 text-[var(--text-secondary)]">
               <Activity className="w-12 h-12 mb-3 opacity-30" />
               <p className="text-lg font-medium">No telemetry events</p>
               <p className="text-sm mt-1">Start a sandbox session to capture live forensic events</p>
@@ -218,29 +218,29 @@ export function LiveTelemetryPage() {
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.15 }}
-                    className="px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                    className="px-5 py-3 hover:bg-[var(--surface-container-lowest)]  transition-colors"
                   >
                     <div className="flex items-center gap-4">
                       <div className={cn('w-3 h-3 rounded-full', colorClass, isLatest && 'animate-pulse')} />
-                      <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                        <Icon className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                      <div className="w-8 h-8 rounded-lg bg-[var(--surface-container-low)]  flex items-center justify-center">
+                        <Icon className="w-4 h-4 text-[var(--text-secondary)] " />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium uppercase text-slate-500 dark:text-slate-400">{event.category}</span>
-                          <span className="text-xs text-slate-400 dark:text-slate-500">•</span>
-                          <span className="text-xs text-slate-400 dark:text-slate-500">{event.event_type}</span>
-                          <span className="text-xs text-slate-400 dark:text-slate-500">•</span>
-                          <span className="text-xs text-slate-400 dark:text-slate-500">{new Date(event.timestamp).toLocaleTimeString()}</span>
+                          <span className="text-xs font-medium uppercase text-[var(--text-secondary)] ">{event.category}</span>
+                          <span className="text-xs text-[var(--text-secondary)]  ">•</span>
+                          <span className="text-xs text-[var(--text-secondary)]  ">{event.event_type}</span>
+                          <span className="text-xs text-[var(--text-secondary)]  ">•</span>
+                          <span className="text-xs text-[var(--text-secondary)]  ">{new Date(event.timestamp).toLocaleTimeString()}</span>
                         </div>
                         {event.data && Object.keys(event.data).length > 0 && (
-                          <pre className="text-xs text-slate-600 dark:text-slate-400 mt-1 font-mono truncate">
+                          <pre className="text-xs text-[var(--text-secondary)]  mt-1 font-mono truncate">
                             {JSON.stringify(event.data)}
                           </pre>
                         )}
                       </div>
                       {isLatest && (
-                        <span className="px-2 py-1 text-xs bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-full">Latest</span>
+                        <span className="px-2 py-1 text-xs bg-emerald-100  text-emerald-700   rounded-full">Latest</span>
                       )}
                     </div>
                   </motion.div>

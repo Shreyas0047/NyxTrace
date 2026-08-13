@@ -1,0 +1,295 @@
+- generic [ref=f1e7]:
+  - complementary [ref=f1e8]:
+    - generic [ref=f1e20]:
+      - heading "NyxTrace" [level=1] [ref=f1e21]
+      - paragraph [ref=f1e22]: Cyber Intelligence
+    - navigation [ref=f1e23]:
+      - generic [ref=f1e24]:
+        - generic [ref=f1e25]: Home
+        - link "Home" [ref=f1e27] [cursor=pointer]:
+          - /url: /home
+      - generic [ref=f1e33]:
+        - generic [ref=f1e34]: Workspace
+        - generic [ref=f1e35]:
+          - link "Dashboard" [ref=f1e36] [cursor=pointer]:
+            - /url: /dashboard
+          - link "Evidence" [ref=f1e44] [cursor=pointer]:
+            - /url: /evidence
+      - generic [ref=f1e49]:
+        - generic [ref=f1e50]: Operations
+        - generic [ref=f1e51]:
+          - link "Sandbox" [ref=f1e52] [cursor=pointer]:
+            - /url: /sandbox
+          - link "Telemetry" [ref=f1e57] [cursor=pointer]:
+            - /url: /telemetry
+          - link "AI Analysis" [ref=f1e62] [cursor=pointer]:
+            - /url: /ai-analysis
+          - link "Reports" [ref=f1e73] [cursor=pointer]:
+            - /url: /reports
+      - generic [ref=f1e81]:
+        - generic [ref=f1e82]: Intelligence
+        - generic [ref=f1e83]:
+          - link "Threat Intel" [ref=f1e84] [cursor=pointer]:
+            - /url: /threat-intelligence
+          - link "Forensic Analytics" [ref=f1e89] [cursor=pointer]:
+            - /url: /forensic-analytics
+          - link "Blockchain Ops" [ref=f1e94] [cursor=pointer]:
+            - /url: /blockchain-operations
+      - generic [ref=f1e100]:
+        - generic [ref=f1e101]: Administration
+        - generic [ref=f1e102]:
+          - link "System Health" [ref=f1e103] [cursor=pointer]:
+            - /url: /health
+          - link "Users" [ref=f1e108] [cursor=pointer]:
+            - /url: /users
+          - link "Settings" [ref=f1e116] [cursor=pointer]:
+            - /url: /settings
+          - link "Audit Log" [ref=f1e122] [cursor=pointer]:
+            - /url: /audit
+    - generic [ref=f1e130]:
+      - generic [ref=f1e131]:
+        - generic [ref=f1e132]: Operational
+        - paragraph [ref=f1e136]: v2.0 · Enterprise
+      - button "Collapse" [ref=f1e137]
+  - generic [ref=f1e141]:
+    - banner [ref=f1e142]:
+      - navigation [ref=f1e144]:
+        - generic [ref=f1e145]: Reports
+        - generic [ref=f1e151]: /
+        - generic [ref=f1e152]: Forensic Reports
+      - generic [ref=f1e153]:
+        - button [ref=f1e154]
+        - generic [ref=f1e158]: Connected
+        - button [ref=f1e169]
+        - button [ref=f1e175]:
+          - paragraph [ref=f1e181]: User
+    - main [ref=f1e185]:
+      - generic [ref=f1e187]:
+        - generic [ref=f1e189]:
+          - heading "Forensic Reports" [level=1] [ref=f1e191]
+          - paragraph [ref=f1e192]: Detailed analytics and graphs of AI analysis across sandbox sessions, documents and URLs
+        - generic [ref=f1e193]:
+          - generic [ref=f1e197]:
+            - paragraph [ref=f1e198]: Sandbox Sessions
+            - paragraph [ref=f1e199]: "3"
+          - generic [ref=f1e206]:
+            - paragraph [ref=f1e207]: Document Analyses
+            - paragraph [ref=f1e208]: "3"
+          - generic [ref=f1e218]:
+            - paragraph [ref=f1e219]: URL Analyses
+            - paragraph [ref=f1e220]: "8"
+          - generic [ref=f1e228]:
+            - paragraph [ref=f1e229]: Execution Reports
+            - paragraph [ref=f1e230]: "32"
+        - generic [ref=f1e235]:
+          - button "Sandbox Sessions" [ref=f1e236]
+          - button "Documents" [ref=f1e239]
+          - button "URLs" [ref=f1e245]
+          - button "Execution Reports" [ref=f1e249]
+        - generic [ref=f1e253]:
+          - textbox "Search URLs..." [ref=f1e694]
+          - generic [ref=f1e522]:
+            - generic [ref=f1e696] [cursor=pointer]:
+              - generic [ref=f1e701]:
+                - generic [ref=f1e702]:
+                  - paragraph [ref=f1e703]: https://flooriscoveringworld.com/BOBBIN.exe
+                  - generic [ref=f1e704]: UNKNOWN · 50%
+                  - generic [ref=f1e705]: AI
+                - generic [ref=f1e714]:
+                  - generic [ref=f1e715]: Aug 13, 2026, 04:37 PM
+                  - generic [ref=f1e716]: •
+                  - generic [ref=f1e717]: "Score: 0"
+                  - generic [ref=f1e718]: •
+                  - generic [ref=f1e719]: 2 IOCs
+              - button [ref=f1e720]
+            - generic [ref=f1e725] [cursor=pointer]:
+              - generic [ref=f1e730]:
+                - generic [ref=f1e731]:
+                  - paragraph [ref=f1e732]: https://flooriscoveringworld.com/BOBBIN.exe
+                  - generic [ref=f1e733]: UNKNOWN · 50%
+                  - generic [ref=f1e734]: AI
+                - generic [ref=f1e743]:
+                  - generic [ref=f1e744]: Aug 13, 2026, 03:10 PM
+                  - generic [ref=f1e745]: •
+                  - generic [ref=f1e746]: "Score: 0"
+                  - generic [ref=f1e747]: •
+                  - generic [ref=f1e748]: 2 IOCs
+              - button [ref=f1e749]
+            - generic [ref=f1e754] [cursor=pointer]:
+              - generic [ref=f1e759]:
+                - generic [ref=f1e760]:
+                  - paragraph [ref=f1e761]: https://flooriscoveringworld.com/BOBBIN.exe
+                  - generic [ref=f1e762]: UNKNOWN · 50%
+                  - generic [ref=f1e763]: AI
+                - generic [ref=f1e772]:
+                  - generic [ref=f1e773]: Aug 13, 2026, 02:56 PM
+                  - generic [ref=f1e774]: •
+                  - generic [ref=f1e775]: "Score: 0"
+                  - generic [ref=f1e776]: •
+                  - generic [ref=f1e777]: 2 IOCs
+              - button [ref=f1e778]
+            - generic [ref=f1e783] [cursor=pointer]:
+              - generic [ref=f1e788]:
+                - generic [ref=f1e789]:
+                  - paragraph [ref=f1e790]: https://flooriscoveringworld.com/BOBBIN.exe
+                  - generic [ref=f1e791]: UNKNOWN · 50%
+                  - generic [ref=f1e792]: AI
+                - generic [ref=f1e801]:
+                  - generic [ref=f1e802]: Aug 13, 2026, 11:53 AM
+                  - generic [ref=f1e803]: •
+                  - generic [ref=f1e804]: "Score: 0"
+                  - generic [ref=f1e805]: •
+                  - generic [ref=f1e806]: 2 IOCs
+              - button [ref=f1e807]
+            - generic [ref=f1e812] [cursor=pointer]:
+              - generic [ref=f1e817]:
+                - generic [ref=f1e818]:
+                  - paragraph [ref=f1e819]: https://flooriscoveringworld.com/BOBBIN.exe
+                  - generic [ref=f1e820]: UNKNOWN · 50%
+                  - generic [ref=f1e821]: AI
+                - generic [ref=f1e830]:
+                  - generic [ref=f1e831]: Aug 13, 2026, 09:40 AM
+                  - generic [ref=f1e832]: •
+                  - generic [ref=f1e833]: "Score: 0"
+                  - generic [ref=f1e834]: •
+                  - generic [ref=f1e835]: 2 IOCs
+              - button [ref=f1e836]
+            - generic [ref=f1e841] [cursor=pointer]:
+              - generic [ref=f1e846]:
+                - generic [ref=f1e847]:
+                  - paragraph [ref=f1e848]: https://flooriscoveringworld.com/BOBBIN.exe
+                  - generic [ref=f1e849]: UNKNOWN · 50%
+                  - generic [ref=f1e850]: AI
+                - generic [ref=f1e859]:
+                  - generic [ref=f1e860]: Aug 13, 2026, 09:26 AM
+                  - generic [ref=f1e861]: •
+                  - generic [ref=f1e862]: "Score: 0"
+                  - generic [ref=f1e863]: •
+                  - generic [ref=f1e864]: 2 IOCs
+              - button [ref=f1e865]
+            - generic [ref=f1e870] [cursor=pointer]:
+              - generic [ref=f1e875]:
+                - generic [ref=f1e876]:
+                  - paragraph [ref=f1e877]: https://flooriscoveringworld.com/BOBBIN.exe
+                  - generic [ref=f1e878]: UNKNOWN · 50%
+                  - generic [ref=f1e879]: AI
+                - generic [ref=f1e888]:
+                  - generic [ref=f1e889]: Aug 13, 2026, 09:25 AM
+                  - generic [ref=f1e890]: •
+                  - generic [ref=f1e891]: "Score: 0"
+                  - generic [ref=f1e892]: •
+                  - generic [ref=f1e893]: 2 IOCs
+              - button [ref=f1e894]
+            - generic [ref=f1e899] [cursor=pointer]:
+              - generic [ref=f1e904]:
+                - generic [ref=f1e905]:
+                  - paragraph [ref=f1e906]: http://5.182.210.174/eb2746
+                  - generic [ref=f1e907]: LOW · 60%
+                  - generic [ref=f1e908]: AI
+                - generic [ref=f1e917]:
+                  - generic [ref=f1e918]: Aug 13, 2026, 09:24 AM
+                  - generic [ref=f1e919]: •
+                  - generic [ref=f1e920]: "Score: 25"
+                  - generic [ref=f1e921]: •
+                  - generic [ref=f1e922]: 3 IOCs
+              - button [ref=f1e923]
+        - generic [ref=f1e929]:
+          - generic [ref=f1e930]:
+            - heading "URL Analysis" [level=2] [ref=f1e931]
+            - button [ref=f1e932]
+          - generic [ref=f1e937]:
+            - generic [ref=f1e938]:
+              - generic [ref=f1e944]:
+                - generic [ref=f1e945]:
+                  - paragraph [ref=f1e946]: http://5.182.210.174/eb2746
+                  - generic [ref=f1e947]: URL
+                - paragraph [ref=f1e948]: Aug 13, 2026, 09:24 AM
+              - generic [ref=f1e950]:
+                - generic [ref=f1e955]:
+                  - generic [ref=f1e956]:
+                    - generic [ref=f1e957]: SAFE
+                    - generic [ref=f1e958]: http://5.182.210.174/eb2746
+                  - paragraph [ref=f1e959]: Safe to open or use
+                  - paragraph [ref=f1e960]: "Threat type: Low · Analysis confidence: 0.6%"
+                - generic [ref=f1e961]:
+                  - paragraph [ref=f1e962]: 75%
+                  - paragraph [ref=f1e963]: safe
+            - generic [ref=f1e964]:
+              - generic [ref=f1e965]:
+                - paragraph [ref=f1e966]: Threat Score
+                - paragraph [ref=f1e967]: "25"
+              - generic [ref=f1e968]:
+                - paragraph [ref=f1e969]: Confidence
+                - paragraph [ref=f1e970]: 60%
+              - generic [ref=f1e971]:
+                - paragraph [ref=f1e972]: IOCs
+                - paragraph [ref=f1e973]: "3"
+              - generic [ref=f1e974]:
+                - paragraph [ref=f1e975]: MITRE Techniques
+                - paragraph [ref=f1e976]: "0"
+            - generic [ref=f1e977]:
+              - paragraph [ref=f1e978]: Summary
+              - paragraph [ref=f1e979]: "URL analysis of \"http://5.182.210.174/eb2746\": No significant threats detected"
+            - generic [ref=f1e980]:
+              - paragraph [ref=f1e981]: Findings
+              - generic [ref=f1e982]:
+                - generic [ref=f1e983]:
+                  - generic [ref=f1e984]: HIGH
+                  - generic [ref=f1e985]: ip_based_url
+                - paragraph [ref=f1e986]: URL uses raw IP address instead of domain name
+            - generic [ref=f1e987]:
+              - paragraph [ref=f1e988]: Extracted IOCs
+              - generic [ref=f1e989]:
+                - generic [ref=f1e990]: urlhttp://5.182.210.174/eb2746
+                - generic [ref=f1e991]: domain5.182.210.174
+                - generic [ref=f1e992]: ip5.182.210.174
+            - generic [ref=f1e993]:
+              - paragraph [ref=f1e994]: Heuristics Triggered
+              - generic [ref=f1e995]: ip_based_url
+            - generic [ref=f1e997]:
+              - paragraph [ref=f1e998]: Recommendations
+              - list [ref=f1e999]:
+                - listitem [ref=f1e1000]: URL appears benign, standard caution advised
+            - generic [ref=f1e1001]:
+              - generic [ref=f1e1002]:
+                - paragraph [ref=f1e1011]: AI Insights
+                - generic [ref=f1e1012]: ollama · llama3.2
+              - paragraph [ref=f1e1013]: The URL http://5.182.210.174/eb2746 is a raw IP address URL that poses a low risk of phishing, but its use of an IP address instead of a domain name raises some concerns.
+              - generic [ref=f1e1014]:
+                - generic [ref=f1e1015]: "Opinion: benign"
+                - generic [ref=f1e1016]:
+                  - text: "Confidence:"
+                  - generic [ref=f1e1017]: 60%
+              - generic [ref=f1e1018]:
+                - generic [ref=f1e1019]: T1003
+                - generic [ref=f1e1020]: T1210
+            - generic [ref=f1e1021]:
+              - paragraph [ref=f1e1022]: URL Intelligence
+              - generic [ref=f1e1023]:
+                - generic [ref=f1e1024]:
+                  - paragraph [ref=f1e1025]: Protocol
+                  - paragraph [ref=f1e1026]: http
+                - generic [ref=f1e1027]:
+                  - paragraph [ref=f1e1028]: Hostname
+                  - paragraph [ref=f1e1029]: 5.182.210.174
+                - generic [ref=f1e1030]:
+                  - paragraph [ref=f1e1031]: TLD
+                  - paragraph [ref=f1e1032]: "174"
+                - generic [ref=f1e1033]:
+                  - paragraph [ref=f1e1034]: IP-based
+                  - paragraph [ref=f1e1035]: "Yes"
+                - generic [ref=f1e1036]:
+                  - paragraph [ref=f1e1037]: Domain Age
+                  - paragraph [ref=f1e1038]: 0 days
+                - generic [ref=f1e1039]:
+                  - paragraph [ref=f1e1040]: Suspicious TLD
+                  - paragraph [ref=f1e1041]: "No"
+                - generic [ref=f1e1042]:
+                  - paragraph [ref=f1e1043]: Known Malicious
+                  - paragraph [ref=f1e1044]: "No"
+                - generic [ref=f1e1045]:
+                  - paragraph [ref=f1e1046]: Phishing Probability
+                  - paragraph [ref=f1e1047]: 25%
+                - generic [ref=f1e1048]:
+                  - paragraph [ref=f1e1049]: Redirect Chain
+                  - paragraph [ref=f1e1050]: 0 hop(s)

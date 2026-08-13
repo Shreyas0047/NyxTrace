@@ -89,14 +89,14 @@ export function InvestigationDetailPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+        <Loader2 className="w-8 h-8 animate-spin text-[var(--text-secondary)] " />
       </div>
     );
   }
 
   if (!currentInvestigation) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-slate-500">
+      <div className="flex flex-col items-center justify-center py-20 text-[var(--text-secondary)]">
         <AlertTriangle className="w-12 h-12 mb-3 opacity-40" />
         <p className="text-lg font-medium">Investigation not found</p>
         <Button variant="outline" size="sm" className="mt-4" onClick={() => navigate('/investigations')}>
@@ -112,17 +112,17 @@ export function InvestigationDetailPage() {
       <motion.div variants={item} className="flex items-center gap-4 mb-4">
         <button
           onClick={() => navigate('/investigations')}
-          className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          className="p-2 rounded-lg hover:bg-[var(--surface-container-low)]  transition-colors"
         >
-          <ArrowLeft className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+          <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)] " />
         </button>
         <div className="flex-1">
           <div className="flex items-center gap-3">
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-mono">{currentInvestigation.caseNumber}</p>
+            <p className="text-sm text-[var(--text-secondary)]  font-mono">{currentInvestigation.caseNumber}</p>
             <SeverityBadge severity={currentInvestigation.priority as any} size="sm" />
             <StatusBadge status={currentInvestigation.status} size="sm" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{currentInvestigation.title}</h1>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]  mt-1">{currentInvestigation.title}</h1>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={handleEscalate}>
@@ -137,16 +137,16 @@ export function InvestigationDetailPage() {
       </motion.div>
 
       {error && (
-        <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+        <div className="flex items-center gap-2 p-3 bg-red-50  border border-red-200  rounded-lg">
           <AlertTriangle className="w-4 h-4 text-red-500" />
-          <span className="text-sm text-red-700 dark:text-red-400">{error}</span>
-          <button onClick={() => id && fetchInvestigation(id)} className="ml-auto p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded">
+          <span className="text-sm text-red-700  ">{error}</span>
+          <button onClick={() => id && fetchInvestigation(id)} className="ml-auto p-1 hover:bg-red-100  rounded">
             <X className="w-4 h-4 text-red-500" />
           </button>
         </div>
       )}
 
-      <motion.div variants={item} className="border-b border-slate-200 dark:border-slate-700">
+      <motion.div variants={item} className="border-b border-[var(--border-subtle)] ">
         <div className="flex gap-1">
           {tabs.map((tab) => (
             <button
@@ -155,8 +155,8 @@ export function InvestigationDetailPage() {
               className={cn(
                 'flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors',
                 activeTab === tab.id
-                  ? 'border-amber-500 text-amber-400'
-                  : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                  ? 'border-amber-500 text-amber-600 '
+                  : 'border-transparent text-[var(--text-secondary)]  hover:text-[var(--text-secondary)] '
               )}
             >
               <tab.icon className="w-4 h-4" />
@@ -171,25 +171,25 @@ export function InvestigationDetailPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
               <DashboardCard>
-                <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Investigation Details</h2>
+                <h2 className="text-lg font-semibold text-[var(--text-primary)]  mb-4">Investigation Details</h2>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Description</p>
-                    <p className="text-slate-700 dark:text-slate-300">{currentInvestigation.description}</p>
+                    <p className="text-sm text-[var(--text-secondary)]  mb-1">Description</p>
+                    <p className="text-[var(--text-secondary)] ">{currentInvestigation.description}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Category</p>
-                      <span className="text-slate-700 dark:text-slate-300 capitalize">{currentInvestigation.category}</span>
+                      <p className="text-sm text-[var(--text-secondary)]  mb-1">Category</p>
+                      <span className="text-[var(--text-secondary)]  capitalize">{currentInvestigation.category}</span>
                     </div>
                     <div>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Phase</p>
-                      <span className="text-slate-700 dark:text-slate-300 capitalize">{currentInvestigation.phase?.replace('_', ' ')}</span>
+                      <p className="text-sm text-[var(--text-secondary)]  mb-1">Phase</p>
+                      <span className="text-[var(--text-secondary)]  capitalize">{currentInvestigation.phase?.replace('_', ' ')}</span>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {currentInvestigation.tags?.map((tag: string) => (
-                      <span key={tag} className="px-2 py-1 text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-full">
+                      <span key={tag} className="px-2 py-1 text-xs bg-[var(--surface-container-low)]  text-[var(--text-secondary)]  rounded-full">
                         {tag}
                       </span>
                     ))}
@@ -201,33 +201,33 @@ export function InvestigationDetailPage() {
                 <DashboardCard>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center">
-                      <FileText className="w-5 h-5 text-amber-400" />
+                      <FileText className="w-5 h-5 text-amber-600 " />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-slate-900 dark:text-white">{currentInvestigation.evidenceCount}</p>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">Evidence</p>
+                      <p className="text-2xl font-bold text-[var(--text-primary)] ">{currentInvestigation.evidenceCount}</p>
+                      <p className="text-sm text-[var(--text-secondary)] ">Evidence</p>
                     </div>
                   </div>
                 </DashboardCard>
                 <DashboardCard>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-900/20 flex items-center justify-center">
-                      <AlertTriangle className="w-5 h-5 text-violet-600 dark:text-violet-400" />
+                    <div className="w-10 h-10 rounded-xl bg-violet-100  flex items-center justify-center">
+                      <AlertTriangle className="w-5 h-5 text-violet-600  " />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-slate-900 dark:text-white">{currentInvestigation.alertCount}</p>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">Alerts</p>
+                      <p className="text-2xl font-bold text-[var(--text-primary)] ">{currentInvestigation.alertCount}</p>
+                      <p className="text-sm text-[var(--text-secondary)] ">Alerts</p>
                     </div>
                   </div>
                 </DashboardCard>
                 <DashboardCard>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/20 flex items-center justify-center">
-                      <Activity className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                    <div className="w-10 h-10 rounded-xl bg-emerald-100  flex items-center justify-center">
+                      <Activity className="w-5 h-5 text-emerald-600  " />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-slate-900 dark:text-white">{events.length}</p>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">Events</p>
+                      <p className="text-2xl font-bold text-[var(--text-primary)] ">{events.length}</p>
+                      <p className="text-sm text-[var(--text-secondary)] ">Events</p>
                     </div>
                   </div>
                 </DashboardCard>
@@ -236,7 +236,7 @@ export function InvestigationDetailPage() {
 
             <div className="space-y-6">
               <DashboardCard>
-                <h3 className="font-semibold text-slate-900 dark:text-white mb-4">Team</h3>
+                <h3 className="font-semibold text-[var(--text-primary)]  mb-4">Team</h3>
                 {currentInvestigation.assignedAnalysts && currentInvestigation.assignedAnalysts.length > 0 ? (
                   <div className="space-y-3">
                     {currentInvestigation.assignedAnalysts.map((analyst: any) => (
@@ -245,8 +245,8 @@ export function InvestigationDetailPage() {
                           {analyst.user?.name?.charAt(0) || '?'}
                         </div>
                         <div className="flex-1">
-                          <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{analyst.user?.name || 'Unknown'}</p>
-                          <p className="text-xs text-slate-400 dark:text-slate-500 capitalize">{analyst.role}</p>
+                          <p className="text-sm font-medium text-[var(--text-secondary)] ">{analyst.user?.name || 'Unknown'}</p>
+                          <p className="text-xs text-[var(--text-secondary)]   capitalize">{analyst.role}</p>
                         </div>
                         {analyst.role === 'lead' && (
                           <StatusBadge status="active" size="sm" />
@@ -255,34 +255,34 @@ export function InvestigationDetailPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-400">No analysts assigned</p>
+                  <p className="text-sm text-[var(--text-secondary)] ">No analysts assigned</p>
                 )}
               </DashboardCard>
 
               <DashboardCard>
-                <h3 className="font-semibold text-slate-900 dark:text-white mb-4">Linked Alerts</h3>
-                <p className="text-sm text-slate-400">Alerts will appear when linked to this investigation</p>
+                <h3 className="font-semibold text-[var(--text-primary)]  mb-4">Linked Alerts</h3>
+                <p className="text-sm text-[var(--text-secondary)] ">Alerts will appear when linked to this investigation</p>
               </DashboardCard>
 
               <DashboardCard>
-                <h3 className="font-semibold text-slate-900 dark:text-white mb-4">Timeline</h3>
+                <h3 className="font-semibold text-[var(--text-primary)]  mb-4">Timeline</h3>
                 {events.length > 0 ? (
                   <div className="space-y-3">
                     {events.slice(0, 5).map((entry, index) => (
                       <div key={index} className="flex gap-3">
                         <div className="flex flex-col items-center">
                           <div className="w-2 h-2 rounded-full bg-amber-500" />
-                          {index < events.length - 1 && <div className="w-px h-full bg-slate-200 dark:bg-slate-700 mt-1" />}
+                          {index < events.length - 1 && <div className="w-px h-full bg-[var(--surface-container)]  mt-1" />}
                         </div>
                         <div className="flex-1 pb-3">
-                          <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{entry.type}</p>
-                          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{formatRelativeTime(entry.timestamp)}</p>
+                          <p className="text-sm font-medium text-[var(--text-secondary)] ">{entry.type}</p>
+                          <p className="text-xs text-[var(--text-secondary)]   mt-0.5">{formatRelativeTime(entry.timestamp)}</p>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-400">No timeline events yet</p>
+                  <p className="text-sm text-[var(--text-secondary)] ">No timeline events yet</p>
                 )}
               </DashboardCard>
             </div>
@@ -292,13 +292,13 @@ export function InvestigationDetailPage() {
         {activeTab === 'evidence' && (
           <DashboardCard>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Evidence Items</h2>
+              <h2 className="text-lg font-semibold text-[var(--text-primary)] ">Evidence Items</h2>
               <Button size="sm">
                 <Upload className="w-4 h-4" />
                 Upload Evidence
               </Button>
             </div>
-            <div className="p-6 text-center text-slate-400">
+            <div className="p-6 text-center text-[var(--text-secondary)] ">
               <FileText className="w-12 h-12 mx-auto mb-3 opacity-40" />
               <p>Evidence collected from sandbox sessions linked to this investigation will appear here</p>
             </div>
@@ -308,14 +308,14 @@ export function InvestigationDetailPage() {
         {activeTab === 'timeline' && (
           <DashboardCard>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Forensic Timeline</h2>
+              <h2 className="text-lg font-semibold text-[var(--text-primary)] ">Forensic Timeline</h2>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm">Filter</Button>
                 <Button variant="outline" size="sm">Export</Button>
               </div>
             </div>
             {events.length === 0 ? (
-              <div className="p-6 text-center text-slate-400">
+              <div className="p-6 text-center text-[var(--text-secondary)] ">
                 <Clock className="w-12 h-12 mx-auto mb-3 opacity-40" />
                 <p>No timeline events recorded yet</p>
               </div>
@@ -323,40 +323,40 @@ export function InvestigationDetailPage() {
               <div className="p-6 space-y-4">
                 {events.map((event, index) => {
                   const eventColors: Record<string, { bg: string; border: string }> = {
-                    process: { bg: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-blue-200 dark:border-blue-800' },
-                    file: { bg: 'bg-orange-50 dark:bg-orange-900/20', border: 'border-orange-200 dark:border-orange-800' },
-                    registry: { bg: 'bg-purple-50 dark:bg-purple-900/20', border: 'border-purple-200 dark:border-purple-800' },
-                    network: { bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-200 dark:border-red-800' },
-                    module: { bg: 'bg-slate-50 dark:bg-slate-800', border: 'border-slate-200 dark:border-slate-700' },
-                    behavior: { bg: 'bg-amber-50 dark:bg-amber-900/20', border: 'border-amber-200 dark:border-amber-800' },
-                    anomaly: { bg: 'bg-rose-50 dark:bg-rose-900/20', border: 'border-rose-200 dark:border-rose-800' },
+                    process: { bg: 'bg-blue-50 ', border: 'border-blue-200 ' },
+                    file: { bg: 'bg-orange-50 ', border: 'border-orange-200 ' },
+                    registry: { bg: 'bg-purple-50 ', border: 'border-purple-200 ' },
+                    network: { bg: 'bg-red-50 ', border: 'border-red-200 ' },
+                    module: { bg: 'bg-[var(--surface-container-lowest)] ', border: 'border-[var(--border-subtle)] ' },
+                    behavior: { bg: 'bg-amber-50 ', border: 'border-amber-200 ' },
+                    anomaly: { bg: 'bg-rose-50 ', border: 'border-rose-200 ' },
                   };
                   const colors = eventColors[event.type || 'process'] || eventColors.process;
                   return (
                     <div key={event.id} className="flex gap-4">
                       <div className="flex flex-col items-center">
                         <div className={cn('w-3 h-3 rounded-full border-2',
-                          event.type === 'process' && 'border-blue-500 dark:border-blue-400',
-                          event.type === 'file' && 'border-orange-500 dark:border-orange-400',
-                          event.type === 'registry' && 'border-purple-500 dark:border-purple-400',
-                          event.type === 'network' && 'border-red-500 dark:border-red-400',
-                          event.type === 'module' && 'border-slate-500 dark:border-slate-400',
-                          event.type === 'behavior' && 'border-amber-500 dark:border-amber-400',
-                          event.type === 'anomaly' && 'border-rose-500 dark:border-rose-400'
+                          event.type === 'process' && 'border-blue-500 ',
+                          event.type === 'file' && 'border-orange-500 ',
+                          event.type === 'registry' && 'border-purple-500 ',
+                          event.type === 'network' && 'border-red-500 ',
+                          event.type === 'module' && 'border-slate-500 ',
+                          event.type === 'behavior' && 'border-amber-500 ',
+                          event.type === 'anomaly' && 'border-rose-500 '
                         )} />
-                        {index < events.length - 1 && <div className="w-px h-16 bg-slate-200 dark:bg-slate-700 mt-1" />}
+                        {index < events.length - 1 && <div className="w-px h-16 bg-[var(--surface-container)]  mt-1" />}
                       </div>
                       <div className={cn('flex-1 p-4 rounded-xl border', colors.bg, colors.border)}>
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-medium uppercase text-slate-500 dark:text-slate-400">{event.type}</span>
-                            <span className="text-xs text-slate-400 dark:text-slate-500">{formatRelativeTime(event.timestamp)}</span>
+                            <span className="text-xs font-medium uppercase text-[var(--text-secondary)] ">{event.type}</span>
+                            <span className="text-xs text-[var(--text-secondary)]  ">{formatRelativeTime(event.timestamp)}</span>
                           </div>
                           {event.suspiciousScore && (
                             <SeverityBadge severity={event.suspiciousScore > 80 ? 'critical' : event.suspiciousScore > 60 ? 'high' : 'medium'} size="sm" />
                           )}
                         </div>
-                        <pre className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap font-mono">
+                        <pre className="text-sm text-[var(--text-secondary)]  whitespace-pre-wrap font-mono">
                           {JSON.stringify(event.details, null, 2)}
                         </pre>
                       </div>
@@ -376,11 +376,11 @@ export function InvestigationDetailPage() {
                   <Brain className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white">AI Threat Analysis</h2>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Automated forensic intelligence</p>
+                  <h2 className="text-lg font-semibold text-[var(--text-primary)] ">AI Threat Analysis</h2>
+                  <p className="text-xs text-[var(--text-secondary)] ">Automated forensic intelligence</p>
                 </div>
               </div>
-              <div className="p-6 text-center text-slate-400">
+              <div className="p-6 text-center text-[var(--text-secondary)] ">
                 <Brain className="w-12 h-12 mx-auto mb-3 opacity-40" />
                 <p>Run an AI analysis from the AI Analysis page to generate threat intelligence for this investigation</p>
               </div>
@@ -391,7 +391,7 @@ export function InvestigationDetailPage() {
         {activeTab === 'notes' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Analyst Notes</h2>
+              <h2 className="text-lg font-semibold text-[var(--text-primary)] ">Analyst Notes</h2>
               <Button onClick={() => setShowNoteModal(true)}>
                 <Plus className="w-4 h-4" />
                 Add Note
@@ -400,7 +400,7 @@ export function InvestigationDetailPage() {
 
             {notes.length === 0 ? (
               <Card>
-                <div className="p-6 text-center text-slate-400">
+                <div className="p-6 text-center text-[var(--text-secondary)] ">
                   <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-40" />
                   <p>No notes yet. Add your first analyst note.</p>
                 </div>
@@ -409,11 +409,11 @@ export function InvestigationDetailPage() {
               <div className="space-y-4">
                 {notes.map((note) => {
                   const noteTypeStyles: Record<string, string> = {
-                    observation: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800/50',
-                    finding: 'bg-violet-50 dark:bg-violet-900/20 border-violet-200 dark:border-violet-800/50',
-                    conclusion: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800/50',
-                    remediation: 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800/50',
-                    escalation: 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/50',
+                    observation: 'bg-blue-50  border-blue-200 ',
+                    finding: 'bg-violet-50  border-violet-200 ',
+                    conclusion: 'bg-emerald-50  border-emerald-200 ',
+                    remediation: 'bg-amber-50  border-amber-200 ',
+                    escalation: 'bg-red-50  border-red-200 ',
                   };
                   const style = noteTypeStyles[note.type] || noteTypeStyles.observation;
 
@@ -425,13 +425,13 @@ export function InvestigationDetailPage() {
                     >
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium uppercase text-slate-500 dark:text-slate-400">{note.type.replace('_', ' ')}</span>
-                          <span className="text-xs text-slate-400 dark:text-slate-500">•</span>
-                          <span className="text-xs text-slate-400 dark:text-slate-500">{note.createdByName}</span>
+                          <span className="text-xs font-medium uppercase text-[var(--text-secondary)] ">{note.type.replace('_', ' ')}</span>
+                          <span className="text-xs text-[var(--text-secondary)]  ">•</span>
+                          <span className="text-xs text-[var(--text-secondary)]  ">{note.createdByName}</span>
                         </div>
-                        <span className="text-xs text-slate-400 dark:text-slate-500">{formatRelativeTime(note.createdAt)}</span>
+                        <span className="text-xs text-[var(--text-secondary)]  ">{formatRelativeTime(note.createdAt)}</span>
                       </div>
-                      <p className="text-sm text-slate-700 dark:text-slate-300">{note.content}</p>
+                      <p className="text-sm text-[var(--text-secondary)] ">{note.content}</p>
                     </motion.div>
                   );
                 })}
@@ -443,15 +443,15 @@ export function InvestigationDetailPage() {
 
       {showNoteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowNoteModal(false)}>
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Add Analyst Note</h3>
+          <div className="bg-white  rounded-xl shadow-xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold text-[var(--text-primary)]  mb-4">Add Analyst Note</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Type</label>
+                <label className="block text-sm font-medium text-[var(--text-secondary)]  mb-1">Type</label>
                 <select
                   value={noteType}
                   onChange={(e) => setNoteType(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 text-sm border border-[var(--border-subtle)]  rounded-lg bg-white  text-[var(--text-primary)] "
                 >
                   <option value="observation">Observation</option>
                   <option value="finding">Finding</option>
@@ -461,11 +461,11 @@ export function InvestigationDetailPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Content</label>
+                <label className="block text-sm font-medium text-[var(--text-secondary)]  mb-1">Content</label>
                 <textarea
                   value={noteContent}
                   onChange={(e) => setNoteContent(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white resize-none"
+                  className="w-full px-3 py-2 text-sm border border-[var(--border-subtle)]  rounded-lg bg-white  text-[var(--text-primary)]  resize-none"
                   rows={4}
                   placeholder="Enter your note..."
                 />

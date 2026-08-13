@@ -261,6 +261,66 @@ export type SandboxSessionStatus =
   | 'failed'
   | 'timeout';
 
+// Sandbox session extras returned by the backend (full stored document)
+export interface SandboxSessionEvent {
+  id?: string;
+  timestamp?: string;
+  type?: string;
+  source?: string;
+  details?: Record<string, unknown>;
+  receivedAt?: string;
+}
+
+export type SandboxSessionWithExtras = SandboxSession & {
+  recentEvents?: SandboxSessionEvent[];
+  suspiciousEvents?: Array<SandboxSessionEvent & { reason?: string; flaggedAt?: string }>;
+  extractedIOCs?: Array<{ type?: string; value?: string }>;
+  aiAnalysis?: TelemetryAnalysisResult | null;
+  rollbackStatus?: string;
+};
+
+// Analysis Report (document/URL) — backend AnalysisReport model payload
+export interface AnalysisReportItem {
+  id: string;
+  analysisId: string;
+  analysisType: 'document_analysis' | 'url_analysis';
+  sourceType?: string;
+  sourceName: string;
+  sourceSize?: number;
+  threatScore: number;
+  threatLevel: string;
+  confidence: number;
+  predictedThreat?: string;
+  findings: Array<{
+    type?: string;
+    title?: string;
+    severity?: string;
+    description?: string;
+    category?: string;
+    confidence?: number;
+    evidence?: string[];
+  }>;
+  indicators: Array<{ type: string; value: string }>;
+  iocCount: number;
+  mitreTechniques: string[];
+  heuristicsTriggered?: string[];
+  recommendations: string[];
+  summary?: string;
+  aiInsights?: {
+    llm_available?: boolean;
+    provider?: string | null;
+    model?: string | null;
+    executive_summary?: string;
+    classification_opinion?: string;
+    mitre_techniques?: string[];
+    recommendations?: string[];
+    llm_confidence?: number | null;
+  } | null;
+  metadata?: Record<string, unknown>;
+  analyzedBy?: string;
+  analysisTimestamp: string;
+}
+
 // Telemetry Types
 export interface TelemetryEvent {
   id?: string;

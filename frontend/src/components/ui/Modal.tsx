@@ -28,7 +28,7 @@ export function Modal({ isOpen, onClose, title, size = 'md', className, children
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/30 backdrop-blur-sm"
             onClick={onClose}
           />
           <motion.div
@@ -36,19 +36,19 @@ export function Modal({ isOpen, onClose, title, size = 'md', className, children
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className={cn(
-              'relative w-full bg-slate-800 rounded-2xl shadow-2xl overflow-hidden',
+              'relative w-full bg-[var(--surface-container-low)]  rounded-2xl shadow-2xl overflow-hidden',
               sizes[size],
               className
             )}
           >
             {title && (
-              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-subtle)] ">
                 <h2 className="text-lg font-semibold text-white">{title}</h2>
                 <button
                   onClick={onClose}
-                  className="p-1.5 rounded-lg hover:bg-slate-700 transition-colors"
+                  className="p-1.5 rounded-lg hover:bg-[var(--surface-container-low)]  transition-colors"
                 >
-                  <X className="w-5 h-5 text-slate-400" />
+                  <X className="w-5 h-5 text-[var(--text-secondary)] " />
                 </button>
               </div>
             )}

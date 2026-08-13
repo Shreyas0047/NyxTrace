@@ -37,7 +37,7 @@ export class InvestigationService {
       description: data.description,
       priority: data.priority || InvestigationPriority.MEDIUM,
       caseNumber,
-      assignedTo: data.assignedTo,
+      leadAnalyst: data.assignedTo,
       createdBy: data.createdBy,
       tags: data.tags || [],
     });
@@ -65,7 +65,7 @@ export class InvestigationService {
 
     if (status) query.status = status;
     if (priority) query.priority = priority;
-    if (assignedTo) query.assignedTo = assignedTo;
+    if (assignedTo) query.leadAnalyst = assignedTo;
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: 'i' } },
@@ -79,7 +79,7 @@ export class InvestigationService {
     const totalPages = Math.ceil(total / limit);
 
     const investigations = await Investigation.find(query)
-      .populate('assignedTo', 'firstName lastName email')
+      .populate('leadAnalyst', 'firstName lastName email')
       .populate('createdBy', 'firstName lastName email')
       .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
       .skip((page - 1) * limit)
@@ -94,7 +94,7 @@ export class InvestigationService {
    */
   async findById(id: string): Promise<any> {
     const investigation = await Investigation.findById(id)
-      .populate('assignedTo', 'firstName lastName email')
+      .populate('leadAnalyst', 'firstName lastName email')
       .populate('createdBy', 'firstName lastName email')
       .lean();
 

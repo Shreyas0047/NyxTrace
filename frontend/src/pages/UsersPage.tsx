@@ -177,7 +177,7 @@ export const UsersPage: React.FC = () => {
 
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-white/50 ">
+              <thead className="bg-[var(--surface-container-low)]">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)]  uppercase tracking-wider">User</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)]  uppercase tracking-wider">Role</th>

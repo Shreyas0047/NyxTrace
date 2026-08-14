@@ -69,7 +69,7 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-start justify-center pt-[15vh]"
+            className="fixed inset-0 z-[100] bg-[rgba(30,27,20,0.4)] backdrop-blur-sm flex items-start justify-center pt-[15vh]"
             onClick={() => setShowSearch(false)}
           >
             <motion.div
@@ -141,7 +141,7 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
                     to={item.path}
                     className="flex items-center gap-1.5 px-2 py-1 rounded-[8px] text-sm font-medium transition-colors font-body"
                     style={{ color: 'var(--text-tertiary)' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.background = 'var(--surface-container)'; }}
                     onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.background = 'transparent'; }}
                   >
                     {item.icon && <item.icon className="w-3.5 h-3.5" />}
@@ -227,7 +227,7 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
                     ))}
                   </div>
                   <div className="px-4 py-3 border-t bg-[var(--surface-container)]" style={{ borderColor: 'var(--border-subtle)' }}>
-                    <button className="text-sm font-medium font-body text-amber-600  hover:text-amber-300 transition-colors">
+                    <button className="text-sm font-medium font-body text-amber-700 hover:text-amber-600 transition-colors">
                       View all notifications
                     </button>
                   </div>
@@ -275,7 +275,7 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
                       onClick={() => { setShowUserMenu(false); navigate('/profile'); }}
                       className="w-full flex items-center gap-3 px-4 py-2 text-sm font-body transition-colors"
                       style={{ color: 'var(--text-primary)' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surface-container)'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                     >
                       <User className="w-4 h-4" />
@@ -285,7 +285,7 @@ export function Header({ breadcrumbs = [], currentPage = '' }: HeaderProps) {
                       onClick={() => { setShowUserMenu(false); navigate('/settings'); }}
                       className="w-full flex items-center gap-3 px-4 py-2 text-sm font-body transition-colors"
                       style={{ color: 'var(--text-primary)' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surface-container)'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                     >
                       <Settings className="w-4 h-4" />

@@ -331,10 +331,12 @@ export function AIAnalysisPage() {
     <div className="space-y-6 p-6">
       <div className="flex items-start justify-between gap-4 mb-6">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-semibold text-[var(--text-primary)] ">AI Analysis Engine</h1>
+          <p className="eyebrow mb-1.5">AI Service · Analysis</p>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-display-2 text-[var(--text-primary)] ">AI Analysis Engine</h1>
+            <span className="stamp">FORENSIC AI</span>
           </div>
-          <p className="mt-1 text-sm text-[var(--text-secondary)] ">Real-time forensic intelligence and threat analysis</p>
+          <p className="mt-1.5 text-sm text-[var(--text-secondary)] ">Real-time forensic intelligence and threat analysis</p>
         </div>
         <div className="flex items-center gap-3">
           {isLiveAnalyzing && (
@@ -476,7 +478,7 @@ export function AIAnalysisPage() {
             <button
               onClick={handleStopSession}
               disabled={isExecuting}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm bg-white/20 hover:bg-white/30 rounded-lg transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 px-3 py-1.5 text-sm bg-[var(--surface-container-low)] hover:bg-[var(--surface-container)] border border-[var(--border-subtle)] rounded-lg transition-colors disabled:opacity-50"
             >
               <Square className="w-4 h-4" />
               Stop

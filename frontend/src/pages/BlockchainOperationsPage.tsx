@@ -33,11 +33,11 @@ export const BlockchainOperationsPage: React.FC = () => {
 
         {/* Offline Mode Banner */}
         {status && !status.available && (
-          <div className="mb-6 rounded-lg border border-amber-500/50 bg-amber-900/20 p-4">
+          <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
             <div className="flex items-center gap-3">
               <span className="text-amber-500 text-xl">!</span>
               <div>
-                <h3 className="text-sm font-semibold text-amber-300">Blockchain Offline — Local Verification Only</h3>
+                <h3 className="text-sm font-semibold text-amber-800">Blockchain Offline — Local Verification Only</h3>
                 <p className="text-xs text-amber-600  mt-1">
                   No blockchain provider is connected. Evidence hashes are verified locally but are NOT anchored on-chain.
                   "Verified" badges reflect local integrity checks only. Configure BLOCKCHAIN_RPC_URL to enable on-chain verification.

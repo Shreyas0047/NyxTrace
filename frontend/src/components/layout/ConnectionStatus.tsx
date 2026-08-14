@@ -6,7 +6,7 @@ import api from '../../services/api';
 import { config } from '../../config';
 
 export function ConnectionStatus() {
-  const { isConnected, connect, disconnect } = useRealtimeStore();
+  const { isConnected, connect, disconnect, socketId, telemetryBuffer, liveAlerts } = useRealtimeStore();
   const [apiHealthy, setApiHealthy] = useState<boolean | null>(null);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -54,26 +54,70 @@ export function ConnectionStatus() {
   const status = isConnected ? 'live' : apiHealthy ? 'connected' : apiHealthy === false ? 'offline' : 'connecting';
 
   const styles = {
-    live: { dot: 'text-emerald-600 ', label: 'Live', labelColor: 'text-emerald-600 ', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
-    connected: { dot: 'text-emerald-600 ', label: 'Connected', labelColor: 'text-emerald-600 ', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
-    connecting: { dot: 'text-[#6c6862]', label: 'Connecting', labelColor: 'text-[#a09b93]', bg: 'bg-white/5', border: 'border-white/10' },
-    offline: { dot: 'text-rose-600 ', label: 'Offline', labelColor: 'text-rose-600 ', bg: 'bg-rose-500/10', border: 'border-rose-500/20' },
+    live: {
+      dot: 'text-emerald-600',
+      label: 'Live',
+      labelColor: 'text-emerald-700',
+      bg: 'bg-emerald-50',
+      border: 'border-emerald-200',
+      ws: 'LIVE',
+      api: 'OK',
+      readoutColor: 'text-emerald-800/80',
+    },
+    connected: {
+      dot: 'text-emerald-600',
+      label: 'Connecting',
+      labelColor: 'text-amber-700',
+      bg: 'bg-amber-50',
+      border: 'border-amber-200',
+      ws: 'SYNC',
+      api: 'OK',
+      readoutColor: 'text-amber-800/80',
+    },
+    connecting: {
+      dot: 'text-[#6c6862]',
+      label: 'Connecting',
+      labelColor: 'text-[var(--text-secondary)]',
+      bg: 'bg-[var(--surface-container-low)]',
+      border: 'border-[var(--border-subtle)]',
+      ws: '…',
+      api: 'CHECK',
+      readoutColor: 'text-[var(--text-tertiary)]',
+    },
+    offline: {
+      dot: 'text-rose-600',
+      label: 'Offline',
+      labelColor: 'text-rose-700',
+      bg: 'bg-rose-50',
+      border: 'border-rose-200',
+      ws: 'DOWN',
+      api: 'DOWN',
+      readoutColor: 'text-rose-800/80',
+    },
   }[status];
 
   return (
-    <div className="flex items-center gap-2">
-      <div className={cn('flex items-center gap-1.5 px-2.5 py-1 rounded-md border', styles.bg, styles.border)}>
+    <div className="flex items-center gap-2" title={`Socket: ${socketId ?? '—'}`}>
+      <div className={cn('flex items-center gap-2 px-2.5 py-1 rounded-md border', styles.bg, styles.border)}>
         <Radio strokeWidth={1.75} className={cn('w-3 h-3', styles.dot, status === 'live' && 'animate-pulse')} />
-        <span className={cn('text-[11px] font-mono font-medium', styles.labelColor)}>{styles.label}</span>
+        <span className={cn('text-[10px] font-mono font-semibold uppercase tracking-[0.12em]', styles.labelColor)}>
+          {styles.label}
+        </span>
+        <span className="h-3 w-px bg-[var(--border-default)]" aria-hidden />
+        <span className={cn('text-[10px] font-mono tracking-[0.05em] whitespace-nowrap', styles.readoutColor)}>
+          WS: {styles.ws} · API: {styles.api}
+          {status === 'live' && ` · EVT: ${telemetryBuffer.length}`}
+          {status === 'live' && ` · ALR: ${liveAlerts.length}`}
+        </span>
       </div>
 
       {status === 'offline' && (
         <button
           onClick={handleReconnect}
-          className="p-1 rounded-md hover:bg-white/5 transition-colors"
+          className="p-1 rounded-md hover:bg-[var(--surface-container)] transition-colors"
           title="Reconnect"
         >
-          <RefreshCw strokeWidth={1.5} className="w-3.5 h-3.5 text-[#a09b93]" />
+          <RefreshCw strokeWidth={1.5} className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
         </button>
       )}
     </div>

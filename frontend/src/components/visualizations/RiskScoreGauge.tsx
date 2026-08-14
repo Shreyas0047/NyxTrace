@@ -5,7 +5,6 @@
 
 import { useEffect, useState } from 'react';
 import { motion, useSpring, useTransform } from 'framer-motion';
-import { useTheme } from '../../providers/ThemeProvider';
 import { cn } from '../../design-system';
 import { Shield, AlertTriangle, CheckCircle } from 'lucide-react';
 
@@ -18,10 +17,10 @@ interface RiskScoreGaugeProps {
 }
 
 const getSeverityConfig = (score: number) => {
-  if (score >= 81) return { label: 'Critical', color: '#ef4444', bg: 'bg-red-500', icon: AlertTriangle };
-  if (score >= 51) return { label: 'High', color: '#f97316', bg: 'bg-orange-500', icon: AlertTriangle };
-  if (score >= 21) return { label: 'Medium', color: '#eab308', bg: 'bg-amber-500', icon: Shield };
-  return { label: 'Low', color: '#22c55e', bg: 'bg-emerald-500', icon: CheckCircle };
+  if (score >= 81) return { label: 'Critical', color: '#e11d48', bg: 'bg-rose-500', icon: AlertTriangle };
+  if (score >= 51) return { label: 'High', color: '#ea580c', bg: 'bg-orange-500', icon: AlertTriangle };
+  if (score >= 21) return { label: 'Medium', color: '#d97706', bg: 'bg-amber-500', icon: Shield };
+  return { label: 'Low', color: '#059669', bg: 'bg-emerald-500', icon: CheckCircle };
 };
 
 export function RiskScoreGauge({
@@ -31,7 +30,6 @@ export function RiskScoreGauge({
   animated = true,
   label = 'Risk Score',
 }: RiskScoreGaugeProps) {
-  const { isDark } = useTheme();
   const config = getSeverityConfig(score);
 
   const springScore = useSpring(animated ? score : 100, {
@@ -71,7 +69,7 @@ export function RiskScoreGauge({
             cy={width / 2}
             r={radius}
             fill="none"
-            stroke={isDark ? '#334155' : '#e2e8f0'}
+            stroke="var(--surface-container-high)"
             strokeWidth={strokeWidth}
           />
         </svg>
@@ -106,10 +104,7 @@ export function RiskScoreGauge({
               score
             )}
           </motion.span>
-          <span className={cn(
-            'text-xs mt-1',
-            isDark ? 'text-[var(--text-secondary)]' : 'text-[var(--text-secondary)] '
-          )}>
+          <span className="text-xs mt-1 text-[var(--text-tertiary)]">
             / 100
           </span>
         </div>
@@ -118,20 +113,12 @@ export function RiskScoreGauge({
       {/* Label */}
       {showLabel && (
         <div className="flex items-center gap-2">
-          <span className={cn(
-            'text-sm font-medium',
-            isDark ? 'text-[var(--text-secondary)] ' : 'text-[var(--text-secondary)]'
-          )}>
+          <span className="text-sm font-medium text-[var(--text-secondary)]">
             {label}
           </span>
           <span
-            className={cn(
-              'px-2 py-0.5 text-xs font-medium rounded-full',
-              'bg-opacity-20',
-              config.bg,
-              isDark ? 'text-white' : 'text-white'
-            )}
-            style={{ backgroundColor: `${config.color}20`, color: config.color }}
+            className="px-2 py-0.5 text-xs font-medium rounded-full"
+            style={{ backgroundColor: `${config.color}1a`, color: config.color }}
           >
             {config.label}
           </span>

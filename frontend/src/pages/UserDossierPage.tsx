@@ -51,10 +51,10 @@ const statusColors: Record<string, string> = {
 };
 
 const priorityColors: Record<string, string> = {
-  critical: 'bg-rose-500/15 text-rose-300 border-rose-500/30',
-  high: 'bg-orange-500/15 text-orange-300 border-orange-500/30',
-  medium: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
-  low: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+  critical: 'bg-rose-50 text-rose-700 border-rose-200',
+  high: 'bg-orange-50 text-orange-700 border-orange-200',
+  medium: 'bg-amber-50 text-amber-700 border-amber-200',
+  low: 'bg-emerald-50 text-emerald-700 border-emerald-200',
 };
 
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.05 } } };

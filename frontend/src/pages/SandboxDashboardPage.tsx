@@ -504,9 +504,9 @@ export function SandboxDashboardPage() {
           <div className="flex items-center gap-6">
             <div className="text-center">
               <p className="text-2xl font-bold">{sessionStartTime && formatElapsedTime(sessionStartTime)}</p>
-              <p className="text-xs text-blue-100">Elapsed</p>
+              <p className="text-xs text-[var(--text-secondary)]">Elapsed</p>
             </div>
-            <Button variant="outline" size="sm" onClick={handleStopSession} className="bg-white/20 hover:bg-white/30 border-0">
+            <Button variant="outline" size="sm" onClick={handleStopSession} className="bg-[var(--surface-container-low)] hover:bg-[var(--surface-container)] border border-[var(--border-subtle)]">
               <Square className="w-4 h-4" />
               Stop
             </Button>

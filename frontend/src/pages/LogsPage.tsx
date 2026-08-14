@@ -21,13 +21,17 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
-import { PageHeader, PageGrid } from '../layouts/PageContainer';
+import {
+  PageHeader, PageGrid, PageContainer, PageSection, EmptyState, LoadingSkeleton,
+} from '../layouts/PageContainer';
 import { DashboardCard, DashboardStat } from '../components/enterprise/DashboardGrid';
 import { cn } from '../design-system';
 import { useLogsStore } from '../stores/logsStore';
 import api from '../services/api';
+import { formatDateTime } from '../utils/helpers';
 
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
+const item = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } };
 
 const levelColors: Record<string, string> = {
   debug: 'text-[var(--text-secondary)] ',
@@ -184,447 +188,538 @@ export function LogsPage() {
   const warningCount = stats?.byLevel?.warning || 0;
   const criticalCount = stats?.byLevel?.critical || 0;
 
-  return (
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
-      <PageHeader
-        title={view === 'audit' ? 'Audit Log' : 'System Logs'}
-        subtitle={
+  const viewToggle = (
+    <div className="inline-flex items-center bg-[var(--surface-container-low)]  rounded-lg p-1">
+      <button
+        onClick={() => setView('audit')}
+        className={cn(
+          'px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5',
           view === 'audit'
-            ? 'Historical record of user and system actions'
-            : 'Monitor forensic platform logs and events'
-        }
-        actions={
-          <div className="flex items-center gap-2">
-            {/* View toggle: Audit (structured records) vs System (raw log files) */}
-            <div className="inline-flex items-center bg-[var(--surface-container-low)]  rounded-lg p-1">
-              <button
-                onClick={() => setView('audit')}
-                className={cn(
-                  'px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5',
-                  view === 'audit'
-                    ? 'bg-white  text-amber-600  shadow-sm'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--text-secondary)] '
-                )}
-              >
-                <History className="w-3.5 h-3.5" />
-                Audit
-              </button>
-              <button
-                onClick={() => setView('system')}
-                className={cn(
-                  'px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5',
-                  view === 'system'
-                    ? 'bg-white  text-amber-600  shadow-sm'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--text-secondary)] '
-                )}
-              >
-                <Terminal className="w-3.5 h-3.5" />
-                System
-              </button>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              leftIcon={<RefreshCw className="w-4 h-4" />}
-              onClick={() => {
-                if (view === 'audit') {
-                  fetchAuditLogs();
-                } else {
-                  fetchLogs();
-                  fetchStats();
-                }
-              }}
-            >
-              Refresh
-            </Button>
-            {view === 'system' && (
-              <Button variant="outline" size="sm" leftIcon={<Download className="w-4 h-4" />} onClick={downloadLogs} disabled={logs.length === 0}>
-                Export
-              </Button>
-            )}
-          </div>
-        }
-      />
+            ? 'bg-white  text-amber-600  shadow-sm'
+            : 'text-[var(--text-secondary)] hover:text-[var(--text-secondary)] '
+        )}
+      >
+        <History className="w-3.5 h-3.5" />
+        Audit
+      </button>
+      <button
+        onClick={() => setView('system')}
+        className={cn(
+          'px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1.5',
+          view === 'system'
+            ? 'bg-white  text-amber-600  shadow-sm'
+            : 'text-[var(--text-secondary)] hover:text-[var(--text-secondary)] '
+        )}
+      >
+        <Terminal className="w-3.5 h-3.5" />
+        System
+      </button>
+    </div>
+  );
 
-      {view === 'audit' ? (
-        <>
-          <PageGrid columns={4}>
-            <DashboardCard>
-              <DashboardStat
-                label="Total Events"
-                value={auditStats?.total || 0}
-                icon={<History className="w-5 h-5 text-amber-600 " />}
-              />
-            </DashboardCard>
-            <DashboardCard>
-              <DashboardStat
-                label="Successful"
-                value={auditStats?.byStatus?.success || 0}
-                icon={<CheckCircle className="w-5 h-5 text-emerald-600  " />}
-              />
-            </DashboardCard>
-            <DashboardCard>
-              <DashboardStat
-                label="Failed"
-                value={auditStats?.byStatus?.failed || 0}
-                icon={<XCircle className="w-5 h-5 text-red-600  " />}
-              />
-            </DashboardCard>
-            <DashboardCard>
-              <DashboardStat
-                label="Action Types"
-                value={auditStats?.byAction?.length || 0}
-                icon={<Filter className="w-5 h-5 text-violet-600  " />}
-              />
-            </DashboardCard>
-          </PageGrid>
-
-          <Card>
-            <div className="p-4 flex flex-wrap items-center gap-4">
-              <div className="flex-1 min-w-[200px]">
-                <Input
-                  placeholder="Search by action, entity, or ID..."
-                  value={auditSearch}
-                  onChange={(e) => setAuditSearch(e.target.value)}
-                  leftIcon={<Search className="w-4 h-4" />}
-                />
-              </div>
+  return (
+    <PageContainer maxWidth="full" className="p-6 space-y-6">
+      <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
+        <motion.div variants={item}>
+          <PageHeader
+            eyebrow="Administration · Audit"
+            title={view === 'audit' ? 'Audit Log' : 'System Logs'}
+            subtitle={
+              view === 'audit'
+                ? 'Historical record of user and system actions'
+                : 'Monitor forensic platform logs and events'
+            }
+            stamp={view === 'audit' ? 'AUDIT TRAIL' : 'SYSTEM LOG'}
+            actions={
               <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-[var(--text-secondary)] " />
-                <Select
-                  value={auditActionFilter}
-                  onChange={(val) => setAuditActionFilter(val)}
-                  options={[
-                    { value: '', label: 'All Actions' },
-                    { value: 'LOGIN', label: 'User Login' },
-                    { value: 'REGISTRATION', label: 'Registration' },
-                    { value: 'LOGOUT', label: 'Logout' },
-                    { value: 'EVIDENCE_UPLOADED', label: 'Evidence Uploaded' },
-                    { value: 'EVIDENCE', label: 'Evidence (any)' },
-                    { value: 'SESSION', label: 'Sandbox Session (any)' },
-                    { value: 'TELEMETRY_INGESTED', label: 'Telemetry Ingested' },
-                    { value: 'INVESTIGATION', label: 'Investigation (any)' },
-                    { value: 'BLOCKCHAIN', label: 'Blockchain (any)' },
-                  ]}
-                />
-                <Select
-                  value={auditStatusFilter}
-                  onChange={(val) => setAuditStatusFilter(val)}
-                  options={[
-                    { value: '', label: 'All Status' },
-                    { value: 'success', label: 'Success' },
-                    { value: 'failed', label: 'Failed' },
-                  ]}
-                />
-              </div>
-            </div>
-          </Card>
-
-          <Card className="!p-0 overflow-hidden">
-            <div className="bg-slate-900 text-[var(--text-primary)]  font-mono text-xs">
-              <div className="px-4 py-2 bg-[var(--surface-container-low)]  flex items-center justify-between border-b border-[var(--border-subtle)] ">
-                <div className="flex items-center gap-2">
-                  <History className="w-4 h-4 text-amber-600 " />
-                  <span className="text-[var(--text-secondary)] ">Audit Trail</span>
-                </div>
-                <span className="text-[var(--text-secondary)]">{auditEntries.length} entries</span>
-              </div>
-              <div className="max-h-[600px] overflow-y-auto">
-                {auditLoading && auditEntries.length === 0 ? (
-                  <div className="flex items-center justify-center py-12">
-                    <div className="animate-spin w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full" />
-                  </div>
-                ) : auditError ? (
-                  <div className="flex flex-col items-center justify-center py-12">
-                    <p className="text-red-600  mb-3">{auditError}</p>
-                    <Button variant="outline" size="sm" onClick={fetchAuditLogs}>Retry</Button>
-                  </div>
-                ) : auditEntries.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-12">
-                    <History className="w-10 h-10 text-[var(--text-secondary)] mb-3" />
-                    <p className="text-[var(--text-secondary)]">No audit records yet.</p>
-                    <p className="text-[var(--text-secondary)] text-[10px] mt-1">Login, evidence uploads, and session events will appear here.</p>
-                  </div>
-                ) : (
-                  <div className="divide-y divide-[var(--border-subtle)]">
-                    {auditEntries.map((entry) => {
-                      const isFailed = entry.status === 'failed';
-                      return (
-                        <div
-                          key={entry.id}
-                          className={cn(
-                            'px-4 py-2 hover:bg-[var(--surface-container)]  transition-colors',
-                            isFailed && 'bg-red-900/10'
-                          )}
-                        >
-                          <div className="flex items-start gap-3">
-                            <span className={cn('flex-shrink-0 mt-0.5', isFailed ? 'text-red-600 ' : 'text-emerald-600 ')}>
-                              {isFailed ? <XCircle className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
-                            </span>
-                            <span className="flex-shrink-0 text-[var(--text-secondary)] w-44">
-                              {new Date(entry.timestamp).toLocaleString()}
-                            </span>
-                            <span className={cn(
-                              'flex-shrink-0 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider',
-                              isFailed ? 'bg-red-500/15 text-red-300' : 'bg-amber-500/15 text-amber-300'
-                            )}>
-                              {entry.action}
-                            </span>
-                            {entry.entityType && (
-                              <span className="flex-shrink-0 px-1.5 py-0.5 rounded text-[10px] bg-[var(--surface-container-low)]  text-[var(--text-secondary)] ">
-                                {entry.entityType}
-                              </span>
-                            )}
-                            <div className="flex-1 min-w-0 text-[var(--text-secondary)] ">
-                              {entry.user ? (
-                                <span className="inline-flex items-center gap-1 mr-3">
-                                  <User className="w-3 h-3 text-[var(--text-secondary)]" />
-                                  {entry.user.email || entry.user.username || entry.user.name || entry.user.id}
-                                </span>
-                              ) : (
-                                <span className="text-[var(--text-secondary)] mr-3">system</span>
-                              )}
-                              {entry.entityId && (
-                                <span className="text-[var(--text-secondary)] mr-3 font-mono">id: {entry.entityId.slice(0, 24)}</span>
-                              )}
-                              {entry.ipAddress && (
-                                <span className="text-[var(--text-secondary)] mr-3">from {entry.ipAddress}</span>
-                              )}
-                              {entry.errorMessage && (
-                                <span className="text-red-600 ">{entry.errorMessage}</span>
-                              )}
-                            </div>
-                          </div>
-                          {entry.details && Object.keys(entry.details).length > 0 && (
-                            <div className="mt-1 ml-7 text-[10px] text-[var(--text-secondary)] truncate">
-                              {Object.entries(entry.details).slice(0, 4).map(([k, v]) => (
-                                <span key={k} className="mr-3">
-                                  {k}=<span className="text-[var(--text-secondary)] ">{String(v).slice(0, 60)}</span>
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
+                {viewToggle}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  leftIcon={<RefreshCw className="w-4 h-4" />}
+                  onClick={() => {
+                    if (view === 'audit') {
+                      fetchAuditLogs();
+                    } else {
+                      fetchLogs();
+                      fetchStats();
+                    }
+                  }}
+                >
+                  Refresh
+                </Button>
+                {view === 'system' && (
+                  <Button variant="outline" size="sm" leftIcon={<Download className="w-4 h-4" />} onClick={downloadLogs} disabled={logs.length === 0}>
+                    Export
+                  </Button>
                 )}
               </div>
-            </div>
-          </Card>
+            }
+          />
+        </motion.div>
 
-          {auditStats && auditStats.byAction.length > 0 && (
-            <Card>
-              <div className="p-4">
-                <p className="text-xs font-semibold text-[var(--text-secondary)]   uppercase mb-3">Action Distribution</p>
-                <div className="flex gap-2 flex-wrap">
-                  {auditStats.byAction.slice(0, 12).map(({ action, count }) => (
-                    <button
-                      key={action}
-                      onClick={() => setAuditActionFilter(action)}
-                      className={cn(
-                        'inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors',
-                        auditActionFilter === action
-                          ? 'bg-amber-500/10 border-amber-500/50 text-amber-600 '
-                          : 'bg-[var(--surface-container-lowest)]  border-[var(--border-subtle)]  text-[var(--text-secondary)]  hover:bg-[var(--surface-container-low)] '
-                      )}
-                    >
-                      {action}: <span className="font-bold">{count}</span>
-                    </button>
-                  ))}
+        {view === 'audit' ? (
+          <>
+            <motion.div variants={item}>
+              <PageGrid columns={4}>
+                <DashboardCard>
+                  <DashboardStat
+                    label="Total Events"
+                    value={auditStats?.total || 0}
+                    stamp="EVENTS"
+                    mono
+                    delta="Recorded"
+                    icon={<History className="w-5 h-5 text-amber-600 " />}
+                  />
+                </DashboardCard>
+                <DashboardCard>
+                  <DashboardStat
+                    label="Successful"
+                    value={auditStats?.byStatus?.success || 0}
+                    stamp="OK"
+                    mono
+                    delta="Completed"
+                    icon={<CheckCircle className="w-5 h-5 text-emerald-600  " />}
+                  />
+                </DashboardCard>
+                <DashboardCard>
+                  <DashboardStat
+                    label="Failed"
+                    value={auditStats?.byStatus?.failed || 0}
+                    stamp="FAILED"
+                    mono
+                    delta="Blocked / errors"
+                    icon={<XCircle className="w-5 h-5 text-red-600  " />}
+                  />
+                </DashboardCard>
+                <DashboardCard>
+                  <DashboardStat
+                    label="Action Types"
+                    value={auditStats?.byAction?.length || 0}
+                    stamp="TYPES"
+                    mono
+                    delta="Unique actions"
+                    icon={<Filter className="w-5 h-5 text-violet-600  " />}
+                  />
+                </DashboardCard>
+              </PageGrid>
+            </motion.div>
+
+            <motion.div variants={item}>
+              <Card>
+                <div className="p-4 flex flex-wrap items-center gap-4">
+                  <div className="flex-1 min-w-[200px]">
+                    <Input
+                      placeholder="Search by action, entity, or ID..."
+                      value={auditSearch}
+                      onChange={(e) => setAuditSearch(e.target.value)}
+                      leftIcon={<Search className="w-4 h-4" />}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Filter className="w-4 h-4 text-[var(--text-secondary)] " />
+                    <Select
+                      value={auditActionFilter}
+                      onChange={(val) => setAuditActionFilter(val)}
+                      options={[
+                        { value: '', label: 'All Actions' },
+                        { value: 'LOGIN', label: 'User Login' },
+                        { value: 'REGISTRATION', label: 'Registration' },
+                        { value: 'LOGOUT', label: 'Logout' },
+                        { value: 'EVIDENCE_UPLOADED', label: 'Evidence Uploaded' },
+                        { value: 'EVIDENCE', label: 'Evidence (any)' },
+                        { value: 'SESSION', label: 'Sandbox Session (any)' },
+                        { value: 'TELEMETRY_INGESTED', label: 'Telemetry Ingested' },
+                        { value: 'INVESTIGATION', label: 'Investigation (any)' },
+                        { value: 'BLOCKCHAIN', label: 'Blockchain (any)' },
+                      ]}
+                    />
+                    <Select
+                      value={auditStatusFilter}
+                      onChange={(val) => setAuditStatusFilter(val)}
+                      options={[
+                        { value: '', label: 'All Status' },
+                        { value: 'success', label: 'Success' },
+                        { value: 'failed', label: 'Failed' },
+                      ]}
+                    />
+                  </div>
                 </div>
-              </div>
-            </Card>
-          )}
-        </>
-      ) : (
-        <>
-      <PageGrid columns={4}>
-        <DashboardCard>
-          <DashboardStat
-            label="Total Lines"
-            value={totalLines}
-            icon={<Terminal className="w-5 h-5 text-amber-600 " />}
-          />
-        </DashboardCard>
-        <DashboardCard>
-          <DashboardStat
-            label="Errors"
-            value={errorCount}
-            icon={<AlertCircle className="w-5 h-5 text-red-600  " />}
-          />
-        </DashboardCard>
-        <DashboardCard>
-          <DashboardStat
-            label="Warnings"
-            value={warningCount}
-            icon={<AlertTriangle className="w-5 h-5 text-amber-600  " />}
-          />
-        </DashboardCard>
-        <DashboardCard>
-          <DashboardStat
-            label="Critical"
-            value={criticalCount}
-            icon={<ShieldAlert className="w-5 h-5 text-purple-600 " />}
-          />
-        </DashboardCard>
-      </PageGrid>
+              </Card>
+            </motion.div>
 
-      <Card>
-        <div className="p-4 flex flex-wrap items-center gap-4">
-          <div className="flex-1 min-w-[200px]">
-            <Input
-              placeholder="Search logs..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              leftIcon={<Search className="w-4 h-4" />}
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-[var(--text-secondary)] " />
-            <Select
-              value={filters.level}
-              onChange={(val) => handleLevelFilter(val)}
-              options={[
-                { value: '', label: 'All Levels' },
-                { value: 'debug', label: 'Debug' },
-                { value: 'info', label: 'Info' },
-                { value: 'warning', label: 'Warning' },
-                { value: 'error', label: 'Error' },
-                { value: 'critical', label: 'Critical' },
-              ]}
-            />
-            <Select
-              value={filters.category}
-              onChange={(val) => handleCategoryFilter(val)}
-              options={[
-                { value: '', label: 'All Categories' },
-                { value: 'app', label: 'App' },
-                { value: 'monitoring', label: 'Monitoring' },
-                { value: 'simulator', label: 'Simulator' },
-                { value: 'execution', label: 'Execution' },
-                { value: 'forensics', label: 'Forensics' },
-                { value: 'vm', label: 'VM' },
-                { value: 'sandbox', label: 'Sandbox' },
-                { value: 'system', label: 'System' },
-              ]}
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant={autoRefresh ? 'primary' : 'outline'}
-              size="sm"
-              leftIcon={<RefreshCw className={cn('w-4 h-4', autoRefresh && 'animate-spin')} />}
-              onClick={toggleAutoRefresh}
-            >
-              {autoRefresh ? 'Live' : 'Auto-refresh'}
-            </Button>
-            {autoRefresh && (
-              <Select
-                value={String(autoRefreshInterval)}
-                onChange={(val) => setAutoRefreshInterval(Number(val))}
-                options={[
-                  { value: '3', label: '3s' },
-                  { value: '5', label: '5s' },
-                  { value: '10', label: '10s' },
-                  { value: '30', label: '30s' },
-                ]}
-              />
-            )}
-            <Button variant="ghost" size="sm" onClick={clearLogs} title="Clear logs from view">
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      </Card>
+            <motion.div variants={item}>
+              <PageSection title="Audit Trail">
+                <DashboardCard className="!p-0 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-left text-[var(--text-tertiary)] font-mono text-[11px] uppercase tracking-[0.08em] border-b border-[var(--border-subtle)]">
+                          <th className="p-3">Time</th>
+                          <th className="p-3">Action</th>
+                          <th className="p-3">Type</th>
+                          <th className="p-3">Actor</th>
+                          <th className="p-3">Entity ID</th>
+                          <th className="p-3">Status</th>
+                          <th className="p-3">IP</th>
+                          <th className="p-3">Details</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[var(--border-subtle)]">
+                        {auditLoading && auditEntries.length === 0 ? (
+                          <tr>
+                            <td colSpan={8} className="p-6">
+                              <LoadingSkeleton rows={6} />
+                            </td>
+                          </tr>
+                        ) : auditError ? (
+                          <tr>
+                            <td colSpan={8}>
+                              <EmptyState
+                                icon={<AlertCircle className="w-8 h-8 text-rose-600" />}
+                                title="Failed to load audit records"
+                                description={auditError}
+                                stamp="ERROR"
+                                action={<Button variant="outline" size="sm" onClick={fetchAuditLogs}>Retry</Button>}
+                              />
+                            </td>
+                          </tr>
+                        ) : auditEntries.length === 0 ? (
+                          <tr>
+                            <td colSpan={8}>
+                              <EmptyState
+                                icon={<History className="w-8 h-8 text-[var(--text-tertiary)]" />}
+                                title="No audit records yet"
+                                description="Login, evidence uploads, and session events will appear here."
+                                stamp="EMPTY"
+                              />
+                            </td>
+                          </tr>
+                        ) : (
+                          auditEntries.map((entry) => {
+                            const isFailed = entry.status === 'failed';
+                            return (
+                              <tr
+                                key={entry.id}
+                                className={cn(
+                                  'hover:bg-[var(--surface-container-lowest)] transition-colors',
+                                  isFailed && 'bg-rose-50/40'
+                                )}
+                              >
+                                <td className="p-3 font-mono text-[var(--text-secondary)] whitespace-nowrap">
+                                  {formatDateTime(entry.timestamp)}
+                                </td>
+                                <td className="p-3">
+                                  <span className={cn(
+                                    'inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider',
+                                    isFailed ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700'
+                                  )}>
+                                    {isFailed ? <XCircle className="w-3 h-3" /> : <CheckCircle className="w-3 h-3" />}
+                                    {entry.action}
+                                  </span>
+                                </td>
+                                <td className="p-3">
+                                  {entry.entityType ? (
+                                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-[var(--surface-container-low)]  text-[var(--text-secondary)] ">
+                                      {entry.entityType}
+                                    </span>
+                                  ) : (
+                                    <span className="text-[var(--text-tertiary)]">—</span>
+                                  )}
+                                </td>
+                                <td className="p-3 text-[var(--text-secondary)]">
+                                  {entry.user ? (
+                                    <span className="inline-flex items-center gap-1.5">
+                                      <User className="w-3 h-3 text-[var(--text-secondary)]" />
+                                      {entry.user.email || entry.user.username || entry.user.name || entry.user.id}
+                                    </span>
+                                  ) : (
+                                    <span className="text-[var(--text-tertiary)]">system</span>
+                                  )}
+                                </td>
+                                <td className="p-3 font-mono text-xs text-[var(--text-secondary)]">
+                                  {entry.entityId ? entry.entityId.slice(0, 24) : '—'}
+                                </td>
+                                <td className="p-3">
+                                  <span className={cn(
+                                    'px-2 py-0.5 rounded text-[10px] font-mono font-medium uppercase tracking-wider',
+                                    isFailed ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700'
+                                  )}>
+                                    {entry.status || 'success'}
+                                  </span>
+                                </td>
+                                <td className="p-3 font-mono text-xs text-[var(--text-secondary)]">
+                                  {entry.ipAddress || '—'}
+                                </td>
+                                <td className="p-3">
+                                  {entry.errorMessage && (
+                                    <span className="text-rose-600 text-xs block mb-1">{entry.errorMessage}</span>
+                                  )}
+                                  {entry.details && Object.keys(entry.details).length > 0 && (
+                                    <div
+                                      className="text-[10px] text-[var(--text-tertiary)] font-mono max-w-[280px] truncate"
+                                      title={JSON.stringify(entry.details)}
+                                    >
+                                      {Object.entries(entry.details).slice(0, 4).map(([k, v]) => (
+                                        <span key={k} className="mr-2">
+                                          {k}={String(v).slice(0, 40)}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </DashboardCard>
+              </PageSection>
+            </motion.div>
 
-      <Card className="!p-0 overflow-hidden">
-        <div className="bg-slate-900  text-[var(--text-primary)]  font-mono text-xs overflow-hidden">
-          <div className="px-4 py-2 bg-[var(--surface-container-low)]   flex items-center justify-between border-b border-[var(--border-subtle)] ">
-            <div className="flex items-center gap-2">
-              <Terminal className="w-4 h-4 text-amber-600 " />
-              <span className="text-[var(--text-secondary)] ">Live Log Stream</span>
-              {autoRefresh && <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />}
-            </div>
-            <span className="text-[var(--text-secondary)]">{logs.length} entries</span>
-          </div>
-
-          <div className="max-h-[500px] overflow-y-auto p-0">
-            {isLoading && logs.length === 0 ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full" />
-              </div>
-            ) : error && logs.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <p className="text-red-600  mb-3">{error}</p>
-                <Button variant="outline" size="sm" onClick={() => fetchLogs()}>Retry</Button>
-              </div>
-            ) : logs.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <Terminal className="w-10 h-10 text-[var(--text-secondary)] mb-3" />
-                <p className="text-[var(--text-secondary)]">No logs found. Run simulations to generate logs.</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-[var(--border-subtle)]">
-                {logs.map((log) => {
-                  const Icon = levelIcons[log.level] || Info;
-                  const isExpanded = expandedLog === log.id;
-                  return (
-                    <div key={log.id} className={cn('px-4 py-1.5 hover:bg-[var(--surface-container)]  cursor-pointer transition-colors', levelBgColors[log.level])}>
-                      <div className="flex items-start gap-2" onClick={() => setExpandedLog(isExpanded ? null : log.id)}>
-                        <span className={cn('flex-shrink-0 mt-0.5', levelColors[log.level])}>
-                          <Icon className="w-3 h-3" />
-                        </span>
-                        <span className="flex-shrink-0 text-[var(--text-secondary)] w-36">{log.timestamp}</span>
-                        <span className={cn('flex-shrink-0 px-1.5 py-0.5 rounded text-xs font-medium uppercase', categoryColors[log.category])}>
-                          {log.category}
-                        </span>
-                        <span className="flex-shrink-0 w-12 text-center text-[var(--text-secondary)] ">{log.level.toUpperCase()}</span>
-                        <span className="flex-1 text-[var(--text-secondary)]  break-all">{log.message}</span>
+            {auditStats && auditStats.byAction.length > 0 && (
+              <motion.div variants={item}>
+                <PageSection title="Action Distribution">
+                  <Card>
+                    <div className="p-4">
+                      <div className="flex gap-2 flex-wrap">
+                        {auditStats.byAction.slice(0, 12).map(({ action, count }) => (
+                          <button
+                            key={action}
+                            onClick={() => setAuditActionFilter(action)}
+                            className={cn(
+                              'inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors',
+                              auditActionFilter === action
+                                ? 'bg-amber-500/10 border-amber-500/50 text-amber-600 '
+                                : 'bg-[var(--surface-container-lowest)]  border-[var(--border-subtle)]  text-[var(--text-secondary)]  hover:bg-[var(--surface-container-low)] '
+                            )}
+                          >
+                            {action}: <span className="font-bold">{count}</span>
+                          </button>
+                        ))}
                       </div>
-                      {isExpanded && log.details && (
-                        <div className="mt-2 ml-6 p-2 bg-slate-900 rounded border border-[var(--border-subtle)]  text-[var(--text-secondary)]  text-xs">
-                          <pre className="whitespace-pre-wrap">{JSON.stringify(log.details, null, 2)}</pre>
-                        </div>
-                      )}
                     </div>
-                  );
-                })}
-                <div ref={bottomRef} />
-              </div>
+                  </Card>
+                </PageSection>
+              </motion.div>
             )}
-          </div>
-        </div>
-      </Card>
+          </>
+        ) : (
+          <>
+            <motion.div variants={item}>
+              <PageGrid columns={4}>
+                <DashboardCard>
+                  <DashboardStat
+                    label="Total Lines"
+                    value={totalLines}
+                    stamp="LINES"
+                    mono
+                    delta="Collected"
+                    icon={<Terminal className="w-5 h-5 text-amber-600 " />}
+                  />
+                </DashboardCard>
+                <DashboardCard>
+                  <DashboardStat
+                    label="Errors"
+                    value={errorCount}
+                    stamp="ERRORS"
+                    mono
+                    delta="Red alerts"
+                    icon={<AlertCircle className="w-5 h-5 text-red-600  " />}
+                  />
+                </DashboardCard>
+                <DashboardCard>
+                  <DashboardStat
+                    label="Warnings"
+                    value={warningCount}
+                    stamp="WARN"
+                    mono
+                    delta="Yellow alerts"
+                    icon={<AlertTriangle className="w-5 h-5 text-amber-600  " />}
+                  />
+                </DashboardCard>
+                <DashboardCard>
+                  <DashboardStat
+                    label="Critical"
+                    value={criticalCount}
+                    stamp="CRIT"
+                    mono
+                    delta="Escalations"
+                    icon={<ShieldAlert className="w-5 h-5 text-purple-600 " />}
+                  />
+                </DashboardCard>
+              </PageGrid>
+            </motion.div>
 
-      {stats && (
-        <Card>
-          <div className="p-4">
-            <p className="text-xs font-semibold text-[var(--text-secondary)]   uppercase mb-3">Level Distribution</p>
-            <div className="flex gap-2 flex-wrap">
-              {Object.entries(stats.byLevel || {}).map(([level, count]) => {
-                const Icon = levelIcons[level] || Info;
-                return (
-                  <button key={level} onClick={() => handleLevelFilter(level)}
-                    className={cn('inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors',
-                      filters.level === level
-                        ? 'bg-amber-500/10 border-amber-500/50 text-amber-600 '
-                        : 'bg-[var(--surface-container-lowest)]  border-[var(--border-subtle)]  text-[var(--text-secondary)]  hover:bg-[var(--surface-container-low)] '
-                    )}>
-                    <Icon className="w-3 h-3" />
-                    {level}: <span className="font-bold">{count}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </Card>
-      )}
-        </>
-      )}
-    </motion.div>
+            <motion.div variants={item}>
+              <Card>
+                <div className="p-4 flex flex-wrap items-center gap-4">
+                  <div className="flex-1 min-w-[200px]">
+                    <Input
+                      placeholder="Search logs..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      leftIcon={<Search className="w-4 h-4" />}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Filter className="w-4 h-4 text-[var(--text-secondary)] " />
+                    <Select
+                      value={filters.level}
+                      onChange={(val) => handleLevelFilter(val)}
+                      options={[
+                        { value: '', label: 'All Levels' },
+                        { value: 'debug', label: 'Debug' },
+                        { value: 'info', label: 'Info' },
+                        { value: 'warning', label: 'Warning' },
+                        { value: 'error', label: 'Error' },
+                        { value: 'critical', label: 'Critical' },
+                      ]}
+                    />
+                    <Select
+                      value={filters.category}
+                      onChange={(val) => handleCategoryFilter(val)}
+                      options={[
+                        { value: '', label: 'All Categories' },
+                        { value: 'app', label: 'App' },
+                        { value: 'monitoring', label: 'Monitoring' },
+                        { value: 'simulator', label: 'Simulator' },
+                        { value: 'execution', label: 'Execution' },
+                        { value: 'forensics', label: 'Forensics' },
+                        { value: 'vm', label: 'VM' },
+                        { value: 'sandbox', label: 'Sandbox' },
+                        { value: 'system', label: 'System' },
+                      ]}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant={autoRefresh ? 'primary' : 'outline'}
+                      size="sm"
+                      leftIcon={<RefreshCw className={cn('w-4 h-4', autoRefresh && 'animate-spin')} />}
+                      onClick={toggleAutoRefresh}
+                    >
+                      {autoRefresh ? 'Live' : 'Auto-refresh'}
+                    </Button>
+                    {autoRefresh && (
+                      <Select
+                        value={String(autoRefreshInterval)}
+                        onChange={(val) => setAutoRefreshInterval(Number(val))}
+                        options={[
+                          { value: '3', label: '3s' },
+                          { value: '5', label: '5s' },
+                          { value: '10', label: '10s' },
+                          { value: '30', label: '30s' },
+                        ]}
+                      />
+                    )}
+                    <Button variant="ghost" size="sm" onClick={clearLogs} title="Clear logs from view">
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            </motion.div>
+
+            <motion.div variants={item}>
+              <PageSection title="Live Log Stream">
+                <DashboardCard className="!p-0 overflow-hidden">
+                  <div className="px-4 py-2 bg-[var(--surface-container-low)]  flex items-center justify-between border-b border-[var(--border-subtle)] ">
+                    <div className="flex items-center gap-2">
+                      <Terminal className="w-4 h-4 text-amber-600 " />
+                      <span className="text-[var(--text-secondary)] text-xs font-medium uppercase tracking-wider">Stream</span>
+                      {autoRefresh && <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />}
+                    </div>
+                    <span className="text-xs text-[var(--text-secondary)]">{logs.length} entries</span>
+                  </div>
+
+                  <div className="max-h-[500px] overflow-y-auto">
+                    {isLoading && logs.length === 0 ? (
+                      <div className="p-6">
+                        <LoadingSkeleton rows={6} />
+                      </div>
+                    ) : error && logs.length === 0 ? (
+                      <EmptyState
+                        icon={<AlertCircle className="w-8 h-8 text-rose-600" />}
+                        title="Failed to load logs"
+                        description={error}
+                        stamp="ERROR"
+                        action={<Button variant="outline" size="sm" onClick={() => fetchLogs()}>Retry</Button>}
+                      />
+                    ) : logs.length === 0 ? (
+                      <EmptyState
+                        icon={<Terminal className="w-8 h-8 text-[var(--text-tertiary)]" />}
+                        title="No logs found"
+                        description="Run simulations to generate logs."
+                        stamp="EMPTY"
+                      />
+                    ) : (
+                      <div className="divide-y divide-[var(--border-subtle)]">
+                        {logs.map((log) => {
+                          const Icon = levelIcons[log.level] || Info;
+                          const isExpanded = expandedLog === log.id;
+                          return (
+                            <div key={log.id} className={cn('px-4 py-1.5 hover:bg-[var(--surface-container-lowest)] cursor-pointer transition-colors', levelBgColors[log.level])}>
+                              <div className="flex items-start gap-2" onClick={() => setExpandedLog(isExpanded ? null : log.id)}>
+                                <span className={cn('flex-shrink-0 mt-0.5', levelColors[log.level])}>
+                                  <Icon className="w-3 h-3" />
+                                </span>
+                                <span className="flex-shrink-0 text-[var(--text-secondary)] font-mono w-36">{log.timestamp}</span>
+                                <span className={cn('flex-shrink-0 px-1.5 py-0.5 rounded text-xs font-medium uppercase', categoryColors[log.category])}>
+                                  {log.category}
+                                </span>
+                                <span className="flex-shrink-0 w-12 text-center text-[var(--text-secondary)] ">{log.level.toUpperCase()}</span>
+                                <span className="flex-1 text-[var(--text-secondary)]  break-all">{log.message}</span>
+                              </div>
+                              {isExpanded && log.details && (
+                                <div className="mt-2 ml-6 p-2 bg-[var(--surface-container-lowest)] rounded border border-[var(--border-subtle)]  text-[var(--text-secondary)]  text-xs">
+                                  <pre className="whitespace-pre-wrap">{JSON.stringify(log.details, null, 2)}</pre>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                        <div ref={bottomRef} />
+                      </div>
+                    )}
+                  </div>
+                </DashboardCard>
+              </PageSection>
+            </motion.div>
+
+            {stats && (
+              <motion.div variants={item}>
+                <PageSection title="Level Distribution">
+                  <Card>
+                    <div className="p-4">
+                      <div className="flex gap-2 flex-wrap">
+                        {Object.entries(stats.byLevel || {}).map(([level, count]) => {
+                          const Icon = levelIcons[level] || Info;
+                          return (
+                            <button key={level} onClick={() => handleLevelFilter(level)}
+                              className={cn('inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors',
+                                filters.level === level
+                                  ? 'bg-amber-500/10 border-amber-500/50 text-amber-600 '
+                                  : 'bg-[var(--surface-container-lowest)]  border-[var(--border-subtle)]  text-[var(--text-secondary)]  hover:bg-[var(--surface-container-low)] '
+                              )}>
+                              <Icon className="w-3 h-3" />
+                              {level}: <span className="font-bold">{count}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </Card>
+                </PageSection>
+              </motion.div>
+            )}
+          </>
+        )}
+      </motion.div>
+    </PageContainer>
   );
 }
 
 export default LogsPage;
-

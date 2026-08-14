@@ -77,6 +77,7 @@ NyxTrace is a full-stack cybersecurity forensics platform designed for safe malw
 | **Forensic Dashboard** | Real-time KPIs, D3.js force-directed threat intelligence graph, MITRE ATT&CK matrix, AI analysis panels, chain of custody timeline |
 | **Chain of Custody** | Full custody timeline with integrity verification, tamper alerts with acknowledgment workflow, evidence lineage graphs |
 | **Analytics** | Behavioral pattern analysis, session comparison, threat correlation, forensic reporting |
+| **Storage Management** | **NEW** Admin storage vault — session footprint deletion, file category browsing, audit-logged operations, typed-confirmation purge |
 | **Observability** | Prometheus metrics, correlation ID tracing, structured JSON logging, aggregated health checks |
 
 ---
@@ -142,6 +143,7 @@ NyxTrace is a full-stack cybersecurity forensics platform designed for safe malw
 | **Services** | 30 (19 exported from index) |
 | **Controllers** | 21 |
 | **Middleware** | 7 (auth, error, security, tracing, validation, request-context) |
+| **Storage Service** | `storage.service.ts` — File management, session footprint deletion, audit logging, path confinement |
 | **Tests** | 6 files, ~91 test cases (Jest) |
 | **Port** | `:3000` |
 
@@ -153,6 +155,7 @@ Route modules mounted under `/api/v1`:
 | `/users` | User CRUD, stats, role management, activity |
 | `/investigations` | Case management, forensic reports |
 | `/evidence` | File upload, integrity verification |
+| `/storage` | **NEW** File storage management, session footprint deletion, audit |
 | `/sandbox` | Session lifecycle, VM control, telemetry |
 | `/sync` | Evidence upload, telemetry ingestion, heartbeat |
 | `/ai` | Telemetry analysis, alert enrichment, investigation summary |
@@ -192,6 +195,7 @@ Key pages:
 - **ThreatIntelligencePage** — D3 force graph + IOC browser
 - **ForensicAnalyticsPage** — MITRE ATT&CK heatmap + correlation
 - **LiveTelemetryPage** — Real-time WebSocket event stream
+- **StorageManagerPage** — **NEW** Storage administration (session footprints, file categories, danger zone purge)
 
 Zustand stores: `authStore`, `blockchainStore` (40+ actions), `evidenceStore`, `investigationStore`, `alertStore`, `sandboxStore`, `telemetryStore`, `analysisStore`, `reportsStore`, `logsStore`, `realtimeStore`, `threatIntelStore`, `timelineStore`, `statusStore`, `settingsStore`, `themeStore`.
 
@@ -391,6 +395,20 @@ All under `/api/v1/blockchain`:
 | GET | `/operations/ready` | K8s readiness probe |
 | GET | `/operations/live` | K8s liveness probe |
 | GET | `/operations/metrics` | Prometheus metrics |
+
+### Storage Management
+
+| Method | Path | Roles | Description |
+|--------|------|-------|-------------|
+| GET | `/storage/overview` | admin+ | Storage overview: categories (reports, analysis, evidence, sandbox-logs, monitoring) with file counts, sizes, and database record counts |
+| GET | `/storage/sessions` | admin+ | List sandbox sessions with footprint info (report file, telemetry count, monitoring logs) |
+| GET | `/storage/categories/:key/files` | admin+ | List files in a storage category with metadata |
+| GET | `/storage/categories/:key/files/:filename/hash` | admin+ | Get SHA-256 and MD5 hash of a stored file |
+| DELETE | `/storage/sessions/:sessionId` | admin+ | Delete complete session footprint: DB record, telemetry events, report file, monitoring logs |
+| DELETE | `/storage/files` | admin+ | Delete specific files by category and filenames (body: `{category, names[]}`) |
+| DELETE | `/storage/evidence/:id` | admin+ | Delete evidence file + DB record (reuses existing evidence service) |
+| DELETE | `/storage/categories/:key` | admin+ | Purge all files in a category (requires `confirm=true`) |
+| POST | `/storage/purge` | admin+ | **Danger** Purge ALL session data (requires `confirm="PURGE"`) |
 
 ---
 

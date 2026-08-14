@@ -26,7 +26,7 @@ export const spacing = {
 export const typography = {
   fontFamily: {
     display: "'Space Grotesk', ui-sans-serif, system-ui, sans-serif",
-    body: "'DM Sans', 'Inter', ui-sans-serif, system-ui, sans-serif",
+    body: "'Plus Jakarta Sans', 'Inter', ui-sans-serif, system-ui, sans-serif",
     mono: "'JetBrains Mono', ui-monospace, SFMono-Regular, monospace",
   },
   fontSize: {
@@ -78,11 +78,11 @@ export const colors = {
     950: '#451a03',
   },
   severity: {
-    critical: { bg: 'bg-rose-950/30', text: 'text-rose-400', border: 'border-rose-800/40', solid: 'bg-rose-500' },
-    high: { bg: 'bg-orange-950/30', text: 'text-orange-400', border: 'border-orange-800/40', solid: 'bg-orange-500' },
-    medium: { bg: 'bg-amber-950/30', text: 'text-amber-400', border: 'border-amber-800/40', solid: 'bg-amber-500' },
-    low: { bg: 'bg-emerald-950/30', text: 'text-emerald-400', border: 'border-emerald-800/40', solid: 'bg-emerald-500' },
-    info: { bg: 'bg-sky-100 ', text: 'text-sky-600 ', border: 'border-sky-200 ', solid: 'bg-sky-500' },
+    critical: { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', solid: 'bg-rose-500' },
+    high: { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', solid: 'bg-orange-500' },
+    medium: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', solid: 'bg-amber-500' },
+    low: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', solid: 'bg-emerald-500' },
+    info: { bg: 'bg-sky-50 ', text: 'text-sky-700 ', border: 'border-sky-200 ', solid: 'bg-sky-500' },
   },
   status: {
     active: { bg: 'bg-emerald-100 ', text: 'text-emerald-600 ', dot: 'bg-emerald-500' },
@@ -113,14 +113,14 @@ export const colors = {
 } as const;
 
 export const shadows = {
-  sm: '0 1px 2px rgba(0,0,0,0.5)',
-  DEFAULT: '0 1px 3px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.4)',
-  md: '0 4px 12px rgba(0,0,0,0.55), 0 2px 4px rgba(0,0,0,0.4)',
-  lg: '0 12px 32px rgba(0,0,0,0.6), 0 4px 8px rgba(0,0,0,0.45)',
-  xl: '0 20px 40px rgba(0,0,0,0.65), 0 8px 16px rgba(0,0,0,0.5)',
-  card: '0 1px 3px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.4)',
-  elevated: '0 4px 12px rgba(0,0,0,0.55), 0 2px 4px rgba(0,0,0,0.4)',
-  dropdown: '0 10px 40px rgba(0,0,0,0.6), 0 4px 8px rgba(0,0,0,0.45)',
+  sm: '0 1px 2px rgba(30,27,20,0.04)',
+  DEFAULT: '0 1px 3px rgba(30,27,20,0.06), 0 1px 2px rgba(30,27,20,0.04)',
+  md: '0 4px 12px rgba(30,27,20,0.08), 0 2px 4px rgba(30,27,20,0.05)',
+  lg: '0 12px 32px rgba(30,27,20,0.10), 0 4px 8px rgba(30,27,20,0.06)',
+  xl: '0 20px 48px rgba(30,27,20,0.14), 0 8px 16px rgba(30,27,20,0.08)',
+  card: '0 1px 3px rgba(30,27,20,0.06), 0 1px 2px rgba(30,27,20,0.04)',
+  elevated: '0 4px 12px rgba(30,27,20,0.08), 0 2px 4px rgba(30,27,20,0.05)',
+  dropdown: '0 10px 40px rgba(30,27,20,0.12), 0 4px 8px rgba(30,27,20,0.06)',
   glow: {
     amber: '0 0 0 1px rgba(245,158,11,0.15), 0 4px 20px rgba(245,158,11,0.08)',
     emerald: '0 0 0 1px rgba(52,211,153,0.15), 0 4px 20px rgba(52,211,153,0.08)',

@@ -27,6 +27,7 @@ const InvestigationDetailPage = lazy(() => import('../pages/InvestigationDetailP
 const ReportsPage = lazy(() => import('../pages/ReportsPage'));
 const EvidenceArtifactsPage = lazy(() => import('../pages/EvidenceArtifactsPage'));
 const SystemHealthPage = lazy(() => import('../pages/SystemHealthPage'));
+const StorageManagerPage = lazy(() => import('../pages/StorageManagerPage'));
 const KnowledgeBasePage = lazy(() => import('../pages/KnowledgeBasePage'));
 const UserDossierPage = lazy(() => import('../pages/UserDossierPage'));
 const RoleAssignmentPage = lazy(() => import('../pages/RoleAssignmentPage'));
@@ -205,6 +206,14 @@ export const router = createBrowserRouter([
         element: (
           <RoleRoute allowedRoles={['admin', 'super_admin']}>
             <SystemHealthPage />
+          </RoleRoute>
+        ),
+      },
+      {
+        path: 'storage',
+        element: (
+          <RoleRoute allowedRoles={['admin', 'super_admin']}>
+            <StorageManagerPage />
           </RoleRoute>
         ),
       },

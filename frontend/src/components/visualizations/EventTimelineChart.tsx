@@ -28,14 +28,14 @@ export function EventTimelineChart({
   points: TimelinePoint[];
   title?: string;
 }) {
-  const { path, areaPath, categories, maxCount } = useMemo(() => {
+  const { path, areaPath, categories, maxCount, coords } = useMemo(() => {
     const categories: string[] = [];
     for (const p of points) {
       for (const cat of Object.keys(p.buckets)) {
         if (!categories.includes(cat)) categories.push(cat);
       }
     }
-    if (categories.length === 0) return { path: '', areaPath: '', categories, maxCount: 0 };
+    if (categories.length === 0) return { path: '', areaPath: '', categories, maxCount: 0, coords: [] as { x: number; y: number; count: number; label: string }[] };
 
     const W = 600;
     const H = 150;
@@ -51,14 +51,20 @@ export function EventTimelineChart({
     const areaPath = points.length > 0
       ? `${path} L${x(points.length - 1).toFixed(1)},${H - PAD} L${x(0).toFixed(1)},${H - PAD} Z`
       : '';
+    const coords = totalByPoint.map((count, i) => ({
+      x: x(i),
+      y: y(count),
+      count,
+      label: points[i].label,
+    }));
 
-    return { path, areaPath, categories, maxCount };
+    return { path, areaPath, categories, maxCount, coords };
   }, [points]);
 
   if (points.length === 0) {
     return (
       <div className="p-4 bg-[var(--surface-container-lowest)] rounded-lg">
-        <p className="text-xs font-semibold text-[var(--text-secondary)] uppercase mb-3">{title}</p>
+        <p className="eyebrow mb-3">{title}</p>
         <p className="text-sm text-[var(--text-secondary)] py-2">No event data available</p>
       </div>
     );
@@ -67,7 +73,7 @@ export function EventTimelineChart({
   return (
     <div className="p-4 bg-[var(--surface-container-lowest)] rounded-lg">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-xs font-semibold text-[var(--text-secondary)] uppercase">{title}</p>
+        <p className="eyebrow">{title}</p>
         <div className="flex flex-wrap gap-2">
           {categories.map((cat) => (
             <span key={cat} className="inline-flex items-center gap-1 text-[10px] text-[var(--text-secondary)] capitalize">
@@ -95,6 +101,19 @@ export function EventTimelineChart({
             strokeLinecap="round"
           />
         )}
+        {coords.map((c) => (
+          <circle
+            key={c.label}
+            cx={c.x}
+            cy={c.y}
+            r={c.count > 0 ? 3 : 1.5}
+            fill={c.count > 0 ? '#d97706' : 'var(--surface-container-high)'}
+            stroke="var(--surface-bright)"
+            strokeWidth="1.5"
+          >
+            <title>{`${c.label}: ${c.count} events`}</title>
+          </circle>
+        ))}
       </svg>
       <div className="flex justify-between mt-1 text-[10px] text-[var(--text-secondary)]">
         <span>{points[0].label}</span>

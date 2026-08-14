@@ -1,0 +1,189 @@
+- generic [ref=f7e54]:
+  - complementary [ref=f7e55]:
+    - generic [ref=f7e67]:
+      - heading "NyxTrace" [level=1] [ref=f7e68]
+      - paragraph [ref=f7e69]: Cyber Intelligence
+    - navigation [ref=f7e70]:
+      - generic [ref=f7e71]:
+        - generic [ref=f7e72]: Home
+        - link "Home" [ref=f7e74] [cursor=pointer]:
+          - /url: /home
+      - generic [ref=f7e80]:
+        - generic [ref=f7e81]: Workspace
+        - generic [ref=f7e82]:
+          - link "Dashboard" [ref=f7e83] [cursor=pointer]:
+            - /url: /dashboard
+          - link "Evidence" [ref=f7e92] [cursor=pointer]:
+            - /url: /evidence
+      - generic [ref=f7e97]:
+        - generic [ref=f7e98]: Operations
+        - generic [ref=f7e99]:
+          - link "Sandbox" [ref=f7e100] [cursor=pointer]:
+            - /url: /sandbox
+          - link "Telemetry" [ref=f7e105] [cursor=pointer]:
+            - /url: /telemetry
+          - link "AI Analysis" [ref=f7e110] [cursor=pointer]:
+            - /url: /ai-analysis
+          - link "Reports" [ref=f7e121] [cursor=pointer]:
+            - /url: /reports
+      - generic [ref=f7e128]:
+        - generic [ref=f7e129]: Intelligence
+        - generic [ref=f7e130]:
+          - link "Threat Intel" [ref=f7e131] [cursor=pointer]:
+            - /url: /threat-intelligence
+          - link "Forensic Analytics" [ref=f7e136] [cursor=pointer]:
+            - /url: /forensic-analytics
+          - link "Blockchain Ops" [ref=f7e141] [cursor=pointer]:
+            - /url: /blockchain-operations
+      - generic [ref=f7e147]:
+        - generic [ref=f7e148]: Administration
+        - generic [ref=f7e149]:
+          - link "System Health" [ref=f7e150] [cursor=pointer]:
+            - /url: /health
+          - link "Users" [ref=f7e155] [cursor=pointer]:
+            - /url: /users
+          - link "Settings" [ref=f7e163] [cursor=pointer]:
+            - /url: /settings
+          - link "Audit Log" [ref=f7e169] [cursor=pointer]:
+            - /url: /audit
+    - generic [ref=f7e177]:
+      - generic [ref=f7e178]:
+        - generic [ref=f7e179]: Operational
+        - paragraph [ref=f7e183]: v2.0 · Enterprise
+      - button "Collapse" [ref=f7e184]
+  - generic [ref=f7e188]:
+    - banner [ref=f7e189]:
+      - navigation [ref=f7e191]:
+        - generic [ref=f7e192]: Dashboard
+        - generic [ref=f7e199]: /
+        - generic [ref=f7e200]: Operations Dashboard
+      - generic [ref=f7e201]:
+        - button [ref=f7e202]
+        - 'generic "Socket: GWz5MtiNTIswZs2hAAAo" [ref=f7e207]':
+          - generic [ref=f7e208]:
+            - generic [ref=f7e215]: Live
+            - generic [ref=f7e217]: "WS: LIVE · API: OK · EVT: 0 · ALR: 0"
+        - button [ref=f7e219]
+        - button [ref=f7e225]:
+          - paragraph [ref=f7e231]: User
+    - main [ref=f7e235]:
+      - generic [ref=f7e238]:
+        - generic [ref=f7e239]:
+          - generic [ref=f7e240]:
+            - paragraph [ref=f7e241]: Operations · Aug 14, 2026
+            - generic [ref=f7e242]:
+              - heading "Intelligence Dashboard" [level=1] [ref=f7e243]
+              - generic [ref=f7e244]: REALTIME
+            - paragraph [ref=f7e245]: Real-time posture across sandbox sessions, AI analysis, evidence and blockchain integrity
+          - generic [ref=f7e246]:
+            - button "Reports" [ref=f7e247]
+            - button "New Investigation" [ref=f7e250]
+        - generic [ref=f7e252]:
+          - button "Active Cases 0 0 active View details" [ref=f7e253]:
+            - generic [ref=f7e254]: Active Cases
+            - generic [ref=f7e261]:
+              - generic [ref=f7e262]: "0"
+              - generic [ref=f7e263]: 0 active
+            - generic [ref=f7e264]: View details
+          - button "Evidence Items 0 Across cases View details" [ref=f7e268]:
+            - generic [ref=f7e269]: Evidence Items
+            - generic [ref=f7e276]:
+              - generic [ref=f7e277]: "0"
+              - generic [ref=f7e278]: Across cases
+            - generic [ref=f7e279]: View details
+          - button "Sandbox Sessions 0 0 running View details" [ref=f7e283]:
+            - generic [ref=f7e284]: Sandbox Sessions
+            - generic [ref=f7e290]:
+              - generic [ref=f7e291]: "0"
+              - generic [ref=f7e292]: 0 running
+            - generic [ref=f7e293]: View details
+          - button "Threat Detections 0 No threats View details" [ref=f7e297]:
+            - generic [ref=f7e298]: Threat Detections
+            - generic [ref=f7e304]:
+              - generic [ref=f7e305]: "0"
+              - generic [ref=f7e306]: No threats
+            - generic [ref=f7e307]: View details
+          - button "On-Chain Evidence — 0 tamper alerts View details" [ref=f7e311]:
+            - generic [ref=f7e312]: On-Chain Evidence
+            - generic [ref=f7e318]:
+              - generic [ref=f7e319]: —
+              - generic [ref=f7e320]: 0 tamper alerts
+            - generic [ref=f7e321]: View details
+        - generic [ref=f7e325]:
+          - generic [ref=f7e326]:
+            - generic [ref=f7e327]:
+              - generic [ref=f7e328]:
+                - heading "Live Sandbox Sessions" [level=2] [ref=f7e329]
+                - paragraph [ref=f7e330]: 0 total · 0 running
+              - button "View all →" [ref=f7e331]
+            - generic [ref=f7e332]:
+              - paragraph [ref=f7e336]: No sandbox sessions yet
+              - button "Launch a session →" [ref=f7e337]
+          - generic [ref=f7e338]:
+            - generic [ref=f7e339]:
+              - generic [ref=f7e340]:
+                - heading "Threat Classification" [level=2] [ref=f7e341]
+                - paragraph [ref=f7e342]: 0 analyzed artifacts
+              - button "AI Analysis →" [ref=f7e343]
+            - generic [ref=f7e344]:
+              - paragraph [ref=f7e353]: No analyses yet
+              - button "Run an analysis →" [ref=f7e354]
+        - generic [ref=f7e355]:
+          - generic [ref=f7e356]:
+            - generic [ref=f7e357]:
+              - generic [ref=f7e358]:
+                - heading "Telemetry Activity" [level=2] [ref=f7e359]
+                - paragraph [ref=f7e360]: Events captured per day · last 7 days
+              - button "Live Telemetry →" [ref=f7e361]
+            - generic [ref=f7e362]:
+              - paragraph [ref=f7e365]: No telemetry events in the last 7 days
+              - button "Run a sandbox session →" [ref=f7e366]
+          - generic [ref=f7e367]:
+            - generic [ref=f7e368]:
+              - generic [ref=f7e369]:
+                - heading "Blockchain Integrity" [level=2] [ref=f7e370]
+                - paragraph [ref=f7e371]: Ledger connection operational
+              - button "Blockchain Ops →" [ref=f7e372]
+            - generic [ref=f7e373]:
+              - generic [ref=f7e374]:
+                - paragraph [ref=f7e375]: Verified evidence
+                - paragraph [ref=f7e376]: —
+              - generic [ref=f7e377]:
+                - paragraph [ref=f7e378]: On-chain anchored
+                - paragraph [ref=f7e379]: —
+              - generic [ref=f7e380]:
+                - paragraph [ref=f7e381]: Modified / tampered
+                - paragraph [ref=f7e382]: —
+              - generic [ref=f7e383]:
+                - paragraph [ref=f7e384]: Tamper alerts
+                - paragraph [ref=f7e385]: —
+            - generic [ref=f7e386]:
+              - generic [ref=f7e387]: Ledger connected
+              - generic [ref=f7e392]: Tamper-evident
+        - generic [ref=f7e396]:
+          - generic [ref=f7e397]:
+            - generic [ref=f7e398]:
+              - generic [ref=f7e399]:
+                - heading "Recent Evidence" [level=2] [ref=f7e400]
+                - paragraph [ref=f7e401]: 0 latest items
+              - button "Evidence Explorer →" [ref=f7e402]
+            - generic [ref=f7e403]:
+              - paragraph [ref=f7e407]: No evidence collected yet
+              - button "Collect evidence from a sandbox session →" [ref=f7e408]
+          - generic [ref=f7e409]:
+            - generic [ref=f7e410]:
+              - generic [ref=f7e411]:
+                - heading "Recent Reports" [level=2] [ref=f7e412]
+                - paragraph [ref=f7e413]: 0 forensic reports
+              - button "View all →" [ref=f7e414]
+            - generic [ref=f7e415]:
+              - paragraph [ref=f7e418]: No reports generated yet
+              - button "View reports →" [ref=f7e419]
+        - generic [ref=f7e421]:
+          - generic [ref=f7e422]:
+            - generic [ref=f7e423]: System Status
+            - generic [ref=f7e428]:
+              - generic [ref=f7e429]: BackendOperational
+              - generic [ref=f7e430]: AI EngineOperational
+              - generic [ref=f7e431]: SandboxStandby
+          - generic [ref=f7e432]: v2.0 · Enterprise

@@ -113,7 +113,7 @@ export const BlockchainOperationsPanel: React.FC = () => {
     <div className="bg-[var(--surface-container-low)]  rounded-lg shadow-md border border-[var(--border-subtle)] ">
       {/* Header */}
       <div className="border-b border-[var(--border-subtle)]  p-4">
-        <h2 className="text-xl font-semibold text-white">
+        <h2 className="text-xl font-semibold text-[var(--text-primary)]">
           Blockchain Operations
         </h2>
         <p className="text-sm text-[var(--text-secondary)]  mt-1">
@@ -174,7 +174,7 @@ export const BlockchainOperationsPanel: React.FC = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-[var(--surface-container-low)]  rounded-lg p-3">
                 <div className="text-sm text-[var(--text-secondary)] ">Pending</div>
-                <div className="text-2xl font-bold text-white">
+                <div className="text-2xl font-bold text-[var(--text-primary)]">
                   {syncState?.pendingOperations ?? 0}
                 </div>
               </div>
@@ -186,7 +186,7 @@ export const BlockchainOperationsPanel: React.FC = () => {
               </div>
               <div className="bg-[var(--surface-container-low)]  rounded-lg p-3">
                 <div className="text-sm text-[var(--text-secondary)] ">Total Synced</div>
-                <div className="text-2xl font-bold text-green-400">
+                <div className="text-2xl font-bold text-emerald-700">
                   {syncState?.totalSynced ?? 0}
                 </div>
               </div>
@@ -204,11 +204,11 @@ export const BlockchainOperationsPanel: React.FC = () => {
                 <h3 className="text-sm font-medium text-[var(--text-secondary)]  mb-3">Queue Status</h3>
                 <div className="grid grid-cols-5 gap-2 text-center">
                   <div>
-                    <div className="text-lg font-bold text-white">{syncQueueStatus.total}</div>
+                    <div className="text-lg font-bold text-[var(--text-primary)]">{syncQueueStatus.total}</div>
                     <div className="text-xs text-[var(--text-secondary)] ">Total</div>
                   </div>
                   <div>
-                    <div className="text-lg font-bold text-yellow-400">{syncQueueStatus.pending}</div>
+                    <div className="text-lg font-bold text-amber-700">{syncQueueStatus.pending}</div>
                     <div className="text-xs text-[var(--text-secondary)] ">Pending</div>
                   </div>
                   <div>
@@ -216,7 +216,7 @@ export const BlockchainOperationsPanel: React.FC = () => {
                     <div className="text-xs text-[var(--text-secondary)] ">Processing</div>
                   </div>
                   <div>
-                    <div className="text-lg font-bold text-green-400">{syncQueueStatus.completed}</div>
+                    <div className="text-lg font-bold text-emerald-700">{syncQueueStatus.completed}</div>
                     <div className="text-xs text-[var(--text-secondary)] ">Completed</div>
                   </div>
                   <div>
@@ -274,13 +274,13 @@ export const BlockchainOperationsPanel: React.FC = () => {
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div className="bg-[var(--surface-container-low)]  rounded-lg p-3">
                 <div className="text-sm text-[var(--text-secondary)] ">Total Jobs</div>
-                <div className="text-2xl font-bold text-white">
+                <div className="text-2xl font-bold text-[var(--text-primary)]">
                   {workerStats?.totalJobs ?? 0}
                 </div>
               </div>
               <div className="bg-[var(--surface-container-low)]  rounded-lg p-3">
                 <div className="text-sm text-[var(--text-secondary)] ">Queued</div>
-                <div className="text-2xl font-bold text-yellow-400">
+                <div className="text-2xl font-bold text-amber-700">
                   {workerStats?.queued ?? 0}
                 </div>
               </div>
@@ -292,7 +292,7 @@ export const BlockchainOperationsPanel: React.FC = () => {
               </div>
               <div className="bg-[var(--surface-container-low)]  rounded-lg p-3">
                 <div className="text-sm text-[var(--text-secondary)] ">Completed</div>
-                <div className="text-2xl font-bold text-green-400">
+                <div className="text-2xl font-bold text-emerald-700">
                   {workerStats?.completed ?? 0}
                 </div>
               </div>
@@ -317,7 +317,7 @@ export const BlockchainOperationsPanel: React.FC = () => {
                         priority === 'normal' ? 'bg-blue-500' : 'bg-gray-400'
                       }`}></span>
                       <span className="text-sm text-[var(--text-secondary)]  capitalize">{priority}: </span>
-                      <span className="text-sm font-medium text-white ml-1">{count}</span>
+                      <span className="text-sm font-medium text-[var(--text-primary)] ml-1">{count}</span>
                     </div>
                   ))}
                 </div>
@@ -338,7 +338,7 @@ export const BlockchainOperationsPanel: React.FC = () => {
             {healthMetrics && (
               <>
                 <div className="flex items-center justify-between">
-                  <div className="text-lg font-medium text-white">System Health Score</div>
+                  <div className="text-lg font-medium text-[var(--text-primary)]">System Health Score</div>
                   <div className={`text-3xl font-bold ${getHealthColor(healthMetrics.status)}`}>
                     {healthMetrics.score}/100
                   </div>
@@ -346,8 +346,8 @@ export const BlockchainOperationsPanel: React.FC = () => {
 
                 {/* Health Status Badge */}
                 <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                  healthMetrics.status === 'healthy' ? 'bg-green-500/20 text-green-400' :
-                  healthMetrics.status === 'degraded' ? 'bg-yellow-500/20 text-yellow-400' :
+                  healthMetrics.status === 'healthy' ? 'bg-emerald-50 text-emerald-700' :
+                  healthMetrics.status === 'degraded' ? 'bg-amber-50 text-amber-700' :
                   'bg-red-500/20 text-red-600 '
                 }`}>
                   Status: {healthMetrics.status.charAt(0).toUpperCase() + healthMetrics.status.slice(1)}
@@ -357,25 +357,25 @@ export const BlockchainOperationsPanel: React.FC = () => {
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div className="bg-[var(--surface-container-low)]  rounded-lg p-3">
                     <div className="text-sm text-[var(--text-secondary)] ">Blockchain Connection</div>
-                    <div className={`text-lg font-medium ${healthMetrics.blockchainConnection ? 'text-green-400' : 'text-red-600 '}`}>
+                    <div className={`text-lg font-medium ${healthMetrics.blockchainConnection ? 'text-emerald-700' : 'text-red-600 '}`}>
                       {healthMetrics.blockchainConnection ? 'Connected' : 'Disconnected'}
                     </div>
                   </div>
                   <div className="bg-[var(--surface-container-low)]  rounded-lg p-3">
                     <div className="text-sm text-[var(--text-secondary)] ">Verification Success</div>
-                    <div className="text-lg font-medium text-white">
+                    <div className="text-lg font-medium text-[var(--text-primary)]">
                       {healthMetrics.verificationSuccessRate.toFixed(1)}%
                     </div>
                   </div>
                   <div className="bg-[var(--surface-container-low)]  rounded-lg p-3">
                     <div className="text-sm text-[var(--text-secondary)] ">Sync Queue Health</div>
-                    <div className="text-lg font-medium text-white">
+                    <div className="text-lg font-medium text-[var(--text-primary)]">
                       {healthMetrics.syncQueueHealth.toFixed(1)}%
                     </div>
                   </div>
                   <div className="bg-[var(--surface-container-low)]  rounded-lg p-3 col-span-2 md:col-span-1">
                     <div className="text-sm text-[var(--text-secondary)] ">Data Integrity</div>
-                    <div className="text-lg font-medium text-white">
+                    <div className="text-lg font-medium text-[var(--text-primary)]">
                       {healthMetrics.dataIntegrityScore.toFixed(1)}%
                     </div>
                   </div>
@@ -399,7 +399,7 @@ export const BlockchainOperationsPanel: React.FC = () => {
                 )}
 
                 {healthMetrics.issues.length === 0 && (
-                  <div className="bg-green-500/10 rounded-lg p-4 text-center text-green-400 border border-green-500/30">
+                  <div className="bg-emerald-50 rounded-lg p-4 text-center text-emerald-700 border border-emerald-200">
                     No issues detected - system is healthy
                   </div>
                 )}

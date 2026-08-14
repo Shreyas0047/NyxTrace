@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Folder, Activity, Brain,
   Settings, Users, Fingerprint, History, Layers, Terminal,
   Heart, Link2, AlertTriangle, BarChart3, Home,
-  ChevronLeft, ChevronRight, Circle,
+  ChevronLeft, ChevronRight, Circle, Database,
 } from 'lucide-react';
 import { useState, memo } from 'react';
 import { cn } from '../../design-system';
@@ -63,15 +63,16 @@ const navSections: NavSection[] = [
       { icon: Link2, label: 'Blockchain Ops', path: '/blockchain-operations', roles: adminRoles },
     ],
   },
-  {
-    label: 'Administration',
-    items: [
-      { icon: Heart, label: 'System Health', path: '/health', roles: adminRoles },
-      { icon: Users, label: 'Users', path: '/users', roles: adminRoles },
-      { icon: Settings, label: 'Settings', path: '/settings', roles: adminRoles },
-      { icon: History, label: 'Audit Log', path: '/audit', roles: adminRoles },
-    ],
-  },
+{
+      label: 'Administration',
+      items: [
+        { icon: Heart, label: 'System Health', path: '/health', roles: adminRoles },
+        { icon: Users, label: 'Users', path: '/users', roles: adminRoles },
+        { icon: Settings, label: 'Settings', path: '/settings', roles: adminRoles },
+        { icon: History, label: 'Audit Log', path: '/audit', roles: adminRoles },
+        { icon: Database, label: 'Storage', path: '/storage', roles: adminRoles },
+      ],
+    },
 ];
 
 const NavItemRow = memo(({ item, isCollapsed }: { item: NavItem; isCollapsed: boolean }) => (

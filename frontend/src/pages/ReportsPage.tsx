@@ -930,6 +930,8 @@ export function ReportsPage() {
       <PageHeader
         title="Forensic Reports"
         subtitle="Detailed analytics and graphs of AI analysis across sandbox sessions, documents and URLs"
+        eyebrow="Reports · Case Dossier"
+        stamp="EXHIBIT A"
       />
 
       <PageGrid columns={4}>
@@ -938,6 +940,8 @@ export function ReportsPage() {
             label="Sandbox Sessions"
             value={sessionsPagination.total || sessions.length}
             icon={<Terminal className="w-5 h-5 text-violet-600 " />}
+            mono
+            stamp="STAGED"
           />
         </DashboardCard>
         <DashboardCard>
@@ -945,6 +949,8 @@ export function ReportsPage() {
             label="Document Analyses"
             value={analysisDocs.length}
             icon={<FileSearch className="w-5 h-5 text-violet-600  " />}
+            mono
+            stamp="PARSED"
           />
         </DashboardCard>
         <DashboardCard>
@@ -952,6 +958,8 @@ export function ReportsPage() {
             label="URL Analyses"
             value={analysisUrls.length}
             icon={<Globe className="w-5 h-5 text-blue-600  " />}
+            mono
+            stamp="SCANNED"
           />
         </DashboardCard>
         <DashboardCard>
@@ -959,6 +967,8 @@ export function ReportsPage() {
             label="Execution Reports"
             value={pagination.total || reports.length}
             icon={<FileText className="w-5 h-5 text-amber-600  " />}
+            mono
+            stamp="DOCKETED"
           />
         </DashboardCard>
       </PageGrid>

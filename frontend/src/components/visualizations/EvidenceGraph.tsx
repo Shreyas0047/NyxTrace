@@ -55,7 +55,7 @@ const nodeTypeIcons = {
 const nodeTypeColors = {
   process: { bg: 'bg-blue-500', text: 'text-blue-500', ring: 'ring-blue-500/30' },
   file: { bg: 'bg-violet-500', text: 'text-violet-500', ring: 'ring-violet-500/30' },
-  network: { bg: 'bg-cyan-500', text: 'text-cyan-500', ring: 'ring-cyan-500/30' },
+  network: { bg: 'bg-cyan-500', text: 'text-cyan-600', ring: 'ring-cyan-500/30' },
   registry: { bg: 'bg-amber-500', text: 'text-amber-500', ring: 'ring-amber-500/30' },
   artifact: { bg: 'bg-emerald-500', text: 'text-emerald-500', ring: 'ring-emerald-500/30' },
   threat: { bg: 'bg-red-500', text: 'text-red-500', ring: 'ring-red-500/30' },

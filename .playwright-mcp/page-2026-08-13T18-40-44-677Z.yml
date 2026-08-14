@@ -1,0 +1,248 @@
+- generic [ref=f2e7]:
+  - complementary [ref=f2e8]:
+    - generic [ref=f2e20]:
+      - heading "NyxTrace" [level=1] [ref=f2e21]
+      - paragraph [ref=f2e22]: Cyber Intelligence
+    - navigation [ref=f2e23]:
+      - generic [ref=f2e24]:
+        - generic [ref=f2e25]: Home
+        - link "Home" [ref=f2e27] [cursor=pointer]:
+          - /url: /home
+      - generic [ref=f2e33]:
+        - generic [ref=f2e34]: Workspace
+        - generic [ref=f2e35]:
+          - link "Dashboard" [ref=f2e36] [cursor=pointer]:
+            - /url: /dashboard
+          - link "Evidence" [ref=f2e44] [cursor=pointer]:
+            - /url: /evidence
+      - generic [ref=f2e49]:
+        - generic [ref=f2e50]: Operations
+        - generic [ref=f2e51]:
+          - link "Sandbox" [ref=f2e52] [cursor=pointer]:
+            - /url: /sandbox
+          - link "Telemetry" [ref=f2e57] [cursor=pointer]:
+            - /url: /telemetry
+          - link "AI Analysis" [ref=f2e62] [cursor=pointer]:
+            - /url: /ai-analysis
+          - link "Reports" [ref=f2e73] [cursor=pointer]:
+            - /url: /reports
+      - generic [ref=f2e81]:
+        - generic [ref=f2e82]: Intelligence
+        - generic [ref=f2e83]:
+          - link "Threat Intel" [ref=f2e84] [cursor=pointer]:
+            - /url: /threat-intelligence
+          - link "Forensic Analytics" [ref=f2e89] [cursor=pointer]:
+            - /url: /forensic-analytics
+          - link "Blockchain Ops" [ref=f2e94] [cursor=pointer]:
+            - /url: /blockchain-operations
+      - generic [ref=f2e100]:
+        - generic [ref=f2e101]: Administration
+        - generic [ref=f2e102]:
+          - link "System Health" [ref=f2e103] [cursor=pointer]:
+            - /url: /health
+          - link "Users" [ref=f2e108] [cursor=pointer]:
+            - /url: /users
+          - link "Settings" [ref=f2e116] [cursor=pointer]:
+            - /url: /settings
+          - link "Audit Log" [ref=f2e122] [cursor=pointer]:
+            - /url: /audit
+    - generic [ref=f2e130]:
+      - generic [ref=f2e131]:
+        - generic [ref=f2e132]: Operational
+        - paragraph [ref=f2e136]: v2.0 · Enterprise
+      - button "Collapse" [ref=f2e137]
+  - generic [ref=f2e141]:
+    - banner [ref=f2e142]:
+      - navigation [ref=f2e144]:
+        - generic [ref=f2e145]: Reports
+        - generic [ref=f2e151]: /
+        - generic [ref=f2e152]: Forensic Reports
+      - generic [ref=f2e153]:
+        - button [ref=f2e154]
+        - generic [ref=f2e158]: Live
+        - button [ref=f2e169]
+        - button [ref=f2e175]:
+          - paragraph [ref=f2e181]: User
+    - main [ref=f2e185]:
+      - generic [ref=f2e187]:
+        - generic [ref=f2e189]:
+          - heading "Forensic Reports" [level=1] [ref=f2e191]
+          - paragraph [ref=f2e192]: Detailed analytics and graphs of AI analysis across sandbox sessions, documents and URLs
+        - generic [ref=f2e193]:
+          - generic [ref=f2e197]:
+            - paragraph [ref=f2e198]: Sandbox Sessions
+            - paragraph [ref=f2e199]: "3"
+          - generic [ref=f2e206]:
+            - paragraph [ref=f2e207]: Document Analyses
+            - paragraph [ref=f2e208]: "3"
+          - generic [ref=f2e218]:
+            - paragraph [ref=f2e219]: URL Analyses
+            - paragraph [ref=f2e220]: "8"
+          - generic [ref=f2e228]:
+            - paragraph [ref=f2e229]: Execution Reports
+            - paragraph [ref=f2e230]: "32"
+        - generic [ref=f2e235]:
+          - button "Sandbox Sessions" [ref=f2e236]
+          - button "Documents" [ref=f2e239]
+          - button "URLs" [ref=f2e245]
+          - button "Execution Reports" [ref=f2e249]
+        - generic [ref=f2e253]:
+          - textbox "Search sessions..." [ref=f2e262]
+          - generic [ref=f2e263]:
+            - generic [ref=f2e265] [cursor=pointer]:
+              - generic [ref=f2e269]:
+                - generic [ref=f2e270]:
+                  - paragraph [ref=f2e271]: LockByte
+                  - generic [ref=f2e272]: AI · HIGH · 85%
+                  - generic [ref=f2e281]: COMPLETED
+                - generic [ref=f2e282]:
+                  - generic [ref=f2e283]: f64ec29c-6c85-4248-9e03-6bf2f4d7f12a
+                  - generic [ref=f2e284]: •
+                  - generic [ref=f2e285]: Aug 13, 2026, 11:08 PM
+                  - generic [ref=f2e286]: •
+                  - generic [ref=f2e287]: 112 events
+                  - generic [ref=f2e288]: •
+                  - generic [ref=f2e289]: 2 suspicious
+              - generic [ref=f2e290]:
+                - generic [ref=f2e291]: suspicious behavior
+                - button [ref=f2e294]
+            - generic [ref=f2e299] [cursor=pointer]:
+              - generic [ref=f2e303]:
+                - generic [ref=f2e304]:
+                  - paragraph [ref=f2e305]: LockByte
+                  - generic [ref=f2e306]: AI pending
+                  - generic [ref=f2e309]: COMPLETED
+                - generic [ref=f2e310]:
+                  - generic [ref=f2e311]: 321ef4f5-a762-4622-8b26-92eac944b1c9
+                  - generic [ref=f2e312]: •
+                  - generic [ref=f2e313]: Aug 13, 2026, 10:49 PM
+                  - generic [ref=f2e314]: •
+                  - generic [ref=f2e315]: 0 events
+              - button [ref=f2e317]
+            - generic [ref=f2e322] [cursor=pointer]:
+              - generic [ref=f2e326]:
+                - generic [ref=f2e327]:
+                  - paragraph [ref=f2e328]: HiveMind
+                  - generic [ref=f2e329]: AI · HIGH · 85%
+                  - generic [ref=f2e338]: COMPLETED
+                - generic [ref=f2e339]:
+                  - generic [ref=f2e340]: 8b07e3af-65e8-4a66-b9e0-942914e5b8ae
+                  - generic [ref=f2e341]: •
+                  - generic [ref=f2e342]: Aug 13, 2026, 04:30 PM
+                  - generic [ref=f2e343]: •
+                  - generic [ref=f2e344]: 0 events
+                  - generic [ref=f2e345]: •
+                  - generic [ref=f2e346]: 0 suspicious
+              - generic [ref=f2e347]:
+                - generic [ref=f2e348]: suspicious behavior
+                - button [ref=f2e351]
+        - generic [ref=f2e523]:
+          - generic [ref=f2e524]:
+            - heading "Sandbox Session Analytics" [level=2] [ref=f2e525]
+            - button "Close" [ref=f2e526]
+          - generic [ref=f2e531]:
+            - generic [ref=f2e532]:
+              - generic [ref=f2e536]:
+                - generic [ref=f2e537]:
+                  - paragraph [ref=f2e538]: LockByte
+                  - generic [ref=f2e539]: HIGH
+                  - generic [ref=f2e540]: COMPLETED
+                - paragraph [ref=f2e541]: f64ec29c-6c85-4248-9e03-6bf2f4d7f12a
+              - button [ref=f2e542]
+            - generic [ref=f2e547]:
+              - generic [ref=f2e549]:
+                - generic [ref=f2e555]:
+                  - generic [ref=f2e556]: "35"
+                  - generic [ref=f2e557]: / 100
+                - generic [ref=f2e558]:
+                  - generic [ref=f2e559]: Risk Score
+                  - generic [ref=f2e560]: High
+              - generic [ref=f2e561]:
+                - generic [ref=f2e562]:
+                  - paragraph [ref=f2e563]: Confidence
+                  - paragraph [ref=f2e564]: 85%
+                - generic [ref=f2e565]:
+                  - paragraph [ref=f2e566]: Total Events
+                  - paragraph [ref=f2e567]: "112"
+                - generic [ref=f2e568]:
+                  - paragraph [ref=f2e569]: Suspicious Events
+                  - paragraph [ref=f2e570]: "2"
+                - generic [ref=f2e571]:
+                  - paragraph [ref=f2e572]: Anomalies
+                  - paragraph [ref=f2e573]: "1"
+                - generic [ref=f2e574]:
+                  - paragraph [ref=f2e575]: Duration
+                  - paragraph [ref=f2e576]: 31s
+                - generic [ref=f2e577]:
+                  - paragraph [ref=f2e578]: Analyzed At
+                  - paragraph [ref=f2e579]: Aug 13, 2026, 11:09 PM
+            - generic [ref=f2e580]:
+              - paragraph [ref=f2e581]: Threat Classification
+              - generic [ref=f2e582]:
+                - generic [ref=f2e584]:
+                  - generic [ref=f2e585]: suspicious behavior
+                  - generic [ref=f2e586]: 90%
+                - generic [ref=f2e590]:
+                  - generic [ref=f2e591]: ransomware like
+                  - generic [ref=f2e592]: 85%
+                - generic [ref=f2e596]:
+                  - generic [ref=f2e597]: persistence
+                  - generic [ref=f2e598]: 70%
+                - generic [ref=f2e602]:
+                  - generic [ref=f2e603]: credential access
+                  - generic [ref=f2e604]: 30%
+                - generic [ref=f2e608]:
+                  - generic [ref=f2e609]: data exfiltration
+                  - generic [ref=f2e610]: 0%
+                - generic [ref=f2e614]:
+                  - generic [ref=f2e615]: spyware like
+                  - generic [ref=f2e616]: 0%
+            - generic [ref=f2e619]:
+              - paragraph [ref=f2e620]: Behavioral Summary
+              - paragraph [ref=f2e621]: The malware exhibited suspicious behavior, including UAC bypass and registry modifications.
+            - generic [ref=f2e622]:
+              - paragraph [ref=f2e623]: Recommendations
+              - list [ref=f2e624]:
+                - listitem [ref=f2e625]: Monitor system logs for further activity
+                - listitem [ref=f2e626]: Run a full system scan with antivirus software
+            - generic [ref=f2e627]:
+              - paragraph [ref=f2e628]: Detected Anomalies
+              - list [ref=f2e629]:
+                - listitem [ref=f2e630]: "{\"type\":\"process_spawn_burst\",\"description\":\"High volume of process spawns detected: 48 processes\",\"severity\":\"medium\",\"deviation_score\":4.8,\"_id\":\"6a7e015b7162306be956cbf3\"}"
+            - generic [ref=f2e631]:
+              - generic [ref=f2e632]:
+                - paragraph [ref=f2e633]: Event Categories
+                - generic [ref=f2e634]:
+                  - generic [ref=f2e636]:
+                    - generic [ref=f2e637]: process
+                    - generic [ref=f2e638]: 50 · 45%
+                  - generic [ref=f2e642]:
+                    - generic [ref=f2e643]: file
+                    - generic [ref=f2e644]: 48 · 43%
+                  - generic [ref=f2e648]:
+                    - generic [ref=f2e649]: registry
+                    - generic [ref=f2e650]: 13 · 12%
+                  - generic [ref=f2e654]:
+                    - generic [ref=f2e655]: wmi
+                    - generic [ref=f2e656]: 1 · 1%
+              - generic [ref=f2e659]:
+                - generic [ref=f2e660]:
+                  - paragraph [ref=f2e661]: Event Activity Over Time
+                  - generic [ref=f2e662]:
+                    - generic [ref=f2e663]: process
+                    - generic [ref=f2e665]: file
+                    - generic [ref=f2e667]: registry
+                    - generic [ref=f2e669]: wmi
+                - generic [ref=f2e674]:
+                  - generic [ref=f2e675]: 11:28 PM
+                  - generic [ref=f2e676]: 08:10 PM
+            - generic [ref=f2e677]:
+              - generic [ref=f2e678]:
+                - paragraph [ref=f2e679]: Start
+                - paragraph [ref=f2e680]: Aug 13, 2026, 11:08 PM
+              - generic [ref=f2e681]:
+                - paragraph [ref=f2e682]: End
+                - paragraph [ref=f2e683]: Aug 13, 2026, 11:09 PM
+              - generic [ref=f2e684]:
+                - paragraph [ref=f2e685]: Events Collected
+                - paragraph [ref=f2e686]: "112"

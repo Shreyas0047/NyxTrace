@@ -27,6 +27,7 @@ import analysisRoutes from './analysis.routes';
 import knowledgeRoutes from './knowledge.routes';
 import rolesRoutes from './roles.routes';
 import configRoutes from './config.routes';
+import storageRoutes from './storage.routes';
 
 const router = Router();
 
@@ -56,6 +57,7 @@ router.use(`${API_PREFIX}/analysis`, analysisRoutes);
 router.use(`${API_PREFIX}/knowledge-base`, knowledgeRoutes);
 router.use(`${API_PREFIX}/roles`, rolesRoutes);
 router.use(`${API_PREFIX}/config`, configRoutes);
+router.use(`${API_PREFIX}/storage`, storageRoutes);
 
 // Health check endpoint
 router.get('/health', (req, res) => {

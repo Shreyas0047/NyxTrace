@@ -14,14 +14,9 @@
   --color-slate-950: #0a0a08;
 }
 
-@font-face {
-  font-family: 'Space Grotesk';
-  src: url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
-}
-
 :root {
   --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
-  --font-body: 'DM Sans', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, 'Cascadia Code', monospace;
 
   --surface-base: #faf8f2;
@@ -86,8 +81,12 @@
   --duration-normal: 240ms;
   --duration-slow: 360ms;
 
-  --dot-grid: radial-gradient(rgba(30, 27, 20, 0.055) 1px, transparent 1px);
+  --dot-grid: radial-gradient(rgba(30, 27, 20, 0.05) 1px, transparent 1px);
   --dot-grid-size: 36px;
+
+  --text-display-1: clamp(2.1rem, 4vw, 2.9rem);
+  --text-display-2: clamp(1.6rem, 2.8vw, 2.1rem);
+  --text-display-3: clamp(1.25rem, 2vw, 1.55rem);
 }
 
 html, body, #root {
@@ -116,7 +115,18 @@ body::before {
   z-index: 0;
   background-image: var(--dot-grid);
   background-size: var(--dot-grid-size) var(--dot-grid-size);
-  opacity: 0.5;
+  opacity: 0.3;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(1200px 480px at 12% -8%, rgba(217, 119, 6, 0.05), transparent 62%),
+    radial-gradient(900px 420px at 92% -12%, rgba(217, 119, 6, 0.04), transparent 60%);
 }
 
 body > :not(script):not(style):not(template) {
@@ -241,4 +251,85 @@ input:focus, select:focus, textarea:focus {
 
 .animate-fade-in {
   animation: fade-in 0.4s var(--ease-out) both;
+}
+
+.text-display-1 {
+  font-family: var(--font-display);
+  font-size: var(--text-display-1);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  font-weight: 600;
+}
+
+.text-display-2 {
+  font-family: var(--font-display);
+  font-size: var(--text-display-2);
+  line-height: 1.08;
+  letter-spacing: -0.028em;
+  font-weight: 600;
+}
+
+.text-display-3 {
+  font-family: var(--font-display);
+  font-size: var(--text-display-3);
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-amber);
+  border: 1px solid rgba(217, 119, 6, 0.35);
+  background: rgba(217, 119, 6, 0.07);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.hairline {
+  height: 1px;
+  border: 0;
+  background: linear-gradient(90deg, transparent, rgba(217, 119, 6, 0.4), transparent);
+  opacity: 0.6;
+}
+
+.grain {
+  position: relative;
+}
+
+.grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.22'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

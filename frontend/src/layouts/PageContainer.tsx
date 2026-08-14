@@ -7,9 +7,11 @@ interface PageHeaderProps {
   subtitle?: string;
   actions?: React.ReactNode;
   badge?: React.ReactNode;
+  eyebrow?: string;
+  stamp?: string;
 }
 
-export function PageHeader({ title, subtitle, actions, badge }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, actions, badge, eyebrow, stamp }: PageHeaderProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: -10 }}
@@ -18,17 +20,24 @@ export function PageHeader({ title, subtitle, actions, badge }: PageHeaderProps)
       className="flex items-start justify-between gap-4 mb-6"
     >
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-3">
-          <h1 className="font-display text-2xl font-semibold text-[var(--text-primary)] truncate tracking-tight">
+        {eyebrow && (
+          <p className="eyebrow mb-1.5">{eyebrow}</p>
+        )}
+        <div className="flex items-center gap-3 flex-wrap">
+          <h1 className="text-display-2 text-[var(--text-primary)] truncate">
             {title}
           </h1>
           {badge}
+          {stamp && (
+            <span className="stamp">{stamp}</span>
+          )}
         </div>
         {subtitle && (
-          <p className="mt-1 text-sm font-body text-[var(--text-secondary)]">
+          <p className="mt-1.5 text-sm font-body text-[var(--text-secondary)]">
             {subtitle}
           </p>
         )}
+        <div className="hairline mt-4" aria-hidden />
       </div>
       {actions && (
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -118,15 +127,19 @@ interface EmptyStateProps {
   description?: string;
   action?: React.ReactNode;
   className?: string;
+  stamp?: string;
 }
 
-export function EmptyState({ icon, title, description, action, className }: EmptyStateProps) {
+export function EmptyState({ icon, title, description, action, className, stamp }: EmptyStateProps) {
   return (
     <div className={cn('flex flex-col items-center justify-center py-12 px-6 text-center', className)}>
       {icon && (
         <div className="w-16 h-16 rounded-[20px] bg-[var(--surface-container)] flex items-center justify-center mb-4 border border-[var(--border-subtle)]">
           {icon}
         </div>
+      )}
+      {stamp && (
+        <p className="eyebrow mb-2">{stamp}</p>
       )}
       <h3 className="font-display text-lg font-semibold text-[var(--text-primary)] tracking-tight">
         {title}

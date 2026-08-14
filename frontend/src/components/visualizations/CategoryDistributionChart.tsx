@@ -35,11 +35,11 @@ export function CategoryDistributionChart({
 
   return (
     <div className="p-4 bg-[var(--surface-container-lowest)] rounded-lg">
-      <p className="text-xs font-semibold text-[var(--text-secondary)] uppercase mb-3">{title}</p>
+      <p className="eyebrow mb-3">{title}</p>
       {sorted.length === 0 ? (
         <p className="text-sm text-[var(--text-secondary)] py-2">No event data available</p>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {sorted.map((d) => {
             const pct = total > 0 ? Math.round((d.count / total) * 100) : 0;
             return (
@@ -48,13 +48,14 @@ export function CategoryDistributionChart({
                   <span className="text-[var(--text-secondary)] font-medium capitalize">{d.category}</span>
                   <span className="text-[var(--text-primary)] font-mono">{d.count} · {pct}%</span>
                 </div>
-                <div className="h-2 rounded-full bg-[var(--surface-container)] overflow-hidden">
+                <div className="h-2.5 rounded-full bg-[var(--surface-container)] overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${Math.max(2, (d.count / max) * 100)}%` }}
                     transition={{ duration: 0.6, ease: 'easeOut' }}
                     className="h-full rounded-full"
                     style={{ backgroundColor: d.color || DEFAULT_COLORS[d.category] || '#f59e0b' }}
+                    title={`${d.category}: ${d.count} events (${pct}%)`}
                   />
                 </div>
               </div>

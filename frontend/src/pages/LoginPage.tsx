@@ -43,6 +43,7 @@ export function LoginPage() {
               className="space-y-6 text-center"
             >
               <div className="space-y-1">
+                <p className="eyebrow">NyxTrace · Forensic Console</p>
                 <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-[var(--text-primary)] ">Welcome Back</h1>
                 <p className="text-[1.8rem] text-[var(--text-secondary)]  font-light">Sign in to your account</p>
               </div>
@@ -118,6 +119,7 @@ export function LoginPage() {
               className="space-y-6 text-center"
             >
               <div className="space-y-1">
+                <p className="eyebrow">NyxTrace · Forensic Console</p>
                 <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight text-[var(--text-primary)] ">You're in!</h1>
                 <p className="text-[1.25rem] text-[var(--text-secondary)]  font-light">Welcome back</p>
               </div>

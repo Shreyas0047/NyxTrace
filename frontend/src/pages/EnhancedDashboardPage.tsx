@@ -285,15 +285,18 @@ export function EnhancedDashboardPage() {
         {/* ─── Header ─── */}
         <motion.div variants={fadeUp} className="flex items-end justify-between gap-4 flex-wrap pt-2">
           <div>
-            <p className="text-[12px] font-medium mb-1.5" style={{ color: 'var(--text-tertiary)' }}>
+            <p className="eyebrow mb-1.5">
               Operations · {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
             </p>
-            <h1
-              className="font-display text-[32px] font-semibold tracking-[-0.02em] leading-none"
-              style={{ color: 'var(--text-primary)' }}
-            >
-              Intelligence Dashboard
-            </h1>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1
+                className="font-display text-[32px] font-semibold tracking-[-0.02em] leading-none"
+                style={{ color: 'var(--text-primary)' }}
+              >
+                Intelligence Dashboard
+              </h1>
+              <span className="stamp">REALTIME</span>
+            </div>
             <p className="text-[13px] mt-2" style={{ color: 'var(--text-secondary)' }}>
               Real-time posture across sandbox sessions, AI analysis, evidence and blockchain integrity
             </p>

@@ -5,6 +5,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import { ShieldAlert, Network, Fingerprint } from 'lucide-react';
 import api from '../services/api';
 
 // --- Types ---
@@ -46,6 +47,26 @@ interface IOC {
   threatScore: number;
   createdAt: string;
   linkedInvestigations?: string[];
+  source?: string;
+}
+
+interface AnalysisIndicator {
+  type: string;
+  value: string;
+}
+
+interface AnalysisHistoryItem {
+  analysisId: string;
+  analysisType: string;
+  sourceType: string;
+  sourceName: string;
+  threatScore: number;
+  threatLevel: string;
+  confidence: number;
+  predictedThreat: string;
+  indicators?: AnalysisIndicator[];
+  iocCount?: number;
+  analysisTimestamp?: string;
 }
 
 // --- Force-Directed Graph Canvas ---
@@ -121,7 +142,7 @@ function ThreatMapCanvas({ nodes, edges }: { nodes: GraphNode[]; edges: GraphEdg
       ctx.beginPath();
       ctx.moveTo(s.x, s.y);
       ctx.lineTo(t.x, t.y);
-      ctx.strokeStyle = `rgba(34,211,238,${0.15 + edge.weight * 0.3})`;
+      ctx.strokeStyle = `rgba(146,120,64,${0.12 + edge.weight * 0.25})`;
       ctx.stroke();
     }
 
@@ -134,8 +155,8 @@ function ThreatMapCanvas({ nodes, edges }: { nodes: GraphNode[]; edges: GraphEdg
 
       // Glow
       const gradient = ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, r * 2);
-      const color = node.severity >= 70 ? '239,68,68' : node.severity >= 40 ? '245,158,11' : '34,211,238';
-      gradient.addColorStop(0, `rgba(${color},0.8)`);
+      const color = node.severity >= 70 ? '225,29,72' : node.severity >= 40 ? '217,119,6' : '2,132,199';
+      gradient.addColorStop(0, `rgba(${color},0.45)`);
       gradient.addColorStop(1, `rgba(${color},0)`);
       ctx.beginPath();
       ctx.arc(node.x, node.y, r * 2, 0, Math.PI * 2);
@@ -149,7 +170,7 @@ function ThreatMapCanvas({ nodes, edges }: { nodes: GraphNode[]; edges: GraphEdg
       ctx.fill();
 
       // Label
-      ctx.fillStyle = '#e2e8f0';
+      ctx.fillStyle = '#44403c';
       ctx.font = '10px JetBrains Mono, monospace';
       ctx.textAlign = 'center';
       ctx.fillText(node.label.slice(0, 16), node.x, node.y + r + 12);
@@ -180,6 +201,8 @@ function ThreatMapCanvas({ nodes, edges }: { nodes: GraphNode[]; edges: GraphEdg
 }
 
 // --- Main Page ---
+const DOT_GRID_URL = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoNDEsMzcsMzYsMC4wOCkiLz48L3N2Zz4=";
+
 export const ThreatIntelligencePage: React.FC = () => {
   const [iocs, setIocs] = useState<IOC[]>([]);
   const [graphNodes, setGraphNodes] = useState<GraphNode[]>([]);
@@ -188,20 +211,31 @@ export const ThreatIntelligencePage: React.FC = () => {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [iocsRes, graphRes] = await Promise.all([
+      const [iocsRes, graphRes, historyRes] = await Promise.all([
         api.get<{ iocs: IOC[] }>('/threat/iocs?limit=50'),
         api.get<{ nodes: GraphNodeData[]; edges: GraphEdgeData[] }>('/threat/graph'),
+        api.get<AnalysisHistoryItem[] | { items?: AnalysisHistoryItem[]; data?: AnalysisHistoryItem[] }>('/analysis/history?limit=100'),
       ]);
       const fetchedIocs = iocsRes.success && iocsRes.data?.iocs ? iocsRes.data.iocs : [];
-      setIocs(fetchedIocs);
+      const historyPayload = historyRes.success ? historyRes.data : null;
+      const historyItems: AnalysisHistoryItem[] = Array.isArray(historyPayload)
+        ? (historyPayload as AnalysisHistoryItem[])
+        : (historyPayload?.items || historyPayload?.data || []);
+
+      const derived = deriveFromAnalyses(historyItems);
+      const mergedIocs = mergeIocs(fetchedIocs, derived.iocs);
+      setIocs(mergedIocs);
       buildGraph(
-        fetchedIocs,
-        graphRes.success && graphRes.data ? graphRes.data : { nodes: [], edges: [] }
+        mergedIocs,
+        graphRes.success && graphRes.data ? graphRes.data : { nodes: [], edges: [] },
+        derived.nodes,
+        derived.edges
       );
     } catch { /* empty state */ }
     setLoading(false);
@@ -212,6 +246,90 @@ export const ThreatIntelligencePage: React.FC = () => {
     high: 70,
     medium: 45,
     low: 20,
+    info: 10,
+  };
+
+  const severityFromLevel = (level: string): string => {
+    const l = (level || '').toLowerCase();
+    if (l === 'critical' || l === 'malicious') return 'critical';
+    if (l === 'high') return 'high';
+    if (l === 'medium' || l === 'suspicious') return 'medium';
+    if (l === 'low') return 'low';
+    return 'info';
+  };
+
+  const scoreFromLevel = (level: string): number => severityToScore[severityFromLevel(level)] ?? 10;
+
+  // Derive IOCs + graph nodes from document/URL analysis history.
+  const deriveFromAnalyses = (items: AnalysisHistoryItem[]) => {
+    const iocs: IOC[] = [];
+    const nodes: GraphNode[] = [];
+    const edges: GraphEdge[] = [];
+    const seenIocs = new Set<string>();
+    const seenSources = new Set<string>();
+    const center = { x: 400, y: 250 };
+
+    items.forEach((item, i) => {
+      const level = severityFromLevel(item.threatLevel);
+      const sourceScore = item.threatScore && item.threatScore > 0 ? item.threatScore : scoreFromLevel(item.threatLevel);
+      const sourceId = `src-${item.analysisId}`;
+      const sourceName = item.sourceName || item.sourceType || item.analysisId.slice(0, 8);
+      if (!seenSources.has(sourceId)) {
+        seenSources.add(sourceId);
+        nodes.push({
+          id: sourceId,
+          label: sourceName,
+          type: 'source',
+          severity: sourceScore,
+          x: center.x + Math.cos((i / Math.max(items.length, 1)) * Math.PI * 2) * 90,
+          y: center.y + Math.sin((i / Math.max(items.length, 1)) * Math.PI * 2) * 90,
+          vx: 0,
+          vy: 0,
+        });
+      }
+
+      (item.indicators || []).forEach((ind) => {
+        const key = `${ind.type}:${ind.value}`;
+        if (!seenIocs.has(key)) {
+          seenIocs.add(key);
+          const score = sourceScore;
+          const ioc: IOC = {
+            iocId: `derived-${key}`,
+            type: ind.type,
+            value: ind.value,
+            severity: level,
+            threatScore: score,
+            createdAt: item.analysisTimestamp || new Date().toISOString(),
+            source: item.sourceType || 'analysis',
+          };
+          iocs.push(ioc);
+          nodes.push({
+            id: key,
+            label: ind.value,
+            type: ind.type,
+            severity: score,
+            x: center.x + Math.cos(seenIocs.size * 2.4) * 150,
+            y: center.y + Math.sin(seenIocs.size * 2.4) * 120,
+            vx: 0,
+            vy: 0,
+          });
+        }
+        if (!edges.find(e => (e.source === sourceId && e.target === key) || (e.source === key && e.target === sourceId))) {
+          edges.push({ source: sourceId, target: key, weight: 0.5 });
+        }
+      });
+    });
+
+    return { iocs, nodes, edges };
+  };
+
+  const mergeIocs = (serverIocs: IOC[], derivedIocs: IOC[]) => {
+    const seen = new Set(serverIocs.map(i => `${i.type}:${i.value}`));
+    const merged = [...serverIocs];
+    for (const ioc of derivedIocs) {
+      if (!seen.has(`${ioc.type}:${ioc.value}`)) merged.push(ioc);
+    }
+    return merged;
   };
 
   const addEdge = (edges: GraphEdge[], source: string, target: string) => {
@@ -221,7 +339,12 @@ export const ThreatIntelligencePage: React.FC = () => {
     edges.push({ source, target, weight: 0.5 });
   };
 
-  const buildGraph = (data: IOC[], graph: { nodes: GraphNodeData[]; edges: GraphEdgeData[] }) => {
+  const buildGraph = (
+    data: IOC[],
+    graph: { nodes: GraphNodeData[]; edges: GraphEdgeData[] },
+    derivedNodes: GraphNode[] = [],
+    derivedEdges: GraphEdge[] = []
+  ) => {
     const nodes: GraphNode[] = [];
     const edges: GraphEdge[] = [];
     const center = { x: 400, y: 250 };
@@ -260,37 +383,88 @@ export const ThreatIntelligencePage: React.FC = () => {
       }
     });
 
+    // Derived nodes/edges from analysis history
+    const known = new Set(nodes.map(n => n.id));
+    for (const n of derivedNodes) {
+      if (!known.has(n.id)) {
+        known.add(n.id);
+        nodes.push(n);
+      }
+    }
+    for (const e of derivedEdges) {
+      if (known.has(e.source) && known.has(e.target)) addEdge(edges, e.source, e.target);
+    }
+
     setGraphNodes(nodes);
     setGraphEdges(edges);
   };
 
   const getSeverityColor = (severity: string) => {
     const map: Record<string, string> = {
-      critical: 'text-red-600  bg-red-500/10 border-red-500/30',
-      high: 'text-orange-600  bg-orange-500/10 border-orange-500/30',
-      medium: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30',
-      low: 'text-green-400 bg-green-500/10 border-green-500/30',
+      critical: 'text-red-700 bg-red-50 border-red-200',
+      high: 'text-orange-700 bg-orange-50 border-orange-200',
+      medium: 'text-amber-700 bg-amber-50 border-amber-200',
+      low: 'text-emerald-700 bg-emerald-50 border-emerald-200',
+      info: 'text-sky-700 bg-sky-50 border-sky-200',
     };
     return map[severity] || 'text-[var(--text-secondary)] bg-[var(--surface-container)] border-[var(--border-default)] ';
   };
+
+  const getScoreBarColor = (score: number) => {
+    if (score >= 70) return 'bg-red-500';
+    if (score >= 40) return 'bg-amber-500';
+    return 'bg-sky-500';
+  };
+
+  const criticalCount = iocs.filter(i => i.severity === 'critical').length;
+  const highCount = iocs.filter(i => i.severity === 'high').length;
+  const mediumCount = iocs.filter(i => i.severity === 'medium').length;
 
   return (
     <div className="min-h-full">
       <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-          <h1 className="text-3xl font-bold text-[var(--text-primary)]  font-mono tracking-tight">
-            Threat Intelligence
-          </h1>
-          <p className="mt-1 text-sm text-[var(--text-secondary)] ">
+          <div className="flex items-center gap-2 mb-1.5">
+            <p className="eyebrow">Intelligence · IOC Correlation</p>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-3xl font-bold text-[var(--text-primary)]  font-display tracking-tight">
+              Threat Intelligence
+            </h1>
+            <span className="stamp">LINK-ANALYSIS</span>
+          </div>
+          <p className="mt-1.5 text-sm text-[var(--text-secondary)] ">
             Link-analysis graph · IOC correlation · Real-time threat mapping
           </p>
         </motion.div>
 
+        {/* Posture chips */}
+        {iocs.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="flex flex-wrap items-center gap-2 mb-5"
+          >
+            {[
+              { label: `${iocs.length} indicators`, cls: 'text-[var(--text-secondary)] bg-[var(--surface-container-low)] border-[var(--border-subtle)]' },
+              { label: `${criticalCount} critical`, cls: 'text-red-700 bg-red-50 border-red-200' },
+              { label: `${highCount} high`, cls: 'text-orange-700 bg-orange-50 border-orange-200' },
+              { label: `${mediumCount} medium`, cls: 'text-amber-700 bg-amber-50 border-amber-200' },
+              { label: `${graphNodes.length} nodes · ${graphEdges.length} links`, cls: 'text-[var(--text-secondary)] bg-[var(--surface-container-low)] border-[var(--border-subtle)]' },
+            ].map((chip) => (
+              <span key={chip.label} className={`px-2.5 py-1 text-xs font-mono rounded-full border ${chip.cls}`}>
+                {chip.label}
+              </span>
+            ))}
+          </motion.div>
+        )}
+
         {/* Force-Directed Graph */}
         <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }} className="mb-6">
-          <div className="relative rounded-xl border border-[var(--border-subtle)] overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800/50 to-slate-900 p-1">
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjAuNSIgZmlsbD0icmdiYSgxNDgsMTYzLDE4NCwwLjA1KSIvPjwvc3ZnPg==')] opacity-50" />
+          <div className="relative rounded-xl border border-[var(--border-subtle)] overflow-hidden bg-gradient-to-br from-[var(--surface-container-lowest)] via-white to-[var(--surface-container-low)] p-1">
+            <div className="absolute inset-0" style={{ backgroundImage: `url('${DOT_GRID_URL}')` }} />
             {loading ? (
               <div className="flex items-center justify-center h-[500px]">
                 <div className="w-12 h-12 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
@@ -298,9 +472,14 @@ export const ThreatIntelligencePage: React.FC = () => {
             ) : graphNodes.length > 0 ? (
               <ThreatMapCanvas nodes={graphNodes} edges={graphEdges} />
             ) : (
-              <div className="flex flex-col items-center justify-center h-[500px] text-[var(--text-secondary)] ">
-                <p className="text-lg font-mono">No threat data available</p>
-                <p className="text-sm mt-1">IOCs will appear here after sandbox analysis</p>
+              <div className="relative flex flex-col items-center justify-center h-[500px] text-[var(--text-secondary)] ">
+                <div className="w-14 h-14 rounded-2xl bg-[var(--surface-container)] border border-[var(--border-subtle)] flex items-center justify-center mb-4">
+                  <Network className="w-6 h-6 text-[var(--text-tertiary)]" />
+                </div>
+                <p className="text-lg font-mono text-[var(--text-primary)]">No threat data available</p>
+                <p className="text-sm mt-1 max-w-sm text-center">
+                  Indicators will appear here after sandbox analysis or document/URL analysis
+                </p>
               </div>
             )}
           </div>
@@ -309,8 +488,16 @@ export const ThreatIntelligencePage: React.FC = () => {
         {/* IOC Table */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <div className="rounded-xl border border-[var(--border-subtle)]  bg-white  backdrop-blur overflow-hidden">
-            <div className="p-4 border-b border-[var(--border-subtle)] ">
-              <h2 className="text-lg font-semibold text-[var(--text-primary)]  font-mono">Active IOCs</h2>
+            <div className="p-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-[var(--text-primary)]  font-mono">Active IOCs</h2>
+                <p className="text-xs text-[var(--text-tertiary)] mt-0.5">
+                  Extracted from sandbox sessions, documents and URL analyses
+                </p>
+              </div>
+              <span className="px-2.5 py-1 text-xs font-mono rounded-full border border-[var(--border-subtle)] bg-[var(--surface-container-low)] text-[var(--text-secondary)]">
+                {iocs.length} tracked
+              </span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -331,15 +518,20 @@ export const ThreatIntelligencePage: React.FC = () => {
                       transition={{ delay: i * 0.03 }}
                       className="hover:bg-[var(--surface-container-low)] "
                     >
-                      <td className="px-4 py-3 font-mono text-sm text-[var(--text-secondary)] ">{ioc.value}</td>
-                      <td className="px-4 py-3 text-sm text-[var(--text-secondary)]  capitalize">{ioc.type.replace(/_/g, ' ')}</td>
+                      <td className="px-4 py-3 font-mono text-sm text-[var(--text-secondary)] break-all">{ioc.value}</td>
+                      <td className="px-4 py-3 text-sm text-[var(--text-secondary)]  capitalize">
+                        <span className="inline-flex items-center gap-1.5">
+                          <Fingerprint className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
+                          {ioc.type.replace(/_/g, ' ')}
+                        </span>
+                      </td>
                       <td className="px-4 py-3">
                         <span className={`px-2 py-0.5 text-xs font-mono rounded border ${getSeverityColor(ioc.severity)}`}>{ioc.severity}</span>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <div className="w-16 h-1.5 bg-[var(--surface-container-low)]  rounded-full overflow-hidden">
-                            <div className={`h-full rounded-full ${ioc.threatScore >= 70 ? 'bg-red-500' : ioc.threatScore >= 40 ? 'bg-yellow-500' : 'bg-cyan-500'}`} style={{ width: `${ioc.threatScore}%` }} />
+                            <div className={`h-full rounded-full ${getScoreBarColor(ioc.threatScore)}`} style={{ width: `${Math.max(4, Math.min(100, ioc.threatScore))}%` }} />
                           </div>
                           <span className="text-xs font-mono text-[var(--text-secondary)] ">{ioc.threatScore}</span>
                         </div>
@@ -348,6 +540,15 @@ export const ThreatIntelligencePage: React.FC = () => {
                   ))}
                 </tbody>
               </table>
+              {iocs.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-14 text-center">
+                  <ShieldAlert className="w-8 h-8 text-[var(--text-tertiary)] mb-3" />
+                  <p className="text-sm font-mono text-[var(--text-secondary)]">No indicators tracked yet</p>
+                  <p className="text-xs text-[var(--text-tertiary)] mt-1 max-w-xs">
+                    Run a sandbox session or analyze a document/URL to extract indicators of compromise
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </motion.div>
@@ -357,4 +558,3 @@ export const ThreatIntelligencePage: React.FC = () => {
 };
 
 export default ThreatIntelligencePage;
-

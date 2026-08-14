@@ -55,7 +55,7 @@ export function DashboardCard({
       whileHover={hover ? { y: -2 } : undefined}
       onClick={onClick}
       className={cn(
-        'bg-white  rounded-xl border border-[var(--border-subtle)] ',
+        'bg-[var(--surface-bright)] rounded-xl border border-[var(--border-subtle)] ',
         'shadow-sm',
         hover && 'cursor-pointer transition-shadow hover:shadow-md',
         spanClass,
@@ -119,9 +119,11 @@ interface DashboardStatProps {
   icon?: React.ReactNode;
   className?: string;
   delta?: string;
+  stamp?: string;
+  mono?: boolean;
 }
 
-export function DashboardStat({ label, value, change, icon, delta, className }: DashboardStatProps) {
+export function DashboardStat({ label, value, change, icon, delta, className, stamp, mono }: DashboardStatProps) {
   const getChangeColor = () => {
     if (!change) return '';
     switch (change.type) {
@@ -140,11 +142,19 @@ export function DashboardStat({ label, value, change, icon, delta, className }: 
 
   return (
     <div className={cn('flex items-center justify-between', className)}>
-      <div>
+      <div className="min-w-0">
         <p className="text-sm text-[var(--text-secondary)] ">{label}</p>
-        <p className="mt-1 text-2xl font-semibold text-[var(--text-primary)] ">
-          {value}
-        </p>
+        <div className="flex items-center gap-2 mt-1 flex-wrap">
+          <p className={cn(
+            'text-2xl font-semibold text-[var(--text-primary)]',
+            mono && 'font-mono text-[22px] tracking-tight'
+          )}>
+            {value}
+          </p>
+          {stamp && (
+            <span className="stamp">{stamp}</span>
+          )}
+        </div>
         {change && (
           <p className={cn('mt-1 text-xs flex items-center gap-1', getChangeColor())}>
             <span>{getChangeIcon()}</span>

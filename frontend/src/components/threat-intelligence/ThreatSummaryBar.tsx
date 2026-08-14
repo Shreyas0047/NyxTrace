@@ -46,7 +46,7 @@ const statConfigs: Record<keyof ThreatSummary, StatConfig> = {
   totalAnalyses: {
     label: 'Total Analyses',
     icon: FileSearch,
-    colorClass: 'text-cyan-500',
+    colorClass: 'text-cyan-600',
     iconBgClass: 'bg-cyan-500/10',
   },
   totalIOCs: {

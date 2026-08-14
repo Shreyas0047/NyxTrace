@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Fragment } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Database, Archive, HardDrive, Trash2, AlertTriangle,
-  CheckCircle, XCircle, RefreshCw, ChevronDown, ChevronUp,
-  FileText, FileCode, FileLock, Server, Loader2,
+  RefreshCw, ChevronDown, ChevronUp,
+  FileText, FileCode, FileLock, Server, Loader2, Fingerprint,
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { StatusBadge } from '../components/ui/Badge';
@@ -15,6 +15,7 @@ import { DashboardCard, DashboardStat } from '../components/enterprise/Dashboard
 import { EmptyState } from '../layouts/PageContainer';
 import { cn } from '../design-system';
 import api from '../services/api';
+import { useStatusStore } from '../stores/statusStore';
 import { formatDateTime, formatFileSize } from '../utils/helpers';
 
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06 } } };
@@ -76,6 +77,8 @@ interface DeleteResult {
     filesDeleted: string[];
     dbRecordsDeleted: number;
     sizeFreed: number;
+    failedFiles?: string[];
+    fileHashes?: Record<string, string>;
   };
 }
 
@@ -99,6 +102,10 @@ export function StorageManagerPage() {
   const [overview, setOverview] = useState<StorageOverview | null>(null);
   const [sessions, setSessions] = useState<SessionFootprintInfo[]>([]);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+  const [categoryFiles, setCategoryFiles] = useState<Record<string, FileInfo[]>>({});
+  const [categoryFilesLoading, setCategoryFilesLoading] = useState<Record<string, boolean>>({});
+  const [fileFilters, setFileFilters] = useState<Record<string, string>>({});
+  const [fileHashes, setFileHashes] = useState<Record<string, { sha256: string; md5: string } | 'loading' | null>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
@@ -113,39 +120,76 @@ export function StorageManagerPage() {
   }>({ isOpen: false, title: '', message: '', danger: false, onConfirm: async () => {} });
   const [purgeConfirm, setPurgeConfirm] = useState<string>('');
 
+  const showStatus = useStatusStore((s) => s.show);
+
   const fetchOverview = useCallback(async () => {
     setIsLoading(true);
     try {
       const resp = await api.get<StorageOverview>('/storage/overview');
       if (resp.success) {
-        setOverview(resp.data);
+        setOverview(resp.data ?? null);
         setLastRefresh(new Date());
       }
     } catch (error) {
       console.error('Failed to fetch storage overview:', error);
+      showStatus('error', 'Failed to load storage overview', 'Check that the backend is running.');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [showStatus]);
 
   const fetchSessions = useCallback(async () => {
     try {
       const resp = await api.get<SessionFootprintInfo[]>('/storage/sessions');
       if (resp.success) {
-        setSessions(resp.data);
+        setSessions(resp.data ?? []);
       }
     } catch (error) {
       console.error('Failed to fetch sessions:', error);
+      showStatus('error', 'Failed to load session footprints', 'Check that the backend is running.');
     }
-  }, []);
+  }, [showStatus]);
 
   useEffect(() => {
     fetchOverview();
     fetchSessions();
   }, [fetchOverview, fetchSessions]);
 
+  const fetchCategoryFiles = useCallback(async (categoryKey: string) => {
+    setCategoryFilesLoading(prev => ({ ...prev, [categoryKey]: true }));
+    try {
+      const resp = await api.get<FileInfo[]>(`/storage/categories/${categoryKey}/files`);
+      if (resp.success) {
+        setCategoryFiles(prev => ({ ...prev, [categoryKey]: resp.data || [] }));
+      }
+    } catch (error) {
+      console.error(`Failed to fetch files for ${categoryKey}:`, error);
+      showStatus('error', `Failed to load ${categoryKey} files`, 'Check that the backend is running.');
+    } finally {
+      setCategoryFilesLoading(prev => ({ ...prev, [categoryKey]: false }));
+    }
+  }, [showStatus]);
+
+  const refreshExpandedCategories = useCallback(() => {
+    const expanded = Object.entries(expandedCategories)
+      .filter(([, isExpanded]) => isExpanded)
+      .map(([key]) => key);
+    expanded.forEach(key => {
+      fetchCategoryFiles(key);
+      setFileHashes(prev => {
+        const next: Record<string, { sha256: string; md5: string } | 'loading' | null> = { ...prev };
+        Object.keys(next).forEach(k => { if (k.startsWith(`${key}::`)) delete next[k]; });
+        return next;
+      });
+    });
+  }, [expandedCategories, fetchCategoryFiles]);
+
   const handleCategoryFiles = async (categoryKey: string) => {
-    setExpandedCategories(prev => ({ ...prev, [categoryKey]: !prev[categoryKey] }));
+    const nextExpanded = !expandedCategories[categoryKey];
+    setExpandedCategories(prev => ({ ...prev, [categoryKey]: nextExpanded }));
+    if (nextExpanded && !categoryFiles[categoryKey]) {
+      await fetchCategoryFiles(categoryKey);
+    }
   };
 
   const toggleSessionSelection = (sessionId: string) => {
@@ -178,14 +222,19 @@ export function StorageManagerPage() {
     if (selectedSessions.size === 0) return;
     setIsActionLoading(true);
     try {
+      let deleted = 0;
       for (const sessionId of selectedSessions) {
-        await api.delete(`/storage/sessions/${sessionId}`);
+        await api.delete<DeleteResult>(`/storage/sessions/${sessionId}`);
+        deleted += 1;
       }
       setSelectedSessions(new Set());
+      showStatus('success', `Deleted ${deleted} session footprint(s)`);
       fetchOverview();
       fetchSessions();
-    } catch (error) {
+      refreshExpandedCategories();
+    } catch (error: any) {
       console.error('Failed to delete sessions:', error);
+      showStatus('error', 'Failed to delete session(s)', error?.response?.data?.message || error?.message);
     } finally {
       setIsActionLoading(false);
     }
@@ -196,23 +245,61 @@ export function StorageManagerPage() {
     if (!files || files.size === 0) return;
     setIsActionLoading(true);
     try {
-      await api.post<DeleteResult>('/storage/files', { category: categoryKey, names: Array.from(files) });
+      const resp = await api.delete<DeleteResult>('/storage/files', { category: categoryKey, names: Array.from(files) });
       setSelectedFiles(prev => ({ ...prev, [categoryKey]: new Set() }));
+      setFileHashes(prev => {
+        const next: Record<string, { sha256: string; md5: string } | 'loading' | null> = { ...prev };
+        Object.keys(next).forEach(k => { if (k.startsWith(`${categoryKey}::`)) delete next[k]; });
+        return next;
+      });
+      showStatus(resp.data?.deleted ? 'success' : 'warning', resp.data?.message || 'Files deleted', resp.data?.details?.failedFiles?.length
+        ? `Failed to remove: ${resp.data.details.failedFiles.join(', ')}`
+        : undefined);
       fetchOverview();
-    } catch (error) {
+      fetchCategoryFiles(categoryKey);
+    } catch (error: any) {
       console.error('Failed to delete files:', error);
+      showStatus('error', 'Failed to delete files', error?.response?.data?.message || error?.message);
     } finally {
       setIsActionLoading(false);
     }
   };
 
-  const deleteEvidenceFile = async (evidenceId: string) => {
+  const deleteEvidenceFile = async (evidenceId: string, categoryKey: string, fileName: string) => {
     setIsActionLoading(true);
     try {
-      await api.delete(`/storage/evidence/${evidenceId}`);
+      const resp = await api.delete<DeleteResult>(`/storage/evidence/${evidenceId}`);
+      setFileHashes(prev => {
+        const next: Record<string, { sha256: string; md5: string } | 'loading' | null> = { ...prev };
+        Object.keys(next).forEach(k => { if (k.startsWith(`${categoryKey}::${fileName}`)) delete next[k]; });
+        return next;
+      });
+      showStatus('success', resp.data?.message || 'Evidence deleted');
       fetchOverview();
-    } catch (error) {
+      fetchCategoryFiles(categoryKey);
+    } catch (error: any) {
       console.error('Failed to delete evidence:', error);
+      showStatus('error', 'Failed to delete evidence', error?.response?.data?.message || error?.message);
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const deleteSingleFile = async (categoryKey: string, fileName: string) => {
+    setIsActionLoading(true);
+    try {
+      const resp = await api.delete<DeleteResult>('/storage/files', { category: categoryKey, names: [fileName] });
+      setFileHashes(prev => {
+        const next: Record<string, { sha256: string; md5: string } | 'loading' | null> = { ...prev };
+        Object.keys(next).forEach(k => { if (k.startsWith(`${categoryKey}::${fileName}`)) delete next[k]; });
+        return next;
+      });
+      showStatus(resp.data?.deleted ? 'success' : 'warning', resp.data?.message || 'File deleted');
+      fetchOverview();
+      fetchCategoryFiles(categoryKey);
+    } catch (error: any) {
+      console.error('Failed to delete file:', error);
+      showStatus('error', 'Failed to delete file', error?.response?.data?.message || error?.message);
     } finally {
       setIsActionLoading(false);
     }
@@ -221,10 +308,19 @@ export function StorageManagerPage() {
   const purgeCategory = async (categoryKey: string) => {
     setIsActionLoading(true);
     try {
-      await api.delete(`/storage/categories/${categoryKey}`, { confirm: true });
+      const resp = await api.delete<DeleteResult>(`/storage/categories/${categoryKey}`, { confirm: true });
+      setCategoryFiles(prev => ({ ...prev, [categoryKey]: [] }));
+      setSelectedFiles(prev => ({ ...prev, [categoryKey]: new Set() }));
+      setFileHashes(prev => {
+        const next: Record<string, { sha256: string; md5: string } | 'loading' | null> = { ...prev };
+        Object.keys(next).forEach(k => { if (k.startsWith(`${categoryKey}::`)) delete next[k]; });
+        return next;
+      });
+      showStatus('success', resp.data?.message || `Purged ${categoryKey}`);
       fetchOverview();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to purge category:', error);
+      showStatus('error', 'Failed to purge category', error?.response?.data?.message || error?.message);
     } finally {
       setIsActionLoading(false);
     }
@@ -234,14 +330,36 @@ export function StorageManagerPage() {
     if (purgeConfirm !== 'PURGE') return;
     setIsActionLoading(true);
     try {
-      await api.post('/storage/purge', { confirm: 'PURGE' });
+      const resp = await api.post<DeleteResult>('/storage/purge', { confirm: 'PURGE' });
+      setCategoryFiles({});
+      setSelectedFiles({});
+      setFileHashes({});
+      setPurgeConfirm('');
+      showStatus('success', resp.data?.message || 'All session data purged');
       fetchOverview();
       fetchSessions();
-      setPurgeConfirm('');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to purge all:', error);
+      showStatus('error', 'Failed to purge all session data', error?.response?.data?.message || error?.message);
     } finally {
       setIsActionLoading(false);
+    }
+  };
+
+  const fetchFileHash = async (categoryKey: string, fileName: string) => {
+    const hashKey = `${categoryKey}::${fileName}`;
+    setFileHashes(prev => ({ ...prev, [hashKey]: 'loading' as const }));
+    try {
+      const resp = await api.get<{ sha256: string; md5: string }>(
+        `/storage/categories/${categoryKey}/files/${encodeURIComponent(fileName)}/hash`
+      );
+      if (resp.success) {
+        setFileHashes(prev => ({ ...prev, [hashKey]: resp.data ?? null }));
+      }
+    } catch (error: any) {
+      console.error('Failed to fetch file hash:', error);
+      setFileHashes(prev => ({ ...prev, [hashKey]: null }));
+      showStatus('error', 'Failed to compute file hash', error?.response?.data?.message || error?.message);
     }
   };
 
@@ -251,16 +369,6 @@ export function StorageManagerPage() {
       return formatDateTime(dateString);
     } catch {
       return dateString;
-    }
-  };
-
-  const getStatusColor = (status: string): string => {
-    switch (status) {
-      case 'completed': return 'text-emerald-600';
-      case 'running': return 'text-amber-600';
-      case 'failed': return 'text-rose-600';
-      case 'timeout': return 'text-orange-600';
-      default: return 'text-[var(--text-secondary)]';
     }
   };
 
@@ -466,9 +574,14 @@ export function StorageManagerPage() {
                                 async () => {
                                   setIsActionLoading(true);
                                   try {
-                                    await api.delete(`/storage/sessions/${sf.session.sessionId}`);
+                                    await api.delete<DeleteResult>(`/storage/sessions/${sf.session.sessionId}`);
+                                    showStatus('success', `Deleted session ${sf.session.sessionId}`);
                                     fetchOverview();
                                     fetchSessions();
+                                    refreshExpandedCategories();
+                                  } catch (error: any) {
+                                    console.error('Failed to delete session:', error);
+                                    showStatus('error', 'Failed to delete session', error?.response?.data?.message || error?.message);
                                   } finally {
                                     setIsActionLoading(false);
                                   }
@@ -516,7 +629,12 @@ export function StorageManagerPage() {
               {overview?.categories.map((cat) => {
                 const Icon = CATEGORY_ICONS[cat.key] || Database;
                 const isExpanded = expandedCategories[cat.key];
-                const categoryFiles = [] as FileInfo[]; // Would be loaded on demand
+                const files = categoryFiles[cat.key] || [];
+                const isLoadingFiles = categoryFilesLoading[cat.key];
+                const filterQuery = (fileFilters[cat.key] || '').toLowerCase();
+                const filteredFiles = filterQuery
+                  ? files.filter(f => f.name.toLowerCase().includes(filterQuery))
+                  : files;
                 const selectedInCategory = selectedFiles[cat.key] || new Set();
 
                 return (
@@ -587,6 +705,8 @@ export function StorageManagerPage() {
                           <div className="mb-4 flex items-center gap-3">
                             <input
                               type="text"
+                              value={fileFilters[cat.key] || ''}
+                              onChange={(e) => setFileFilters(prev => ({ ...prev, [cat.key]: e.target.value }))}
                               placeholder="Filter files..."
                               className="flex-1 max-w-xs px-3 py-1.5 text-sm rounded-[8px] bg-[var(--surface-container)] border border-[var(--border-subtle)] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:ring-2 focus:ring-amber-500/50"
                             />
@@ -607,6 +727,7 @@ export function StorageManagerPage() {
                                   },
                                   true
                                 )}
+                                disabled={isActionLoading}
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                                 Delete Selected ({selectedInCategory.size})
@@ -623,15 +744,112 @@ export function StorageManagerPage() {
                                   <th className="p-3">Modified</th>
                                   <th className="p-3">Session ID</th>
                                   <th className="p-3">Linked</th>
-                                  <th className="p-3 w-20"></th>
+                                  <th className="p-3 w-28"></th>
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-[var(--border-subtle)]">
-                                <tr>
-                                  <td colSpan={7} className="py-12 text-center text-[var(--text-tertiary)]">
-                                    Click "Browse" to load files from the server.
-                                  </td>
-                                </tr>
+                                {isLoadingFiles ? (
+                                  <tr>
+                                    <td colSpan={7} className="py-12 text-center text-[var(--text-tertiary)]">
+                                      <Loader2 className="w-5 h-5 animate-spin inline-block mr-2" />
+                                      Loading files...
+                                    </td>
+                                  </tr>
+                                ) : filteredFiles.length === 0 ? (
+                                  <tr>
+                                    <td colSpan={7} className="py-12 text-center text-[var(--text-tertiary)]">
+                                      {files.length === 0 ? 'No files in this category.' : 'No files match the current filter.'}
+                                    </td>
+                                  </tr>
+                                ) : (
+                                  filteredFiles.map((file) => {
+                                    const hashKey = `${cat.key}::${file.name}`;
+                                    const hashInfo = fileHashes[hashKey];
+                                    return (
+                                      <Fragment key={file.name}>
+                                        <tr className="hover:bg-[var(--surface-container-lowest)] transition-colors align-top">
+                                          <td className="p-3">
+                                            <input
+                                              type="checkbox"
+                                              checked={selectedInCategory.has(file.name)}
+                                              onChange={() => toggleFileSelection(cat.key, file.name)}
+                                              className="w-4 h-4 rounded border-[var(--border-default)] text-amber-500 focus:ring-amber-500 focus:ring-2"
+                                            />
+                                          </td>
+                                          <td className="p-3 font-mono text-[var(--text-primary)]">{file.name}</td>
+                                          <td className="p-3 font-mono text-[var(--text-secondary)]">{file.sizeFormatted}</td>
+                                          <td className="p-3 text-[var(--text-secondary)] font-mono">{formatDate(file.mtime)}</td>
+                                          <td className="p-3 font-mono text-[var(--text-secondary)]">{file.sessionId || '—'}</td>
+                                          <td className="p-3">
+                                            {file.linkedEvidenceId ? (
+                                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-medium">
+                                                Evidence
+                                              </span>
+                                            ) : (
+                                              <span className="text-[var(--text-tertiary)]">—</span>
+                                            )}
+                                          </td>
+                                          <td className="p-3">
+                                            <div className="flex items-center gap-1">
+                                              <Button
+                                                variant="ghost"
+                                                size="xs"
+                                                title="Compute SHA-256 / MD5"
+                                                onClick={() => fetchFileHash(cat.key, file.name)}
+                                                disabled={isActionLoading}
+                                              >
+                                                <Fingerprint className="w-3.5 h-3.5" />
+                                              </Button>
+                                              <Button
+                                                variant="danger"
+                                                size="xs"
+                                                title="Delete file"
+                                                onClick={() => openConfirm(
+                                                  'Delete File',
+                                                  `This will permanently delete ${file.name} from ${cat.label}. This action cannot be undone.`,
+                                                  async () => {
+                                                    if (cat.key === 'evidence' && file.linkedEvidenceId) {
+                                                      await deleteEvidenceFile(file.linkedEvidenceId, cat.key, file.name);
+                                                    } else {
+                                                      await deleteSingleFile(cat.key, file.name);
+                                                    }
+                                                  },
+                                                  true
+                                                )}
+                                                disabled={isActionLoading}
+                                              >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                              </Button>
+                                            </div>
+                                          </td>
+                                        </tr>
+                                        {hashInfo && (
+                                          <tr className="bg-[var(--surface-container-lowest)]/60">
+                                            <td className="p-3"></td>
+                                            <td colSpan={6} className="p-3">
+                                              {hashInfo === 'loading' ? (
+                                                <span className="text-[var(--text-tertiary)] text-xs">Computing hash...</span>
+                                              ) : hashInfo === null ? (
+                                                <span className="text-rose-600 text-xs">Hash unavailable</span>
+                                              ) : (
+                                                <div className="font-mono text-[11px] text-[var(--text-secondary)] space-y-1">
+                                                  <div className="flex items-center gap-2">
+                                                    <span className="text-[var(--text-tertiary)] uppercase tracking-wider">SHA-256</span>
+                                                    <span className="text-emerald-700">{hashInfo.sha256}</span>
+                                                  </div>
+                                                  <div className="flex items-center gap-2">
+                                                    <span className="text-[var(--text-tertiary)] uppercase tracking-wider">MD5</span>
+                                                    <span className="text-[var(--text-secondary)]">{hashInfo.md5}</span>
+                                                  </div>
+                                                </div>
+                                              )}
+                                            </td>
+                                          </tr>
+                                        )}
+                                      </Fragment>
+                                    );
+                                  })
+                                )}
                               </tbody>
                             </table>
                           </div>

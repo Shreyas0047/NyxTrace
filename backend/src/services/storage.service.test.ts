@@ -8,6 +8,8 @@ import path from 'path';
 import mongoose from 'mongoose';
 import { storageService, StorageCategory } from './storage.service';
 import { ValidationError, NotFoundError } from '../middleware';
+import { SandboxSession, Evidence, Investigation } from '../models';
+import { BlockchainAudit } from '../blockchain/models/blockchain.model';
 
 const TEST_USER_ID = new mongoose.Types.ObjectId().toString();
 
@@ -157,6 +159,147 @@ describe('StorageService', () => {
       const result = await storageService.deleteFiles('analysis', ['non-existent.pdf'], TEST_USER_ID);
       expect(result.deleted).toBe(false);
       expect(result.details.filesDeleted).toHaveLength(0);
+      expect(result.details.failedFiles).toContain('non-existent.pdf');
+    });
+
+    it('should remove Evidence records and decrement investigation count when deleting evidence files', async () => {
+      const investigation = await Investigation.create({
+        caseNumber: `STORAGE-TEST-${Date.now()}`,
+        title: 'Storage Test Investigation',
+        description: 'test',
+        createdBy: new mongoose.Types.ObjectId(),
+      });
+      const evidenceFile = path.join(getResolvedDirs('evidence')[0], `test-evidence-${Date.now()}.bin`);
+      fs.writeFileSync(evidenceFile, 'evidence bytes');
+      createdFiles.push(evidenceFile);
+
+      const evidence = await Evidence.create({
+        evidenceId: `EV-${Date.now()}`,
+        investigationId: investigation._id,
+        name: 'test-evidence.bin',
+        fileName: path.basename(evidenceFile),
+        filePath: evidenceFile,
+        fileSize: 13,
+        mimeType: 'application/octet-stream',
+        collectedBy: new mongoose.Types.ObjectId(),
+        status: 'ready',
+      });
+
+      const result = await storageService.deleteFiles('evidence', [path.basename(evidenceFile)], TEST_USER_ID);
+      expect(result.deleted).toBe(true);
+      expect(result.details.dbRecordsDeleted).toBe(1);
+
+      const remaining = await Evidence.findById(evidence._id);
+      expect(remaining).toBeNull();
+      const updatedInvestigation = await Investigation.findById(investigation._id).lean();
+      expect(updatedInvestigation?.evidenceCount).toBe(-1);
+
+      const tombstone = await BlockchainAudit.findOne({ evidenceId: evidence.evidenceId });
+      expect(tombstone).not.toBeNull();
+      expect(tombstone?.eventType).toBe('evidence_removed');
+      expect(tombstone?.metadata?.sha256).toMatch(/^[a-f0-9]{64}$/);
+    });
+  });
+
+  describe('deleteSessionFootprint', () => {
+    it('should reject deletion of running sessions', async () => {
+      await SandboxSession.create({
+        sessionId: 'sess-running-test',
+        status: 'running',
+        startTime: new Date(),
+        vmName: 'VM-Test',
+        simulatorId: 'sim-test',
+        simulatorName: 'Sim-Test',
+      });
+
+      await expect(storageService.deleteSessionFootprint('sess-running-test', TEST_USER_ID))
+        .rejects.toThrow(ValidationError);
+    });
+
+    it('should reject deletion of pending sessions', async () => {
+      await SandboxSession.create({
+        sessionId: 'sess-pending-test',
+        status: 'pending',
+        startTime: new Date(),
+        vmName: 'VM-Test',
+        simulatorId: 'sim-test',
+        simulatorName: 'Sim-Test',
+      });
+
+      await expect(storageService.deleteSessionFootprint('sess-pending-test', TEST_USER_ID))
+        .rejects.toThrow(ValidationError);
+    });
+
+    it('should delete a completed session footprint and record a tombstone', async () => {
+      const sessionId = 'sess-complete-test';
+      await SandboxSession.create({
+        sessionId,
+        status: 'completed',
+        startTime: new Date(),
+        endTime: new Date(),
+        vmName: 'VM-Test',
+        simulatorId: 'sim-test',
+        simulatorName: 'Sim-Test',
+        eventsCollected: 5,
+      });
+
+      const reportsDir = getResolvedDirs('reports');
+      const reportFile = path.join(reportsDir[0], `sandbox-report-${sessionId}.json`);
+      fs.writeFileSync(reportFile, '{"sessionId":"sess-complete-test"}');
+      createdFiles.push(reportFile);
+
+      const result = await storageService.deleteSessionFootprint(sessionId, TEST_USER_ID);
+      expect(result.deleted).toBe(true);
+      expect(result.details.filesDeleted).toContain(`sandbox-report-${sessionId}.json`);
+      expect(result.details.fileHashes[`sandbox-report-${sessionId}.json`]).toMatch(/^[a-f0-9]{64}$/);
+      expect(fs.existsSync(reportFile)).toBe(false);
+
+      const session = await SandboxSession.findOne({ sessionId });
+      expect(session).toBeNull();
+
+      const tombstone = await BlockchainAudit.findOne({ evidenceId: `SANDBOX-${sessionId}` });
+      expect(tombstone).not.toBeNull();
+      expect(tombstone?.eventType).toBe('evidence_removed');
+    });
+  });
+
+  describe('purgeAllSessionData', () => {
+    it('should reject purge when sessions are active', async () => {
+      await SandboxSession.create({
+        sessionId: 'sess-active-purge',
+        status: 'running',
+        startTime: new Date(),
+        vmName: 'VM-Test',
+        simulatorId: 'sim-test',
+        simulatorName: 'Sim-Test',
+      });
+
+      await expect(storageService.purgeAllSessionData(TEST_USER_ID, 'PURGE'))
+        .rejects.toThrow(ValidationError);
+    });
+
+    it('should purge all session data when no sessions are active', async () => {
+      await SandboxSession.create({
+        sessionId: 'sess-purge-1',
+        status: 'completed',
+        startTime: new Date(),
+        vmName: 'VM-Test',
+        simulatorId: 'sim-test',
+        simulatorName: 'Sim-Test',
+      });
+      await SandboxSession.create({
+        sessionId: 'sess-purge-2',
+        status: 'failed',
+        startTime: new Date(),
+        vmName: 'VM-Test',
+        simulatorId: 'sim-test',
+        simulatorName: 'Sim-Test',
+      });
+
+      const result = await storageService.purgeAllSessionData(TEST_USER_ID, 'PURGE');
+      expect(result.deleted).toBe(true);
+      expect(await SandboxSession.countDocuments({})).toBe(0);
+      expect(result.details.dbRecordsDeleted).toBe(2);
     });
   });
 });

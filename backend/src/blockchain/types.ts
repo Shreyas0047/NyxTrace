@@ -41,6 +41,7 @@ export enum BlockchainEventType {
   HASH_MISMATCH = 'hash_mismatch',
   TAMPER_DETECTED = 'tamper_detected',
   CHAIN_SYNC_COMPLETE = 'chain_sync_complete',
+  EVIDENCE_REMOVED = 'evidence_removed',
 }
 
 export interface EvidenceFingerprint {

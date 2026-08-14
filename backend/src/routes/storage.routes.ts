@@ -44,8 +44,10 @@ router.delete(
   asyncHandler(storageController.deleteFiles)
 );
 
+// Evidence deletion is a chain-of-custody event: restricted to super_admin
 router.delete(
   '/evidence/:id',
+  authorize(UserRole.SUPER_ADMIN),
   asyncHandler(storageController.deleteEvidence)
 );
 

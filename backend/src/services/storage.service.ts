@@ -59,6 +59,8 @@ export interface DeleteResult {
     filesDeleted: string[];
     dbRecordsDeleted: number;
     sizeFreed: number;
+    failedFiles: string[];
+    fileHashes: Record<string, string>;
   };
 }
 
@@ -113,6 +115,21 @@ function extractSessionIdFromFilename(filename: string): string | undefined {
   if (match) return match[1];
   return undefined;
 }
+
+/**
+ * Stream a file through SHA-256 so memory use is bounded regardless of size.
+ */
+function hashFileSha256(filePath: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const hash = crypto.createHash('sha256');
+    const stream = fs.createReadStream(filePath);
+    stream.on('error', reject);
+    stream.on('data', (chunk) => hash.update(chunk));
+    stream.on('end', () => resolve(hash.digest('hex')));
+  });
+}
+
+const ACTIVE_SESSION_STATUSES = ['running', 'pending'];
 
 export class StorageService {
   async getOverview(): Promise<StorageOverview> {
@@ -256,10 +273,19 @@ export class StorageService {
       throw new NotFoundError(`Sandbox session ${sessionId}`);
     }
 
+    if (ACTIVE_SESSION_STATUSES.includes(session.status)) {
+      throw new ValidationError(
+        `Cannot delete active sandbox session (status: ${session.status})`,
+        [{ field: 'sessionId', message: 'Terminate the sandbox session before deleting its footprint' }]
+      );
+    }
+
     const details: DeleteResult['details'] = {
       filesDeleted: [],
       dbRecordsDeleted: 0,
       sizeFreed: 0,
+      failedFiles: [],
+      fileHashes: {},
     };
 
     // Delete report file(s) across all reports dirs
@@ -269,11 +295,17 @@ export class StorageService {
       try {
         const filePath = resolveSafePath('reports', file.name);
         const stats = fs.statSync(filePath);
+        try {
+          details.fileHashes[file.name] = await hashFileSha256(filePath);
+        } catch {
+          // Hash is best-effort; deletion proceeds
+        }
         fs.unlinkSync(filePath);
         details.filesDeleted.push(file.name);
         details.sizeFreed += stats.size;
-      } catch {
-        // Ignore missing files
+      } catch (error) {
+        details.failedFiles.push(file.name);
+        logger.warn(`Failed to delete report file ${file.name}:`, error);
       }
     }
 
@@ -287,8 +319,9 @@ export class StorageService {
         fs.unlinkSync(filePath);
         details.filesDeleted.push(file.name);
         details.sizeFreed += stats.size;
-      } catch {
-        // Ignore
+      } catch (error) {
+        details.failedFiles.push(file.name);
+        logger.warn(`Failed to delete monitoring file ${file.name}:`, error);
       }
     }
 
@@ -302,8 +335,9 @@ export class StorageService {
         fs.unlinkSync(filePath);
         details.filesDeleted.push(file.name);
         details.sizeFreed += stats.size;
-      } catch {
-        // Ignore
+      } catch (error) {
+        details.failedFiles.push(file.name);
+        logger.warn(`Failed to delete sandbox log ${file.name}:`, error);
       }
     }
 
@@ -315,6 +349,14 @@ export class StorageService {
     await SandboxSession.findByIdAndDelete(session._id);
     details.dbRecordsDeleted += 1;
 
+    // Record a blockchain tombstone so on-chain integrity records are explained
+    await this.addRemovalTombstone(
+      `SANDBOX-${sessionId}`,
+      userId,
+      `Sandbox session footprint deleted: ${sessionId}`,
+      { sessionId, filesDeleted: details.filesDeleted, fileHashes: details.fileHashes }
+    );
+
     // Audit log
     await AuditLog.create({
       userId,
@@ -324,6 +366,8 @@ export class StorageService {
       details: {
         sessionId,
         filesDeleted: details.filesDeleted,
+        failedFiles: details.failedFiles,
+        fileHashes: details.fileHashes,
         telemetryEventsDeleted: telemetryResult.deletedCount,
         sizeFreed: details.sizeFreed,
       },
@@ -343,34 +387,60 @@ export class StorageService {
       filesDeleted: [],
       dbRecordsDeleted: 0,
       sizeFreed: 0,
+      failedFiles: [],
+      fileHashes: {},
     };
 
     for (const name of names) {
       try {
         const filePath = resolveSafePath(category, name);
         const stats = fs.statSync(filePath);
+        if (category === 'evidence') {
+          try {
+            details.fileHashes[name] = await hashFileSha256(filePath);
+          } catch {
+            // Hash is best-effort; deletion proceeds
+          }
+        }
         fs.unlinkSync(filePath);
         details.filesDeleted.push(name);
         details.sizeFreed += stats.size;
       } catch (error) {
+        details.failedFiles.push(name);
         logger.warn(`Failed to delete file ${name} from ${category}:`, error);
       }
     }
 
-    // If evidence files, also delete linked Evidence records
+    // If evidence files, also delete linked Evidence records (exact fileName match)
     if (category === 'evidence') {
+      const { Investigation } = await import('../models');
       for (const name of names) {
         try {
-          const evidenceRecord = await Evidence.findOne({ filePath: { $regex: name } }).lean();
+          const evidenceRecord = await Evidence.findOne({ fileName: name }).lean();
           if (evidenceRecord) {
-            await Evidence.findByIdAndDelete(evidenceRecord._id);
+            const evidenceId = (evidenceRecord as any).evidenceId;
+            await this.addRemovalTombstone(
+              evidenceId,
+              userId,
+              `Evidence file deleted: ${name}`,
+              { evidenceId, fileName: name, sha256: details.fileHashes[name] || null }
+            );
+            if ((evidenceRecord as any).investigationId) {
+              await Investigation.updateOne(
+                { _id: (evidenceRecord as any).investigationId },
+                { $inc: { evidenceCount: -1 } }
+              );
+            }
+            await Evidence.findByIdAndDelete((evidenceRecord as any)._id);
             details.dbRecordsDeleted += 1;
           }
-        } catch {
-          // Ignore
+        } catch (error) {
+          logger.warn(`Failed to remove Evidence record for ${name}:`, error);
         }
       }
     }
+
+    const fullyDeleted = details.filesDeleted.length === names.length;
 
     // Audit log
     await AuditLog.create({
@@ -381,15 +451,19 @@ export class StorageService {
       details: {
         category,
         filesDeleted: details.filesDeleted,
+        failedFiles: details.failedFiles,
+        fileHashes: details.fileHashes,
         sizeFreed: details.sizeFreed,
       },
       ipAddress: 'system',
-      status: 'success',
+      status: fullyDeleted ? 'success' : 'failed',
     });
 
     return {
       deleted: details.filesDeleted.length > 0,
-      message: `Deleted ${details.filesDeleted.length} file(s) from ${CATEGORY_CONFIG[category].label}`,
+      message: fullyDeleted
+        ? `Deleted ${details.filesDeleted.length} file(s) from ${CATEGORY_CONFIG[category].label}`
+        : `Partially deleted: ${details.filesDeleted.length} of ${names.length} file(s) removed; ${details.failedFiles.length} failed`,
       details,
     };
   }
@@ -404,12 +478,20 @@ export class StorageService {
       filesDeleted: [],
       dbRecordsDeleted: 0,
       sizeFreed: 0,
+      failedFiles: [],
+      fileHashes: {},
     };
 
     if (fs.existsSync(evidence.filePath)) {
       const stats = fs.statSync(evidence.filePath);
+      const fileName = path.basename(evidence.filePath);
+      try {
+        details.fileHashes[fileName] = await hashFileSha256(evidence.filePath);
+      } catch {
+        // Hash is best-effort; deletion proceeds
+      }
       fs.unlinkSync(evidence.filePath);
-      details.filesDeleted.push(path.basename(evidence.filePath));
+      details.filesDeleted.push(fileName);
       details.sizeFreed += stats.size;
     }
 
@@ -424,6 +506,19 @@ export class StorageService {
     await Evidence.findByIdAndDelete(evidenceId);
     details.dbRecordsDeleted += 1;
 
+    // Tombstone: record the removal + pre-deletion hash against the on-chain integrity trail
+    await this.addRemovalTombstone(
+      evidence.evidenceId,
+      userId,
+      `Evidence deleted: ${evidence.name}`,
+      {
+        evidenceId: evidence.evidenceId,
+        name: evidence.name,
+        investigationId: evidence.investigationId,
+        fileHashes: details.fileHashes,
+      }
+    );
+
     await AuditLog.create({
       userId,
       action: 'EVIDENCE_DELETED',
@@ -433,6 +528,7 @@ export class StorageService {
         evidenceId: evidence.evidenceId,
         name: evidence.name,
         investigationId: evidence.investigationId,
+        fileHashes: details.fileHashes,
       },
       ipAddress: 'system',
       status: 'success',
@@ -458,39 +554,60 @@ export class StorageService {
       ]);
     }
 
+    const sessions = await SandboxSession.find({}).lean();
+    const activeSessions = sessions.filter(s => ACTIVE_SESSION_STATUSES.includes(s.status));
+    if (activeSessions.length > 0) {
+      throw new ValidationError(
+        `Cannot purge: ${activeSessions.length} sandbox session(s) are still active`,
+        [{ field: 'confirm', message: 'Terminate all sandbox sessions before purging' }]
+      );
+    }
+
     const details: DeleteResult['details'] = {
       filesDeleted: [],
       dbRecordsDeleted: 0,
       sizeFreed: 0,
+      failedFiles: [],
+      fileHashes: {},
     };
 
-    // Delete all report files
+    // Delete all report files (hashing each before removal)
     const reportFiles = await this.listFiles('reports');
     for (const file of reportFiles) {
       try {
         const filePath = resolveSafePath('reports', file.name);
         const stats = fs.statSync(filePath);
+        try {
+          details.fileHashes[file.name] = await hashFileSha256(filePath);
+        } catch {
+          // Hash is best-effort; deletion proceeds
+        }
         fs.unlinkSync(filePath);
         details.filesDeleted.push(file.name);
         details.sizeFreed += stats.size;
-      } catch {
-        // Ignore
+      } catch (error) {
+        details.failedFiles.push(file.name);
+        logger.warn(`Failed to purge report file ${file.name}:`, error);
       }
     }
 
-    // Delete all sessions and their telemetry
-    const sessions = await SandboxSession.find({}).lean();
+    // Delete all telemetry events in one pass
+    const telemetryResult = await TelemetryEvent.deleteMany({});
+    details.dbRecordsDeleted += telemetryResult.deletedCount || 0;
+
+    // Delete all sessions
+    const sessionDeleteResult = await SandboxSession.deleteMany({});
+    details.dbRecordsDeleted += sessionDeleteResult.deletedCount || 0;
+
+    // Record tombstones so on-chain integrity records are explained
     for (const session of sessions) {
-      try {
-        await TelemetryEvent.deleteMany({ sessionId: session.sessionId });
-        details.dbRecordsDeleted += 1;
-      } catch {
-        // Ignore
-      }
+      await this.addRemovalTombstone(
+        `SANDBOX-${session.sessionId}`,
+        userId,
+        `Sandbox session footprint purged: ${session.sessionId}`,
+        { sessionId: session.sessionId }
+      );
     }
-
-    await SandboxSession.deleteMany({});
-    details.dbRecordsDeleted += sessions.length;
 
     await AuditLog.create({
       userId,
@@ -499,7 +616,10 @@ export class StorageService {
       entityId: 'all',
       details: {
         filesDeleted: details.filesDeleted,
-        sessionsDeleted: sessions.length,
+        failedFiles: details.failedFiles,
+        fileHashes: details.fileHashes,
+        sessionsDeleted: sessionDeleteResult.deletedCount || 0,
+        telemetryEventsDeleted: telemetryResult.deletedCount || 0,
         sizeFreed: details.sizeFreed,
       },
       ipAddress: 'system',
@@ -508,18 +628,59 @@ export class StorageService {
 
     return {
       deleted: true,
-      message: `Purged all session data: ${sessions.length} sessions, ${reportFiles.length} report files`,
+      message: `Purged all session data: ${sessionDeleteResult.deletedCount || 0} sessions, ${details.filesDeleted.length} report files`,
       details,
     };
   }
 
   async getFileHash(category: StorageCategory, filename: string): Promise<{ sha256: string; md5: string }> {
     const filePath = resolveSafePath(category, filename);
-    const data = fs.readFileSync(filePath);
+    const sha256 = crypto.createHash('sha256');
+    const md5 = crypto.createHash('md5');
+    await new Promise<void>((resolve, reject) => {
+      const stream = fs.createReadStream(filePath);
+      stream.on('error', reject);
+      stream.on('data', (chunk) => {
+        sha256.update(chunk);
+        md5.update(chunk);
+      });
+      stream.on('end', () => resolve());
+    });
     return {
-      sha256: crypto.createHash('sha256').update(data).digest('hex'),
-      md5: crypto.createHash('md5').update(data).digest('hex'),
+      sha256: sha256.digest('hex'),
+      md5: md5.digest('hex'),
     };
+  }
+
+  /**
+   * Record a blockchain audit tombstone for a removed artifact so on-chain
+   * integrity records are distinguishable from tampering.
+   */
+  private async addRemovalTombstone(
+    evidenceId: string | null,
+    performedBy: string,
+    details: string,
+    metadata?: Record<string, any>
+  ): Promise<void> {
+    try {
+      const { BlockchainAudit, EvidenceIntegrity } = await import('../blockchain/models/blockchain.model');
+      const { BlockchainEventType, EvidenceIntegrityState } = await import('../blockchain/types');
+      await BlockchainAudit.create({
+        evidenceId,
+        eventType: BlockchainEventType.EVIDENCE_REMOVED,
+        details,
+        performedBy,
+        metadata,
+      });
+      if (evidenceId) {
+        await EvidenceIntegrity.updateOne(
+          { evidenceId },
+          { $set: { integrityState: EvidenceIntegrityState.VERIFICATION_FAILED } }
+        );
+      }
+    } catch (error) {
+      logger.warn(`Failed to record removal tombstone for ${evidenceId}:`, error);
+    }
   }
 }
 

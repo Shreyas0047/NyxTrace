@@ -406,7 +406,7 @@ All under `/api/v1/blockchain`:
 | GET | `/storage/categories/:key/files/:filename/hash` | admin+ | Get SHA-256 and MD5 hash of a stored file |
 | DELETE | `/storage/sessions/:sessionId` | admin+ | Delete complete session footprint: DB record, telemetry events, report file, monitoring logs |
 | DELETE | `/storage/files` | admin+ | Delete specific files by category and filenames (body: `{category, names[]}`) |
-| DELETE | `/storage/evidence/:id` | admin+ | Delete evidence file + DB record (reuses existing evidence service) |
+| DELETE | `/storage/evidence/:id` | super_admin | Delete evidence file + DB record — chain-of-custody event (reuses existing evidence service) |
 | DELETE | `/storage/categories/:key` | admin+ | Purge all files in a category (requires `confirm=true`) |
 | POST | `/storage/purge` | admin+ | **Danger** Purge ALL session data (requires `confirm="PURGE"`) |
 

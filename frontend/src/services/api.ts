@@ -888,6 +888,11 @@ async verifyHash(filePath: string, expectedHash: string): Promise<ApiResponse<Ha
     return response.data;
   }
 
+  async delete<T = any>(path: string, data?: unknown): Promise<ApiResponse<T>> {
+    const response = await this.client.delete<ApiResponse<T>>(path, data !== undefined ? { data } : undefined);
+    return response.data;
+  }
+
   // Knowledge Base
   async getKnowledgeArticles(params?: {
     page?: number; limit?: number; category?: string; type?: string; search?: string;

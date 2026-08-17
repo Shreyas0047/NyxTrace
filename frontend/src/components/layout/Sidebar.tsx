@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Folder, Activity, Brain,
   Settings, Users, Fingerprint, History, Layers, Terminal,
-  Heart, Link2, AlertTriangle, BarChart3, Home,
-  ChevronLeft, ChevronRight, Circle, Database,
+  Heart, Link2, AlertTriangle, Home,
+  ChevronLeft, ChevronRight, Circle, Database, ShieldCheck,
 } from 'lucide-react';
 import { useState, memo } from 'react';
 import { cn } from '../../design-system';
@@ -43,6 +43,7 @@ const navSections: NavSection[] = [
     items: [
       { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', roles: allRoles },
       { icon: Folder, label: 'Evidence', path: '/evidence', roles: allRoles },
+      { icon: ShieldCheck, label: 'Custody', path: '/custody', roles: allRoles },
     ],
   },
   {
@@ -58,8 +59,6 @@ const navSections: NavSection[] = [
     label: 'Intelligence',
     items: [
       { icon: AlertTriangle, label: 'Threat Intel', path: '/threat-intelligence', roles: allRoles },
-      { icon: BarChart3, label: 'Forensic Analytics', path: '/forensic-analytics', roles: adminRoles },
-      
       { icon: Link2, label: 'Blockchain Ops', path: '/blockchain-operations', roles: adminRoles },
     ],
   },

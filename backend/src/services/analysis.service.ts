@@ -15,7 +15,11 @@ import logger from '../config/logger';
 export class AnalysisService {
   private readonly uploadDir = './uploads/analysis';
 
-  async analyzeDocument(filePath: string, filename: string): Promise<any> {
+  async analyzeDocument(
+    filePath: string,
+    filename: string,
+    context?: { investigationId?: string; evidenceId?: string }
+  ): Promise<any> {
     const ext = path.extname(filename).toLowerCase();
     let result: any;
 
@@ -34,6 +38,7 @@ export class AnalysisService {
       sourceType: ext === '.pdf' ? 'pdf' : 'docx',
       sourceName: filename,
       sourceSize: result.file_size,
+      investigationId: context?.investigationId || null,
       threatScore: result.threat_score,
       threatLevel: result.threat_level,
       confidence: result.confidence,
@@ -74,7 +79,7 @@ export class AnalysisService {
     });
 
     // Persist extracted IOCs to the IOC collection so they appear in Threat Intel
-    await this.persistIocs(result.extractedIocs || [], ext === '.pdf' ? 'pdf_analysis' : 'docx_analysis');
+    await this.persistIocs(result.extractedIocs || [], ext === '.pdf' ? 'pdf_analysis' : 'docx_analysis', context);
 
     // Optional LLM-enhanced second opinion (non-blocking, heuristic verdict stands)
     const aiInsights = await this.enhanceWithLlm('document', {
@@ -97,7 +102,10 @@ export class AnalysisService {
     return { analysisId, ...result, aiInsights, report: report.toJSON() };
   }
 
-  async analyzeUrl(url: string): Promise<any> {
+  async analyzeUrl(
+    url: string,
+    context?: { investigationId?: string; evidenceId?: string }
+  ): Promise<any> {
     const result = await urlIntelligenceService.analyzeUrl(url);
 
     const analysisId = uuidv4();
@@ -106,6 +114,7 @@ export class AnalysisService {
       analysisType: 'url_analysis',
       sourceType: 'url',
       sourceName: url,
+      investigationId: context?.investigationId || null,
       threatScore: result.risk_score,
       threatLevel: result.risk_level,
       confidence: result.confidence,
@@ -138,12 +147,13 @@ export class AnalysisService {
     });
 
     // Persist extracted IOCs to the IOC collection
-    await this.persistIocs(result.extracted_iocs || [], 'url_analysis');
+    await this.persistIocs(result.extracted_iocs || [], 'url_analysis', context);
     // Always persist the URL itself as an IOC
     if (url) {
       await this.persistIocs(
         [{ type: 'url', value: url, severity: this.threatLevelToSeverity(result.risk_level) }],
         'url_analysis',
+        context,
       );
     }
 
@@ -176,9 +186,10 @@ export class AnalysisService {
     return report.toJSON();
   }
 
-  async getAnalysisHistory(page: number = 1, limit: number = 20, type?: string): Promise<{ items: any[]; total: number; page: number; totalPages: number }> {
+  async getAnalysisHistory(page: number = 1, limit: number = 20, type?: string, investigationId?: string): Promise<{ items: any[]; total: number; page: number; totalPages: number }> {
     const filter: any = {};
     if (type) filter.analysisType = type;
+    if (investigationId) filter.investigationId = investigationId;
 
     const [items, total] = await Promise.all([
       AnalysisReport.find(filter).sort({ analysisTimestamp: -1 }).skip((page - 1) * limit).limit(limit).lean(),
@@ -300,9 +311,16 @@ export class AnalysisService {
   private async persistIocs(
     iocs: Array<{ type: string; value: string; severity?: string; context?: string }>,
     source: 'pdf_analysis' | 'docx_analysis' | 'url_analysis',
+    analysisContext?: { investigationId?: string; evidenceId?: string },
   ): Promise<void> {
     if (!iocs || iocs.length === 0) {
       return;
+    }
+
+    if (!analysisContext?.investigationId) {
+      logger.warn(
+        `[Analysis] persistIocs called without investigation context — ${iocs.length} IOC(s) from ${source} will not be linked to an investigation`,
+      );
     }
 
     for (const ioc of iocs) {
@@ -320,6 +338,8 @@ export class AnalysisService {
             description: ioc.context || `Extracted from ${source}`,
             source,
             confidence: 70,
+            linkedInvestigations: analysisContext?.investigationId ? [analysisContext.investigationId] : [],
+            linkedEvidence: analysisContext?.evidenceId ? [analysisContext.evidenceId] : [],
           },
           'system',
         );

@@ -20,20 +20,19 @@ import {
   Globe,
   Terminal,
   Brain,
-  Loader2,
-  FileSearch,
+FileSearch,
   XCircle,
 } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { Select } from '../components/ui/Select';
 import { Modal } from '../components/ui/Modal';
 import { PageHeader, PageGrid } from '../layouts/PageContainer';
 import { DashboardCard, DashboardStat } from '../components/enterprise/DashboardGrid';
 import { formatDateTime, formatDuration, formatFileSize } from '../utils/helpers';
 import { cn } from '../design-system';
 import { useReportsStore } from '../stores/reportsStore';
+import { useInvestigationStore } from '../stores/investigationStore';
 import { RiskScoreGauge } from '../components/visualizations/RiskScoreGauge';
 import { CategoryDistributionChart } from '../components/visualizations/CategoryDistributionChart';
 import { EventTimelineChart, type TimelinePoint } from '../components/visualizations/EventTimelineChart';
@@ -80,7 +79,6 @@ const categoryBarColors: Record<string, string> = {
   wmi: '#06b6d4',
 };
 
-type SourceTab = 'sessions' | 'documents' | 'urls' | 'execution';
 type DetailTab = 'case-report' | 'timeline' | 'events' | 'suspicious' | 'summary' | 'ai-analysis' | 'sandbox-findings';
 
 type ViewState =
@@ -792,18 +790,18 @@ export function ReportsPage() {
     reports, currentReport, isLoading, isDetailLoading, error,
     pagination, filters,
     sessions, sessionsPagination, isSessionsLoading,
-    analysisDocs, analysisUrls, analysisPagination, isAnalysisLoading,
+    analysisDocs, analysisUrls, isAnalysisLoading,
     fetchReports, fetchReportById, exportReport, setFilters, clearCurrentReport,
     fetchSessions, fetchAnalysisHistory, clearCurrentAnalysis,
+    setInvestigationId, investigationId,
   } = useReportsStore();
 
-  const [tab, setTab] = useState<SourceTab>('sessions');
+  const investigations = useInvestigationStore((s) => s.investigations);
+  const fetchInvestigations = useInvestigationStore((s) => s.fetchInvestigations);
+
   const [search, setSearch] = useState('');
   const [detailTab, setDetailTab] = useState<DetailTab>('case-report');
   const [view, setView] = useState<ViewState>(null);
-  const [sessionsPage, setSessionsPage] = useState(1);
-  const [analysisPage, setAnalysisPage] = useState(1);
-  const [executionPage, setExecutionPage] = useState(1);
 
   const [aiAnalysis, setAiAnalysis] = useState<any>(null);
   const [sessionData, setSessionData] = useState<any>(null);
@@ -813,7 +811,8 @@ export function ReportsPage() {
     fetchSessions(1, 20);
     fetchAnalysisHistory('document_analysis', 1, 20);
     fetchAnalysisHistory('url_analysis', 1, 20);
-  }, []);
+    fetchInvestigations({ page: 1, limit: 100 });
+  }, [fetchInvestigations]);
 
   const reportAiMap = useMemo(() => {
     const map: Record<string, any> = {};
@@ -854,10 +853,6 @@ export function ReportsPage() {
     const timer = setTimeout(() => {
       if (search !== filters.search) {
         setFilters({ search });
-        if (tab === 'execution') {
-          setExecutionPage(1);
-          fetchReports({ search, page: 1 });
-        }
       }
     }, 300);
     return () => clearTimeout(timer);
@@ -885,43 +880,117 @@ export function ReportsPage() {
     clearCurrentAnalysis();
   };
 
-  const switchTab = (next: SourceTab) => {
-    setTab(next);
-    if (next === 'sessions' && sessions.length === 0) fetchSessions(1, 20);
-    if (next === 'documents' && analysisDocs.length === 0) fetchAnalysisHistory('document_analysis', 1, 20);
-    if (next === 'urls' && analysisUrls.length === 0) fetchAnalysisHistory('url_analysis', 1, 20);
-    if (next === 'execution' && reports.length === 0) fetchReports();
+  const handleInvestigationChange = (investigationId: string) => {
+    setInvestigationId(investigationId);
+    setSearch('');
+    fetchReports({ page: 1 });
+    fetchSessions(1, 20);
+    fetchAnalysisHistory('document_analysis', 1, 20);
+    fetchAnalysisHistory('url_analysis', 1, 20);
   };
 
-  const filteredSessions = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return sessions;
-    return sessions.filter((s) =>
-      String(s.simulatorName || '').toLowerCase().includes(q) ||
-      String(s.sessionId || '').toLowerCase().includes(q) ||
-      String(s.status || '').toLowerCase().includes(q)
-    );
-  }, [sessions, search]);
+  type CombinedReport = {
+    kind: 'sandbox' | 'document' | 'url' | 'execution';
+    id: string;
+    title: string;
+    sub: string;
+    timestamp: string;
+    threatLevel?: string;
+    confidence?: number;
+    meta: string[];
+    badge?: string;
+    severityCounts?: Record<string, number>;
+    blockchainVerified?: boolean;
+    sessionId?: string;
+    session?: SandboxSessionWithExtras;
+    item?: AnalysisReportItem;
+  };
 
-  const filteredDocs = useMemo(() => {
+  const combinedReports = useMemo<CombinedReport[]>(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return analysisDocs;
-    return analysisDocs.filter((d) =>
-      String(d.sourceName || '').toLowerCase().includes(q) ||
-      String(d.threatLevel || '').toLowerCase().includes(q) ||
-      String(d.predictedThreat || '').toLowerCase().includes(q)
-    );
-  }, [analysisDocs, search]);
+    const match = (text?: string) => !q || String(text || '').toLowerCase().includes(q);
+    const list: CombinedReport[] = [];
 
-  const filteredUrls = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return analysisUrls;
-    return analysisUrls.filter((u) =>
-      String(u.sourceName || '').toLowerCase().includes(q) ||
-      String(u.threatLevel || '').toLowerCase().includes(q) ||
-      String(u.predictedThreat || '').toLowerCase().includes(q)
-    );
-  }, [analysisUrls, search]);
+    for (const s of sessions) {
+      if (!match(s.simulatorName) && !match(s.sessionId) && !match(s.status)) continue;
+      const ai = s.aiAnalysis;
+      list.push({
+        kind: 'sandbox',
+        id: s.sessionId,
+        title: s.simulatorName,
+        sub: s.sessionId,
+        timestamp: s.startTime,
+        threatLevel: ai?.severity_level,
+        confidence: ai?.confidence,
+        meta: [
+          `${s.eventsCollected ?? 0} events`,
+          String(s.status || 'unknown').toUpperCase(),
+          ai ? `${ai.suspicious_events ?? 0} suspicious` : 'AI pending',
+        ],
+        badge: 'SANDBOX',
+        session: s,
+      });
+    }
+
+    for (const d of analysisDocs) {
+      if (!match(d.sourceName) && !match(d.threatLevel) && !match(d.predictedThreat)) continue;
+      list.push({
+        kind: 'document',
+        id: d.id,
+        title: d.sourceName,
+        sub: `Document · ${formatDateTime(d.analysisTimestamp || '')}`,
+        timestamp: d.analysisTimestamp,
+        threatLevel: d.threatLevel,
+        confidence: d.confidence,
+        meta: [`Score: ${d.threatScore ?? 0}`, `${d.iocCount ?? d.indicators?.length ?? 0} IOCs`],
+        badge: 'DOCUMENT',
+        item: d,
+      });
+    }
+
+    for (const u of analysisUrls) {
+      if (!match(u.sourceName) && !match(u.threatLevel) && !match(u.predictedThreat)) continue;
+      list.push({
+        kind: 'url',
+        id: u.id,
+        title: u.sourceName,
+        sub: `URL · ${formatDateTime(u.analysisTimestamp || '')}`,
+        timestamp: u.analysisTimestamp,
+        threatLevel: u.threatLevel,
+        confidence: u.confidence,
+        meta: [`Score: ${u.threatScore ?? 0}`, `${u.iocCount ?? u.indicators?.length ?? 0} IOCs`],
+        badge: 'URL',
+        item: u,
+      });
+    }
+
+    for (const r of reports) {
+      if (!match(r.simulatorName) && !match(r.reportFile)) continue;
+      const ai = reportAiMap[r.sessionId];
+      list.push({
+        kind: 'execution',
+        id: r.id,
+        title: r.simulatorName,
+        sub: r.reportFile,
+        timestamp: r.generatedAt,
+        threatLevel: ai?.severity_level,
+        confidence: ai?.confidence,
+        meta: [`${r.totalEvents} events`, formatDuration(r.executionTime)],
+        badge: 'EXECUTION',
+        severityCounts: r.categoryCounts as unknown as Record<string, number>,
+        blockchainVerified: r.blockchainVerified,
+        sessionId: r.sessionId,
+      });
+    }
+
+    return list.sort((a, b) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime());
+  }, [sessions, analysisDocs, analysisUrls, reports, reportAiMap, search]);
+
+  const handleViewCombined = (report: CombinedReport) => {
+    if (report.kind === 'sandbox' && report.session) handleViewSandbox(report.session);
+    else if ((report.kind === 'document' || report.kind === 'url') && report.item) handleViewAnalysis(report.item);
+    else if (report.kind === 'execution') handleViewReport(report.id);
+  };
 
   const modalTitle = view?.kind === 'execution' ? 'Execution Report' : view?.kind === 'sandbox' ? 'Sandbox Session Analytics' : view?.kind === 'analysis' ? (view.item.analysisType === 'url_analysis' ? 'URL Analysis' : 'Document Analysis') : 'Report Details';
 
@@ -973,320 +1042,121 @@ export function ReportsPage() {
         </DashboardCard>
       </PageGrid>
 
-      <div className="flex gap-2 border-b border-[var(--border-subtle)]  overflow-x-auto">
-        {([
-          { key: 'sessions', label: 'Sandbox Sessions', icon: Terminal },
-          { key: 'documents', label: 'Documents', icon: FileSearch },
-          { key: 'urls', label: 'URLs', icon: Globe },
-          { key: 'execution', label: 'Execution Reports', icon: FileText },
-        ] as Array<{ key: SourceTab; label: string; icon: typeof Terminal }>).map((t) => (
-          <button key={t.key} onClick={() => switchTab(t.key)}
-            className={cn('px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap',
-              tab === t.key
-                ? 'border-amber-500 text-amber-600 '
-                : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-secondary)] '
-            )}>
-            <t.icon className="w-4 h-4" />
-            {t.label}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="flex items-center gap-2">
+          <Filter className="w-4 h-4 text-[var(--text-secondary)] " />
+          <select
+            value={investigationId}
+            onChange={(e) => handleInvestigationChange(e.target.value)}
+            className="px-3 py-2 text-sm border border-[var(--border-subtle)]  rounded-lg bg-white  text-[var(--text-primary)]  w-80"
+          >
+            <option value="">All Investigations</option>
+            {investigations.map((inv: { id: string; caseNumber?: string; title: string }) => (
+              <option key={inv.id} value={inv.id}>{inv.caseNumber} — {inv.title}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex-1 min-w-[200px]">
+          <Input
+            placeholder="Search sessions, documents, URLs, reports..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            leftIcon={<Search className="w-4 h-4" />}
+          />
+        </div>
+        <span className="text-xs text-[var(--text-secondary)]  px-3 py-1.5 bg-[var(--surface-container-low)]  rounded-lg">
+          {combinedReports.length} result{combinedReports.length === 1 ? '' : 's'}
+        </span>
       </div>
 
       <Card>
-        <div className="p-4 flex flex-wrap items-center gap-4">
-          <div className="flex-1 min-w-[200px]">
-            <Input
-              placeholder={tab === 'execution' ? 'Search reports...' : `Search ${tab === 'sessions' ? 'sessions' : tab === 'documents' ? 'documents' : 'URLs'}...`}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              leftIcon={<Search className="w-4 h-4" />}
-            />
+        {isSessionsLoading || isAnalysisLoading || isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full" />
           </div>
-          {tab === 'execution' && (
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-[var(--text-secondary)] " />
-              <Select
-                value={filters.simulator}
-                onChange={(val) => { setFilters({ simulator: val }); fetchReports({ simulator: val }); }}
-                options={[
-                  { value: '', label: 'All Simulators' },
-                  { value: 'ransomware', label: 'Ransomware' },
-                  { value: 'spyware', label: 'Spyware' },
-                  { value: 'trojan', label: 'Trojan' },
-                  { value: 'botnet', label: 'Botnet' },
-                  { value: 'credential-stealer', label: 'Credential Stealer' },
-                ]}
-              />
-              <Select
-                value={filters.severity}
-                onChange={(val) => { setFilters({ severity: val }); fetchReports({ severity: val }); }}
-                options={[
-                  { value: '', label: 'All Severity' },
-                  { value: 'critical', label: 'Critical' },
-                  { value: 'high', label: 'High' },
-                  { value: 'medium', label: 'Medium' },
-                  { value: 'low', label: 'Low' },
-                  { value: 'info', label: 'Info' },
-                ]}
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Sandbox sessions tab */}
-        {tab === 'sessions' && (
-          <>
-            {isSessionsLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full" />
-              </div>
-            ) : filteredSessions.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <Terminal className="w-12 h-12 text-[var(--text-secondary)]   mb-3" />
-                <p className="text-sm text-[var(--text-secondary)] ">{search ? 'No sessions match your search.' : 'No sandbox sessions yet. Start a simulation from the Sandbox page.'}</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-[var(--border-subtle)] ">
-                {filteredSessions.map((session) => {
-                  const ai = session.aiAnalysis;
-                  return (
-                    <motion.div
-                      key={session.sessionId}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      onClick={() => handleViewSandbox(session)}
-                      className="px-5 py-4 hover:bg-[var(--surface-container-lowest)]  cursor-pointer transition-colors"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-violet-500/15 flex items-center justify-center">
-                          <Terminal className="w-5 h-5 text-violet-600 " />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-medium text-[var(--text-primary)]  truncate">{session.simulatorName}</p>
-                            {ai?.severity_level ? (
-                              <span className={cn('inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium', severityColors[ai.severity_level] || severityColors.info)}>
-                                <Brain className="w-3 h-3 mr-1" /> AI · {String(ai.severity_level).toUpperCase()}
-                                {ai.confidence !== undefined && ` · ${Math.round(ai.confidence * 100)}%`}
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-amber-100 text-amber-600">
-                                <Loader2 className="w-3 h-3 mr-1 animate-spin" /> AI pending
-                              </span>
-                            )}
-                            <span className={cn('px-2 py-0.5 rounded text-[11px] font-medium',
-                              session.status === 'completed' ? 'bg-emerald-100 text-emerald-600' :
-                              session.status === 'failed' ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-600')}>
-                              {String(session.status || 'unknown').toUpperCase()}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-3 mt-1 flex-wrap">
-                            <span className="text-xs text-[var(--text-secondary)]   font-mono">{session.sessionId}</span>
-                            <span className="text-xs text-[var(--text-secondary)]  ">•</span>
-                            <span className="text-xs text-[var(--text-secondary)]  ">{formatDateTime(session.startTime)}</span>
-                            <span className="text-xs text-[var(--text-secondary)]  ">•</span>
-                            <span className="text-xs text-[var(--text-secondary)]  ">{session.eventsCollected ?? 0} events</span>
-                            {ai?.total_events !== undefined && (
-                              <>
-                                <span className="text-xs text-[var(--text-secondary)]  ">•</span>
-                                <span className="text-xs text-[var(--text-secondary)]  ">{ai.suspicious_events ?? 0} suspicious</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 flex-wrap justify-end">
-                          {ai?.threat_classification && Object.keys(ai.threat_classification).length > 0 && (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs bg-[var(--surface-container-low)] text-[var(--text-secondary)]">
-                              <Activity className="w-3 h-3" />
-                              {Object.entries(ai.threat_classification).sort((a, b) => Number(b[1]) - Number(a[1]))[0][0].replace(/_/g, ' ')}
-                            </span>
-                          )}
-                          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleViewSandbox(session); }}>
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            )}
-          </>
-        )}
-
-        {/* Documents / URLs tabs */}
-        {(tab === 'documents' || tab === 'urls') && (
-          <>
-            {isAnalysisLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full" />
-              </div>
-            ) : (tab === 'documents' ? filteredDocs : filteredUrls).length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                {tab === 'documents' ? <FileSearch className="w-12 h-12 text-[var(--text-secondary)]   mb-3" /> : <Globe className="w-12 h-12 text-[var(--text-secondary)]   mb-3" />}
-                <p className="text-sm text-[var(--text-secondary)] ">
-                  {search
-                    ? 'No results match your search.'
-                    : tab === 'documents'
-                      ? 'No document analyses found. Upload a document from the AI Analysis page.'
-                      : 'No URL analyses found. Submit a URL from the AI Analysis page.'}
-                </p>
-              </div>
-            ) : (
-              <div className="divide-y divide-[var(--border-subtle)] ">
-                {(tab === 'documents' ? filteredDocs : filteredUrls).map((item) => (
-                  <motion.div
-                    key={item.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    onClick={() => handleViewAnalysis(item)}
-                    className="px-5 py-4 hover:bg-[var(--surface-container-lowest)]  cursor-pointer transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-blue-500/15 flex items-center justify-center">
-                        {tab === 'documents' ? <FileSearch className="w-5 h-5 text-violet-600 " /> : <Globe className="w-5 h-5 text-blue-600 " />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-medium text-[var(--text-primary)]  truncate">{item.sourceName}</p>
-                          {item.threatLevel && (
-                            <span className={cn('inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium', severityColors[item.threatLevel] || severityColors.info)}>
-                              {String(item.threatLevel).toUpperCase()}
-                              {item.confidence !== undefined && ` · ${Math.round(item.confidence * 100)}%`}
-                            </span>
-                          )}
-                          {item.analyzedBy === 'system' && item.aiInsights?.llm_available && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-violet-100 text-violet-600">
-                              <Brain className="w-3 h-3 mr-1" /> AI
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-3 mt-1 flex-wrap">
-                          <span className="text-xs text-[var(--text-secondary)]  ">{formatDateTime(item.analysisTimestamp)}</span>
-                          <span className="text-xs text-[var(--text-secondary)]  ">•</span>
-                          <span className="text-xs text-[var(--text-secondary)]  ">Score: {item.threatScore ?? 0}</span>
-                          <span className="text-xs text-[var(--text-secondary)]  ">•</span>
-                          <span className="text-xs text-[var(--text-secondary)]  ">{item.iocCount ?? item.indicators?.length ?? 0} IOCs</span>
-                          {Array.isArray(item.mitreTechniques) && item.mitreTechniques.length > 0 && (
-                            <>
-                              <span className="text-xs text-[var(--text-secondary)]  ">•</span>
-                              <span className="text-xs text-[var(--text-secondary)]  font-mono">{item.mitreTechniques.length} MITRE</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleViewAnalysis(item); }}>
-                        <Eye className="w-4 h-4" />
-                      </Button>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <p className="text-red-500 mb-3">{error}</p>
+            <Button variant="outline" size="sm" onClick={() => fetchReports()}>Retry</Button>
+          </div>
+        ) : combinedReports.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <FileSearch className="w-12 h-12 text-[var(--text-secondary)]   mb-3" />
+            <p className="text-sm text-[var(--text-secondary)] ">
+              {search
+                ? 'No results match your search.'
+                : 'No reports found for this investigation. Register evidence and run sandbox simulations to generate reports.'}
+            </p>
+          </div>
+        ) : (
+          <div className="divide-y divide-[var(--border-subtle)] ">
+            {combinedReports.map((report, index) => {
+              const Icon = report.kind === 'sandbox' ? Terminal : report.kind === 'execution' ? FileText : report.kind === 'url' ? Globe : FileSearch;
+              const iconBg = report.kind === 'sandbox' ? 'bg-violet-500/15 text-violet-600' : report.kind === 'execution' ? 'bg-amber-500/15 text-amber-600' : report.kind === 'url' ? 'bg-blue-500/15 text-blue-600' : 'bg-violet-500/15 text-violet-600';
+              return (
+                <motion.div
+                  key={`${report.kind}-${report.id}`}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: Math.min(index * 0.03, 0.3) }}
+                  onClick={() => handleViewCombined(report)}
+                  className="px-5 py-4 hover:bg-[var(--surface-container-lowest)]  cursor-pointer transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${iconBg}`}>
+                      <Icon className="w-5 h-5" />
                     </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </>
-        )}
-
-        {/* Execution reports tab */}
-        {tab === 'execution' && (
-          <>
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full" />
-              </div>
-            ) : error ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <p className="text-red-500 mb-3">{error}</p>
-                <Button variant="outline" size="sm" onClick={() => fetchReports()}>Retry</Button>
-              </div>
-            ) : reports.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <FileText className="w-12 h-12 text-[var(--text-secondary)]   mb-3" />
-                <p className="text-sm text-[var(--text-secondary)] ">No reports found. Run a simulation to generate reports.</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-[var(--border-subtle)] ">
-                {reports.map((report, index) => (
-                  <motion.div
-                    key={report.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    onClick={() => handleViewReport(report.id)}
-                    className="px-5 py-4 hover:bg-[var(--surface-container-lowest)]  cursor-pointer transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center">
-                        <FileText className="w-5 h-5 text-amber-600 " />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-medium text-[var(--text-primary)]  truncate">{report.title}</p>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold tracking-wide bg-[var(--surface-container-low)] text-[var(--text-secondary)] ">
+                          {report.badge}
+                        </span>
+                        {report.blockchainVerified && <Shield className="w-4 h-4 text-emerald-500 flex-shrink-0" />}
+                        {report.threatLevel && (
+                          <span className={cn('inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium', severityColors[report.threatLevel] || severityColors.info)}>
+                            {String(report.threatLevel).toUpperCase()}
+                            {report.confidence !== undefined && ` · ${Math.round(report.confidence * 100)}%`}
+                          </span>
+                        )}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium text-[var(--text-primary)]  truncate">{report.simulatorName}</p>
-                          {report.blockchainVerified && <Shield className="w-4 h-4 text-emerald-500 flex-shrink-0" />}
-                          {reportAiMap[report.sessionId]?.severity_level && (
-                            <span className={cn('inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium', severityColors[reportAiMap[report.sessionId].severity_level] || severityColors.info)}>
-                              AI · {String(reportAiMap[report.sessionId].severity_level).toUpperCase()}
-                              {reportAiMap[report.sessionId].confidence !== undefined && ` · ${Math.round(reportAiMap[report.sessionId].confidence * 100)}%`}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-3 mt-1 flex-wrap">
-                          <span className="text-xs text-[var(--text-secondary)]   font-mono">{report.reportFile}</span>
-                          <span className="text-xs text-[var(--text-secondary)]  ">•</span>
-                          <span className="text-xs text-[var(--text-secondary)]  ">{formatDateTime(report.generatedAt)}</span>
-                          <span className="text-xs text-[var(--text-secondary)]  ">•</span>
-                          <span className="text-xs text-[var(--text-secondary)]  ">{report.totalEvents} events</span>
-                          <span className="text-xs text-[var(--text-secondary)]  ">•</span>
-                          <span className="text-xs text-[var(--text-secondary)]  ">{formatDuration(report.executionTime)}</span>
-                        </div>
+                      <div className="flex items-center gap-3 mt-1 flex-wrap">
+                        <span className="text-xs text-[var(--text-secondary)]   font-mono truncate max-w-[320px]">{report.sub}</span>
+                        <span className="text-xs text-[var(--text-secondary)]  ">•</span>
+                        <span className="text-xs text-[var(--text-secondary)]  ">{formatDateTime(report.timestamp)}</span>
+                        {report.meta.map((m) => (
+                          <span key={m} className="flex items-center gap-1 text-xs text-[var(--text-secondary)] ">
+                            <span className="text-[var(--text-secondary)]  ">•</span>
+                            {m}
+                          </span>
+                        ))}
                       </div>
-                      <div className="flex items-center gap-2 flex-wrap justify-end">
-                        {['process', 'file', 'registry', 'network', 'behavior', 'system'].map((cat) => {
-                          const count = report.categoryCounts?.[cat as keyof typeof report.categoryCounts] || 0;
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap justify-end">
+                      {report.kind === 'execution' && report.severityCounts && (
+                        ['process', 'file', 'registry', 'network', 'behavior', 'system'].map((cat) => {
+                          const count = report.severityCounts?.[cat] || 0;
                           if (count === 0) return null;
-                          const Icon = categoryIcons[cat] || Activity;
+                          const CatIcon = categoryIcons[cat] || Activity;
                           return (
                             <span key={cat} className={cn('inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs', categoryColors[cat])}>
-                              <Icon className="w-3 h-3" />
+                              <CatIcon className="w-3 h-3" />
                               {count}
                             </span>
                           );
-                        })}
-                        <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleViewReport(report.id); }}>
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                      </div>
+                        })
+                      )}
+                      <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleViewCombined(report); }}>
+                        <Eye className="w-4 h-4" />
+                      </Button>
                     </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
         )}
       </Card>
-
-      {tab === 'sessions' && sessionsPagination.totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2">
-          <Button variant="outline" size="sm" disabled={sessionsPage <= 1} onClick={() => { setSessionsPage(sessionsPage - 1); fetchSessions(sessionsPage - 1, 20); }}>Previous</Button>
-          <span className="text-sm text-[var(--text-secondary)]">Page {sessionsPage} of {sessionsPagination.totalPages}</span>
-          <Button variant="outline" size="sm" disabled={sessionsPage >= sessionsPagination.totalPages} onClick={() => { setSessionsPage(sessionsPage + 1); fetchSessions(sessionsPage + 1, 20); }}>Next</Button>
-        </div>
-      )}
-
-      {(tab === 'documents' || tab === 'urls') && analysisPagination.totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2">
-          <Button variant="outline" size="sm" disabled={analysisPage <= 1} onClick={() => { setAnalysisPage(analysisPage - 1); fetchAnalysisHistory(tab === 'documents' ? 'document_analysis' : 'url_analysis', analysisPage - 1, 20); }}>Previous</Button>
-          <span className="text-sm text-[var(--text-secondary)]">Page {analysisPage} of {analysisPagination.totalPages}</span>
-          <Button variant="outline" size="sm" disabled={analysisPage >= analysisPagination.totalPages} onClick={() => { setAnalysisPage(analysisPage + 1); fetchAnalysisHistory(tab === 'documents' ? 'document_analysis' : 'url_analysis', analysisPage + 1, 20); }}>Next</Button>
-        </div>
-      )}
-
-      {tab === 'execution' && pagination.totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2">
-          <Button variant="outline" size="sm" disabled={executionPage <= 1} onClick={() => { setExecutionPage(executionPage - 1); fetchReports({ page: executionPage - 1 }); }}>Previous</Button>
-          <span className="text-sm text-[var(--text-secondary)]">Page {executionPage} of {pagination.totalPages}</span>
-          <Button variant="outline" size="sm" disabled={executionPage >= pagination.totalPages} onClick={() => { setExecutionPage(executionPage + 1); fetchReports({ page: executionPage + 1 }); }}>Next</Button>
-        </div>
-      )}
 
       <Modal isOpen={view !== null} onClose={handleCloseDetail} title={modalTitle} size="xl">
         {view?.kind === 'execution' && (

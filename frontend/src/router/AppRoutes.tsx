@@ -14,7 +14,6 @@ const EvidenceExplorerPage = lazy(() => import('../pages/EvidenceExplorerPage'))
 const LiveTelemetryPage = lazy(() => import('../pages/LiveTelemetryPage'));
 const BlockchainOperationsPage = lazy(() => import('../pages/BlockchainOperationsPage'));
 const ThreatIntelligencePage = lazy(() => import('../pages/ThreatIntelligencePage'));
-const ForensicAnalyticsPage = lazy(() => import('../pages/ForensicAnalyticsPage'));
 const SettingsPage = lazy(() => import('../pages/SettingsPage'));
 const UsersPage = lazy(() => import('../pages/UsersPage'));
 
@@ -32,6 +31,7 @@ const KnowledgeBasePage = lazy(() => import('../pages/KnowledgeBasePage'));
 const UserDossierPage = lazy(() => import('../pages/UserDossierPage'));
 const RoleAssignmentPage = lazy(() => import('../pages/RoleAssignmentPage'));
 const SystemConfigurationPage = lazy(() => import('../pages/SystemConfigurationPage'));
+const CustodyPage = lazy(() => import('../pages/CustodyPage'));
 
 // Loading screen shown during auth check
 function AuthLoadingScreen() {
@@ -226,18 +226,14 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: 'custody',
+        element: <CustodyPage />,
+      },
+      {
         path: 'threat-intelligence',
         element: (
           <RoleRoute allowedRoles={['admin', 'super_admin', 'forensic_analyst']}>
             <ThreatIntelligencePage />
-          </RoleRoute>
-        ),
-      },
-      {
-        path: 'forensic-analytics',
-        element: (
-          <RoleRoute allowedRoles={['admin', 'super_admin']}>
-            <ForensicAnalyticsPage />
           </RoleRoute>
         ),
       },

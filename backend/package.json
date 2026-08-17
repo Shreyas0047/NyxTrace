@@ -15,7 +15,8 @@
     "test:coverage": "jest --coverage",
     "db:init": "ts-node src/scripts/init-db.ts",
     "db:seed": "ts-node src/scripts/seed.ts",
-    "migrate": "ts-node src/scripts/migrate.ts"
+    "migrate": "ts-node src/scripts/migrate.ts",
+    "backfill:iocs": "ts-node src/scripts/backfill-iocs.ts"
   },
   "keywords": [
     "cybersecurity",

@@ -91,6 +91,62 @@ export class VerificationService {
   }
 
   /**
+   * Verify raw data (e.g. a URL string) against an expected SHA-256 hash.
+   * Mirrors verifyEvidence for evidence kinds that have no artifact on disk.
+   */
+  async verifyData(
+    evidenceId: string,
+    data: string,
+    expectedHash: string,
+    verifiedBy: string
+  ): Promise<{
+    status: VerificationStatus;
+    currentHash: string;
+    integrityState: EvidenceIntegrityState;
+    verification: VerificationRecord;
+  }> {
+    const result = evidenceHashingService.verifyHash(data, expectedHash);
+
+    let status: VerificationStatus;
+    let integrityState: EvidenceIntegrityState;
+
+    if (result.matches) {
+      status = VerificationStatus.VERIFIED;
+      integrityState = EvidenceIntegrityState.INTACT;
+    } else {
+      status = VerificationStatus.MODIFIED;
+      integrityState = EvidenceIntegrityState.MODIFIED;
+      await this.createTamperAlert(evidenceId, expectedHash, result.hash);
+    }
+
+    const verification = evidenceHashingService.createVerificationRecord(
+      evidenceId,
+      result.hash,
+      status,
+      'local',
+      verifiedBy,
+      result.matches ? 'Integrity verified successfully' : 'Integrity mismatch detected'
+    );
+
+    this.addVerificationToHistory(evidenceId, verification);
+    this.addAuditEntry({
+      eventType: result.matches ? BlockchainEventType.EVIDENCE_VERIFIED : BlockchainEventType.HASH_MISMATCH,
+      evidenceId,
+      details: result.matches
+        ? `Evidence ${evidenceId} verified successfully`
+        : `Hash mismatch detected for evidence ${evidenceId}`,
+      performedBy: verifiedBy,
+    });
+
+    return {
+      status,
+      currentHash: result.hash,
+      integrityState,
+      verification,
+    };
+  }
+
+  /**
    * Verify evidence with blockchain preparation
    */
   async verifyEvidenceWithBlockchain(

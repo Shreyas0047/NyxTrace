@@ -111,12 +111,22 @@ export interface Evidence {
   /** Flat alias for fileSize emitted by some backend serializers. */
   size?: number;
   mimeType: string;
+  /** Artifact kind of the evidence (used by sandbox + analysis routing). */
+  artifactKind?: 'executable' | 'document' | 'url';
+  /** Target URL for url-kind evidence (no file is stored). */
+  url?: string;
+  /** Simulator preferred for analyzing this artifact. */
+  simulatorHint?: string;
   hash?: {
     sha256?: string;
     md5?: string;
   };
   /** Flat alias for hash.sha256 emitted by some backend serializers. */
   sha256?: string;
+  /** Hash of the file after demo-mode tamper simulation (display only). */
+  tamperedHash?: string;
+  /** Fingerprint returned when evidence is anchored on-chain. */
+  fingerprint?: string;
   collectedAt: string;
   collectedBy: User;
   verified: boolean;
@@ -138,6 +148,9 @@ export type EvidenceType =
   | 'package'
   | 'malware_sample'
   | 'report'
+  | 'executable'
+  | 'document'
+  | 'url'
   | 'other';
 
 export type EvidenceStatus =
@@ -146,6 +159,7 @@ export type EvidenceStatus =
   | 'ready'
   | 'analyzing'
   | 'verified'
+  | 'tampered'
   | 'archived'
   | 'deleted';
 
@@ -415,6 +429,7 @@ export interface PaginationParams {
   priority?: string;
   type?: string;
   search?: string;
+  investigationId?: string;
 }
 
 // Permissions

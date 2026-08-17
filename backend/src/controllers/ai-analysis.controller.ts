@@ -94,7 +94,7 @@ export class AIController {
    * Generate AI investigation summary
    */
   async summarizeInvestigation(req: AuthenticatedRequest, res: Response): Promise<void> {
-    const { investigationId, caseNumber, evidence, reports, alerts, timeline } = req.body;
+    const { investigationId, title, description, caseNumber, evidence, reports, alerts, timeline } = req.body;
 
     if (!investigationId) {
       res.status(400).json({
@@ -107,6 +107,8 @@ export class AIController {
     try {
       const result = await aiAnalysisService.generateInvestigationSummary({
         investigationId,
+        title: title || '',
+        description: description || '',
         caseNumber: caseNumber || '',
         evidence: evidence || [],
         reports: reports || [],

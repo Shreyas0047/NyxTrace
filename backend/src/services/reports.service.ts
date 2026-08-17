@@ -7,6 +7,7 @@ import logger from '../config/logger';
 import * as fs from 'fs';
 import * as path from 'path';
 import { config } from '../config';
+import { Evidence, SandboxSession } from '../models';
 import type {
   ForensicReportSummary,
   ForensicReportDetail,
@@ -140,10 +141,25 @@ export class ReportsService {
     dateFrom?: string;
     dateTo?: string;
     search?: string;
+    investigationId?: string;
   } = {}): Promise<{ reports: ForensicReportSummary[]; total: number }> {
     const page = Math.max(1, options.page || 1);
     const limit = Math.min(100, Math.max(1, options.limit || 20));
     const reports: ForensicReportSummary[] = [];
+
+    // When scoping to an investigation, resolve sessionIds via evidence linkage
+    let scopedSessionIds: Set<string> | null = null;
+    if (options.investigationId) {
+      try {
+        const evidenceIds = await Evidence.find({ investigationId: options.investigationId }).distinct('_id');
+        const sessions = await SandboxSession.find({ evidenceId: { $in: evidenceIds } })
+          .select('sessionId')
+          .lean();
+        scopedSessionIds = new Set(sessions.map((s: any) => s.sessionId));
+      } catch {
+        scopedSessionIds = new Set();
+      }
+    }
 
     // Primary: uploads/reports/ (all candidate locations, e.g. backend/ and project root)
     const reportDirs = [...REPORTS_DIRS, ...MONITORING_DIRS];
@@ -176,6 +192,7 @@ export class ReportsService {
         };
 
         // Apply filters
+        if (scopedSessionIds && !scopedSessionIds.has(summary.sessionId)) continue;
         if (options.simulator && summary.simulatorName.toLowerCase() !== options.simulator.toLowerCase()) continue;
         if (options.severity) {
           const sevCount = (summary.severityCounts as unknown as Record<string, number>)[options.severity] || 0;

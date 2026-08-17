@@ -11,7 +11,10 @@ export class AnalysisController {
         return;
       }
 
-      const result = await analysisService.analyzeDocument(req.file.path, req.file.originalname);
+      const result = await analysisService.analyzeDocument(req.file.path, req.file.originalname, {
+        investigationId: req.body.investigationId,
+        evidenceId: req.body.evidenceId,
+      });
       const response: ApiResponse = {
         success: true,
         message: 'Document analysis complete',
@@ -42,7 +45,10 @@ export class AnalysisController {
         return;
       }
 
-      const result = await analysisService.analyzeUrl(url);
+      const result = await analysisService.analyzeUrl(url, {
+        investigationId: req.body.investigationId,
+        evidenceId: req.body.evidenceId,
+      });
       const response: ApiResponse = {
         success: true,
         message: 'URL analysis complete',
@@ -77,8 +83,9 @@ export class AnalysisController {
       const page = parseInt(req.query.page as string) || 1;
       const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
       const type = req.query.type as string;
+      const investigationId = req.query.investigationId as string;
 
-      const result = await analysisService.getAnalysisHistory(page, limit, type);
+      const result = await analysisService.getAnalysisHistory(page, limit, type, investigationId);
       const response: ApiResponse = {
         success: true,
         message: 'Analysis history retrieved',

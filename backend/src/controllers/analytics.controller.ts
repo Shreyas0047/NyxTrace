@@ -450,6 +450,18 @@ export class AnalyticsController {
 
       const events = await this.loadSessionTelemetry(sessionId);
       if (events.length === 0) {
+        // No telemetry rows (document/URL static-analysis sessions, or sessions
+        // whose events were purged) — fall back to the persisted AI analysis.
+        const stored = await this.loadStoredAnalysis(sessionId);
+        if (stored) {
+          const response: ApiResponse = {
+            success: true,
+            message: 'Session analyzed successfully (from persisted analysis)',
+            data: stored,
+          };
+          res.json(response);
+          return;
+        }
         res.status(404).json({
           success: false,
           message: 'No telemetry found for this session',
@@ -570,6 +582,175 @@ export class AnalyticsController {
       attackChain: { stages: attackStages.length > 0 ? attackStages : [{ stageName: 'Execution', events: events.length, mitreTechniques: mitreTechniques.map((m: any) => m.id) }] },
       behavioralHeuristics: heuristics,
       analystExplanation: ai.reconstruction_summary || ai.behavioral_summary || `Threat classification: ${predictedThreat.replace(/_/g, ' ')}. Confidence: ${((ai.confidence || 0) * 100).toFixed(0)}%.`,
+    };
+  }
+
+  /**
+   * Load a persisted AI analysis for a session that has no telemetry rows
+   * (document/URL static-analysis sessions, or executable sessions whose
+   * events were purged from the runtime).
+   */
+  private async loadStoredAnalysis(sessionId: string): Promise<Record<string, any> | null> {
+    const session = await SandboxSession.findOne({ sessionId }).lean();
+    if (!session?.aiAnalysis) return null;
+    return this.mapStoredAIResult(sessionId, session, session.aiAnalysis);
+  }
+
+  /**
+   * Normalize a persisted snake_case AI analysis (stored on the SandboxSession)
+   * into the camelCase shape the analytics API exposes. Handles both the raw AI
+   * microservice output (probability-map threat_classification, mitre_mapping,
+   * attack_chain) and the document/URL static-analysis shape
+   * (threat_classification: { category, family, severity }).
+   */
+  private mapStoredAIResult(sessionId: string, session: any, ai: any): Record<string, any> {
+    const rawTC = ai.threat_classification || ai.threatClassification || {};
+    const entries = Object.entries(rawTC).filter(([, v]) => v !== null && v !== undefined);
+    const isProbabilityMap = entries.length > 0 && entries.every(([, v]) => typeof v === 'number');
+    const categoryOnly = !isProbabilityMap && entries.length > 0 ? rawTC : null;
+
+    const confidence = Number(ai.confidence || 0);
+    const severityScore = Number(((ai.severity_score || ai.severityScore || 0) / 10).toFixed(1));
+    const severityLevel = ai.severity_level || ai.severityLevel || categoryOnly?.severity || 'low';
+
+    const predictedThreat = categoryOnly?.category
+      ? String(categoryOnly.category)
+      : Object.keys(rawTC).sort((a, b) => (rawTC[b] || 0) - (rawTC[a] || 0))[0] || 'benign_or_inconclusive';
+
+    const threatClassification: Record<string, number> = isProbabilityMap
+      ? rawTC
+      : { [predictedThreat]: Math.max(confidence || 0, 0.4) };
+
+    const findings: any[] = ai.findings || session?.executionSummary?.findings || [];
+    const findingText = findings
+      .map((f: any) => `${f.type || ''} ${f.description || f.detail || ''} ${f.category || ''}`)
+      .join(' ')
+      .toLowerCase();
+
+    // ── MITRE techniques ────────────────────────────────────────────────
+    let mitreTechniques: any[] = [];
+    const rawMitre = ai.mitre_mapping || ai.mitre_techniques || ai.mitreMapping || [];
+    if (Array.isArray(rawMitre)) {
+      mitreTechniques = rawMitre.map((m: any) => ({
+        id: m.technique_id || m.id,
+        name: m.technique_name || m.name,
+        tactic: m.tactic,
+        description: m.description || `${m.technique_name || m.name} (${m.technique_id || m.id})`,
+        evidence: m.evidence_snippets || m.evidence || [],
+        confidence: m.confidence || confidence || 0.5,
+      })).filter((m: any) => m.id);
+    }
+    if (mitreTechniques.length === 0) {
+      const categories = new Set<string>();
+      const classify = (text: string) => {
+        if (/registry|reg_|persist|autorun|startup/.test(text)) categories.add('registry');
+        if (/network|connect|dns|http|beacon|tcp|ip|url|domain|exfil/.test(text)) categories.add('network');
+        if (/credential|password|lsass|steal|keylog|token/.test(text)) categories.add('credential');
+        if (/file|encrypt|write|delete|read|document|macro|ole|zip|office/.test(text)) categories.add('file');
+        if (/process|exec|inject|thread|spawn|create/.test(text)) categories.add('process');
+      };
+      classify(findingText);
+      (ai.iocIndicators || session?.executionSummary?.iocIndicators || []).forEach((ioc: any) => {
+        classify(typeof ioc === 'string' ? ioc : JSON.stringify(ioc));
+      });
+      mitreTechniques = Array.from(categories).map((c) => MITRE_BY_CATEGORY[c]).filter(Boolean);
+      if (mitreTechniques.length === 0 && (ai.suspicious_events || findings.length > 0)) {
+        mitreTechniques = [{ id: 'T1059', name: 'Command and Scripting Interpreter', tactic: 'Execution', description: 'Suspicious behavior detected during analysis.', evidence: [], confidence: Math.max(0.3, confidence) }];
+      }
+    }
+
+    // ── Behavioral heuristics ───────────────────────────────────────────
+    const heuristicDefs: Array<{ name: string; test: RegExp }> = [
+      { name: 'Suspicious process execution', test: /process|exec|inject|thread|spawn|create/ },
+      { name: 'File system modification', test: /file|encrypt|write|delete|read|document|macro|ole|zip/ },
+      { name: 'Registry persistence activity', test: /registry|reg_|persist|autorun|startup/ },
+      { name: 'Outbound network behavior', test: /network|connect|dns|http|beacon|tcp|url|domain|exfil/ },
+      { name: 'Credential access indicators', test: /credential|password|lsass|steal|keylog|token/ },
+    ];
+    const heuristics = heuristicDefs.map((h) => {
+      const triggered = h.test.test(findingText);
+      return {
+        name: h.name,
+        triggered,
+        severity: triggered ? 'medium' : 'low',
+        confidence: triggered ? Math.max(0.4, confidence) : 0,
+        description: triggered ? `${h.name} observed in analysis findings.` : `No ${h.name.toLowerCase()} observed.`,
+      };
+    });
+    if (findings.length > 0 && !heuristics.some((h) => h.triggered)) {
+      heuristics.unshift({
+        name: 'Malicious content detected',
+        triggered: true,
+        severity: severityLevel === 'high' || severityLevel === 'critical' ? severityLevel : 'medium',
+        confidence: Math.max(0.5, confidence),
+        description: `${findings.length} suspicious finding(s) identified in the analyzed artifact.`,
+      });
+    }
+
+    // ── Anomalies ───────────────────────────────────────────────────────
+    let anomalies: any[] = [];
+    if (Array.isArray(ai.anomalies) && ai.anomalies.length > 0) {
+      anomalies = ai.anomalies.map((a: any) => ({
+        type: a.type || a.category || 'behavioral',
+        description: a.description || a.detail || '',
+        severity: a.severity || 'medium',
+        deviation_score: Number(a.deviation_score ?? a.deviationScore ?? 0),
+      }));
+    } else if (findings.length > 0) {
+      anomalies = findings.slice(0, 10).map((f: any, i: number) => ({
+        type: f.type || 'finding',
+        description: f.description || f.detail || '',
+        severity: f.severity || (i === 0 && (severityLevel === 'high' || severityLevel === 'critical') ? severityLevel : 'medium'),
+        deviation_score: Math.min(0.99, 0.5 + i * 0.04),
+      }));
+    }
+
+    // ── Attack chain ────────────────────────────────────────────────────
+    let attackStages: any[] = [];
+    const rawChain = ai.attack_chain || ai.attackChain;
+    if (Array.isArray(rawChain)) {
+      attackStages = rawChain.map((link: any) => ({
+        stageName: link.phase?.replace(/_/g, ' ') || link.name || 'Unknown',
+        events: link.event_count || link.events || 0,
+        mitreTechniques: link.techniques || [],
+      }));
+    } else if (findings.length > 0) {
+      attackStages = findings.slice(0, 5).map((f: any, i: number) => ({
+        stageName: f.type ? String(f.type).replace(/_/g, ' ') : `Finding ${i + 1}`,
+        events: 1,
+        mitreTechniques: mitreTechniques.slice(0, 1).map((m: any) => m.id),
+      }));
+    }
+    if (attackStages.length === 0 && (ai.suspicious_events || findings.length > 0)) {
+      attackStages = [{ stageName: 'Execution', events: ai.suspicious_events || findings.length || 0, mitreTechniques: mitreTechniques.map((m: any) => m.id) }];
+    }
+
+    const totalEvents = ai.total_events || findings.length || 0;
+    const suspiciousEvents = ai.suspicious_events || findings.length || 0;
+
+    return {
+      sessionId,
+      analysisTimestamp: ai.analysis_timestamp || ai.analysisTimestamp || session?.endTime || new Date().toISOString(),
+      totalEvents,
+      suspiciousEvents,
+      threatClassification,
+      predictedThreat,
+      confidence,
+      reasons: [
+        `Analyzed ${totalEvents} events across the artifact`,
+        `${suspiciousEvents} suspicious indicator(s) detected`,
+        `Primary threat: ${predictedThreat.replace(/_/g, ' ')}`,
+        `Severity: ${severityLevel} (${ai.severity_score || ai.severityScore || 0}/100)`,
+      ],
+      severityScore,
+      severityLevel,
+      anomalies,
+      behavioralSummary: ai.behavioral_summary || ai.reconstruction_summary || ai.summary || 'Analysis completed',
+      recommendations: ai.recommendations || [],
+      mitreTechniques,
+      attackChain: { stages: attackStages.length > 0 ? attackStages : [{ stageName: 'Execution', events: 0, mitreTechniques: [] }] },
+      behavioralHeuristics: heuristics,
+      analystExplanation: ai.reconstruction_summary || ai.behavioral_summary || ai.summary || `Threat classification: ${predictedThreat.replace(/_/g, ' ')}. Confidence: ${(confidence * 100).toFixed(0)}%.`,
     };
   }
 

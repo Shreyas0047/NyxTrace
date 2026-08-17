@@ -295,6 +295,9 @@ export enum EvidenceType {
   LOG = 'log',
   SCREENSHOT = 'screenshot',
   REPORT = 'report',
+  EXECUTABLE = 'executable',
+  DOCUMENT = 'document',
+  URL = 'url',
   OTHER = 'other',
 }
 
@@ -313,6 +316,7 @@ export enum EvidenceStatus {
   READY = 'ready',
   ANALYZING = 'analyzing',
   VERIFIED = 'verified',
+  TAMPERED = 'tampered',
   ARCHIVED = 'archived',
   DELETED = 'deleted',
 }

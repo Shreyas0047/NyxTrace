@@ -10,6 +10,7 @@ import { blockchainService } from './blockchain.service';
 import { smartContractService } from './smart-contract.service';
 import { transactionService } from './transaction.service';
 import { BlockchainEventType, VerificationStatus, SyncStatus, SyncOperation } from './types';
+import { CustodyEventType } from '../models/custody.model';
 
 export interface SyncQueueItem {
   id: string;
@@ -92,7 +93,8 @@ export class BlockchainSyncService {
 
   async queueEvidenceRegistration(
     evidenceId: string,
-    fingerprint: string
+    fingerprint: string,
+    performedBy = 'system'
   ): Promise<string> {
     const doc = await BlockchainSyncQueue.create({
       operation: SyncOperation.EVIDENCE_REGISTER,
@@ -105,7 +107,7 @@ export class BlockchainSyncService {
     });
 
     await this.logAudit(evidenceId, BlockchainEventType.EVIDENCE_REGISTERED,
-      'Evidence queued for blockchain registration', 'system', { fingerprint });
+      'Evidence queued for blockchain registration', performedBy, { fingerprint });
 
     return doc._id.toString();
   }
@@ -210,12 +212,16 @@ export class BlockchainSyncService {
 
       item.transactionHash = txHash.transactionHash;
 
-      const confirmation = item.transactionHash
-        ? await blockchainService.verifyTransaction(item.transactionHash)
-        : { confirmed: false, blockNumber: 0 };
+      if (txHash.blockNumber) {
+        item.blockNumber = txHash.blockNumber;
+      } else {
+        const confirmation = item.transactionHash
+          ? await blockchainService.verifyTransaction(item.transactionHash)
+          : { confirmed: false, blockNumber: 0 };
 
-      if (confirmation.confirmed) {
-        item.blockNumber = confirmation.blockNumber;
+        if (confirmation.confirmed) {
+          item.blockNumber = confirmation.blockNumber;
+        }
       }
     } catch (error) {
       logger.warn(`[Sync] Blockchain registration failed, using local-only: ${error}`);
@@ -388,6 +394,28 @@ export class BlockchainSyncService {
           },
         }
       );
+
+      // Reflect the on-chain anchor in the custody chain
+      if (
+        item.operation === SyncOperation.EVIDENCE_REGISTER &&
+        item.transactionHash &&
+        item.blockNumber
+      ) {
+        try {
+          const { chainOfCustodyService } = await import('../services/custody.service');
+          await chainOfCustodyService.addEvent({
+            evidenceId: item.evidenceId,
+            eventType: CustodyEventType.BLOCKCHAIN_SYNCED,
+            performedBy: 'system',
+            performedByName: 'System',
+            details: 'Evidence fingerprint anchored on the blockchain',
+            transactionHash: item.transactionHash,
+            blockNumber: item.blockNumber,
+          });
+        } catch (error) {
+          logger.warn(`[Sync] Failed to record blockchain_synced custody event: ${error}`);
+        }
+      }
     }
   }
 
@@ -403,7 +431,7 @@ export class BlockchainSyncService {
         evidenceId,
         eventType,
         details,
-        performedBy,
+        performedBy: /^[0-9a-fA-F]{24}$/.test(performedBy) ? performedBy : undefined,
         metadata,
       });
     } catch (error) {

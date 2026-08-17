@@ -28,6 +28,13 @@ router.post(
   asyncHandler(evidenceController.upload)
 );
 
+// Register a URL as evidence (no file upload)
+router.post(
+  '/url',
+  requirePermission(Permission.EVIDENCE_UPLOAD),
+  asyncHandler(evidenceController.registerUrl)
+);
+
 // Get evidence by investigation
 router.get(
   '/investigation/:investigationId',
@@ -47,6 +54,20 @@ router.post(
   '/:id/verify',
   requirePermission(Permission.EVIDENCE_VERIFY),
   asyncHandler(evidenceController.verifyIntegrity)
+);
+
+// Simulate tampering with evidence (demo mode only)
+router.post(
+  '/:id/simulate-tamper',
+  authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  asyncHandler(evidenceController.simulateTamper)
+);
+
+// Restore tampered evidence (demo mode only)
+router.post(
+  '/:id/restore',
+  authorize(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  asyncHandler(evidenceController.restoreTamper)
 );
 
 // Delete evidence

@@ -52,7 +52,7 @@ export const useInvestigationStore = create<InvestigationState>((set, get) => ({
         isLoading: false,
       });
     } catch (error) {
-      set({ isLoading: false });
+      set({ isLoading: false, error: 'Failed to load investigations' });
     }
   },
 
@@ -132,6 +132,7 @@ export const useInvestigationStore = create<InvestigationState>((set, get) => ({
         isLoading: false,
         error: 'Failed to delete investigation',
       });
+      throw error;
     }
   },
 

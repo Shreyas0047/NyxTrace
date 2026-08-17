@@ -1,4 +1,5 @@
 ﻿import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Play,
@@ -32,6 +33,7 @@ import {
   Lock,
   Globe,
   Target,
+  Brain,
 } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -40,6 +42,8 @@ import { Select } from '../components/ui/Select';
 import { PageHeader, PageGrid } from '../layouts/PageContainer';
 import { DashboardCard, DashboardStat } from '../components/enterprise/DashboardGrid';
 import { useSandboxStore } from '../stores/sandboxStore';
+import { useEvidenceStore } from '../stores/evidenceStore';
+import { useInvestigationStore } from '../stores/investigationStore';
 import { useTelemetryStore } from '../stores/telemetryStore';
 import { useLogsStore } from '../stores/logsStore';
 import { useRealtimeStore } from '../stores/realtimeStore';
@@ -55,14 +59,14 @@ const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { st
 const levelColors: Record<string, string> = {
   ERROR: 'bg-red-500/20 text-red-600  border-red-500/30',
   WARNING: 'bg-amber-500/20 text-amber-600  border-amber-500/30',
-  INFO: 'bg-amber-500/20 text-amber-600  border-amber-500/30',
+  INFO: 'bg-sky-500/20 text-sky-600 border-sky-500/30',
   DEBUG: 'bg-[var(--surface-container)] text-[var(--text-secondary)]  border-[var(--border-default)] ',
 };
 
 const levelBorderColors: Record<string, string> = {
   ERROR: 'border-l-red-500',
   WARNING: 'border-l-amber-500',
-  INFO: 'border-l-amber-500',
+  INFO: 'border-l-sky-500',
   DEBUG: 'border-l-slate-500',
 };
 
@@ -111,16 +115,27 @@ export function SandboxDashboardPage() {
   const logs = useLogsStore();
   const showStatus = useStatusStore((s) => s.show);
   const isSocketConnected = useRealtimeStore((s) => s.isConnected);
+  const evidenceList = useEvidenceStore((s) => s.evidence);
+  const fetchEvidence = useEvidenceStore((s) => s.fetchEvidence);
+  const investigations = useInvestigationStore((s) => s.investigations);
+  const fetchInvestigations = useInvestigationStore((s) => s.fetchInvestigations);
 
   const [statusFilter, setStatusFilter] = useState('all');
   const [simulatorFilter, setSimulatorFilter] = useState('all');
   const [selectedSession, setSelectedSession] = useState<(typeof sessions)[0] | null>(null);
   const [selectedSimulator, setSelectedSimulator] = useState('');
+  const [selectedEvidenceId, setSelectedEvidenceId] = useState('');
+  const [selectedInvestigationId, setSelectedInvestigationId] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('sessions');
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
   const [, setTick] = useState(0);
   const [persistedMonitoring, setPersistedMonitoring] = useState<any>(null);
   const prevSessionIdRef = useRef<string | null>(null);
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const prefillAppliedRef = useRef(false);
+  const urlInvestigationId = searchParams.get('investigationId') || '';
+  const urlEvidenceId = searchParams.get('evidenceId') || '';
 
   const logsEndRef = useRef<HTMLDivElement>(null);
   const telemetryEndRef = useRef<HTMLDivElement>(null);
@@ -134,6 +149,8 @@ export function SandboxDashboardPage() {
     fetchHealth();
     fetchMonitoringStatus();
     fetchExecutionStatus();
+    fetchEvidence({ page: 1, limit: 50 });
+    fetchInvestigations({ page: 1, limit: 100 });
     logs.fetchHistorical(200);
     telemetry.connect();
     logs.connect();
@@ -142,7 +159,7 @@ export function SandboxDashboardPage() {
       telemetry.disconnect();
       logs.disconnect();
     };
-  }, [fetchSessions, fetchStats, fetchSimulators, fetchHealth, fetchMonitoringStatus, fetchExecutionStatus]);
+  }, [fetchSessions, fetchStats, fetchSimulators, fetchHealth, fetchMonitoringStatus, fetchExecutionStatus, fetchEvidence, fetchInvestigations]);
 
   // Poll at 3s when active session, 10s otherwise; always poll even with Socket.IO
   useEffect(() => {
@@ -229,11 +246,98 @@ export function SandboxDashboardPage() {
     }
   }, [telemetry.events, telemetry.autoScroll]);
 
+  const scopedEvidence = selectedInvestigationId
+    ? evidenceList.filter((e) => e.investigationId === selectedInvestigationId)
+    : [];
+
+  const unlinkedEvidence = evidenceList.filter((e) => !e.investigationId);
+
+  const selectedEvidence =
+    scopedEvidence.find((e) => e.id === selectedEvidenceId) ||
+    unlinkedEvidence.find((e) => e.id === selectedEvidenceId) ||
+    null;
+
+  const evidenceKind = (() => {
+    if (!selectedEvidence) return null;
+    if (selectedEvidence.artifactKind) return selectedEvidence.artifactKind;
+    if (selectedEvidence.type === 'url') return 'url' as const;
+    if (selectedEvidence.type === 'document') return 'document' as const;
+    return 'executable' as const;
+  })();
+
+  const firstHintFor = (invId: string): string => {
+    const ev = evidenceList.find((e) => e.investigationId === invId && e.simulatorHint);
+    return ev?.simulatorHint || '';
+  };
+
+  const defaultSimulator = (): string => simulators[0]?.id || '';
+
+  const resolveSimulatorId = (hint: string): string => {
+    if (!hint) return '';
+    if (simulators.some((s) => s.id === hint)) return hint;
+    const prefix = hint.split('/')[0];
+    return simulators.some((s) => s.id === prefix) ? prefix : '';
+  };
+
+  const applySimulatorForInvestigation = (invId: string) => {
+    setSelectedSimulator(resolveSimulatorId(firstHintFor(invId)) || defaultSimulator());
+  };
+
+  const handleInvestigationChange = (id: string) => {
+    setSelectedInvestigationId(id);
+    setSelectedEvidenceId('');
+    applySimulatorForInvestigation(id);
+  };
+
+  const handleEvidenceChange = (evidenceId: string) => {
+    setSelectedEvidenceId(evidenceId);
+    const ev =
+      scopedEvidence.find((e) => e.id === evidenceId) ||
+      unlinkedEvidence.find((e) => e.id === evidenceId);
+    if (!ev) {
+      applySimulatorForInvestigation(selectedInvestigationId);
+      return;
+    }
+    const kind =
+      ev.artifactKind ||
+      (ev.type === 'url' ? 'url' : ev.type === 'document' ? 'document' : 'executable');
+    if (ev.simulatorHint) {
+      setSelectedSimulator(resolveSimulatorId(ev.simulatorHint));
+    } else if (kind === 'executable') {
+      setSelectedSimulator(defaultSimulator());
+    } else {
+      setSelectedSimulator('');
+    }
+  };
+
+  // Deep-link prefill (?investigationId=&evidenceId=) + single-option auto-select
+  useEffect(() => {
+    if (prefillAppliedRef.current || simulators.length === 0 && !urlInvestigationId) return;
+    if (urlInvestigationId) {
+      const inv = investigations.find((i) => i.id === urlInvestigationId);
+      if (!inv) return;
+      prefillAppliedRef.current = true;
+      setSelectedInvestigationId(inv.id);
+      setSelectedEvidenceId(urlEvidenceId || '');
+      const linked = evidenceList.find((e) => e.id === urlEvidenceId);
+      setSelectedSimulator(resolveSimulatorId(linked?.simulatorHint || '') || resolveSimulatorId(firstHintFor(inv.id)) || defaultSimulator());
+      return;
+    }
+    if (selectedInvestigationId) return;
+    if (investigations.length === 1) {
+      prefillAppliedRef.current = true;
+      setSelectedInvestigationId(investigations[0].id);
+      setSelectedSimulator(resolveSimulatorId(firstHintFor(investigations[0].id)) || defaultSimulator());
+    }
+  }, [investigations, evidenceList, simulators, selectedInvestigationId, urlInvestigationId, urlEvidenceId]);
+
   const handleStartSession = async () => {
     if (!selectedSimulator) return;
     showStatus('loading', 'Initializing sandbox session...', 'Restoring VM to clean baseline');
     telemetry.clear();
-    const result = await startSession(selectedSimulator);
+    const result = await startSession(selectedSimulator, {
+      evidenceId: evidenceKind === 'executable' ? selectedEvidenceId : undefined,
+    });
     if (result.success) {
       showStatus('success', 'Session started successfully', `Session ID: ${result.sessionId || 'N/A'}`);
       fetchSessions({ page: 1, limit: 50 });
@@ -241,6 +345,22 @@ export function SandboxDashboardPage() {
       fetchExecutionStatus();
     } else {
       showStatus('error', 'Failed to start session', result.message || 'Unknown error');
+    }
+  };
+
+  const handleAnalyzeEvidence = async () => {
+    if (!selectedEvidence || !selectedEvidenceId) return;
+    showStatus('loading', 'Analyzing evidence...', `${evidenceKind === 'url' ? 'Fetching URL' : 'Analyzing document'} with static + AI pipeline`);
+    const result = await startSession('', {
+      evidenceId: selectedEvidenceId,
+      timeout_seconds: 300,
+    });
+    if (result.success) {
+      showStatus('success', 'Analysis complete', `Evidence analyzed — session ${result.sessionId || 'N/A'}`);
+      fetchSessions({ page: 1, limit: 50 });
+      fetchStats();
+    } else {
+      showStatus('error', 'Analysis failed', result.message || 'Unknown error');
     }
   };
 
@@ -417,39 +537,111 @@ export function SandboxDashboardPage() {
               <Square className="w-4 h-4" />
               Stop Session
             </Button>
-            <Button
-              size="sm"
-              onClick={handleStartSession}
-              disabled={!selectedSimulator || isExecuting || isSessionRunning || !health}
-            >
-              {isExecuting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Play className="w-4 h-4" />
-              )}
-              New Session
-            </Button>
+            {evidenceKind && evidenceKind !== 'executable' ? (
+              <Button
+                size="sm"
+                onClick={handleAnalyzeEvidence}
+                disabled={!selectedEvidence || isExecuting || !health}
+              >
+                {isExecuting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <FileText className="w-4 h-4" />
+                )}
+                Analyze {evidenceKind === 'url' ? 'URL' : 'Document'}
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                onClick={handleStartSession}
+                disabled={!selectedSimulator || isExecuting || isSessionRunning || !health}
+              >
+                {isExecuting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Play className="w-4 h-4" />
+                )}
+                New Session
+              </Button>
+            )}
           </div>
         }
       />
 
-      <div className="flex items-center gap-4 px-4 py-3 bg-[var(--surface-container-lowest)]  rounded-lg">
+      <div className="flex flex-wrap items-center gap-4 px-4 py-3 bg-[var(--surface-container-lowest)]  rounded-lg">
         <Select
-          value={selectedSimulator}
-          onChange={(val) => setSelectedSimulator(val)}
+          value={selectedInvestigationId}
+          onChange={handleInvestigationChange}
           options={[
             {
               value: '',
-              label: !health
-                ? 'Runtime not connected — click Start Runtime'
-                : simulators.length === 0
-                  ? 'No simulators available'
-                  : 'Select Threat Simulator...',
+              label: investigations.length === 0 ? 'No investigations yet' : 'Select Investigation...',
             },
-            ...simulators.map((s) => ({ value: s.id, label: s.display_name })),
+            ...investigations.map((inv) => ({
+              value: inv.id,
+              label: `${inv.caseNumber} — ${inv.title}`,
+            })),
           ]}
-          className="w-64"
+          className="w-72"
         />
+        <Select
+          value={selectedEvidenceId}
+          onChange={handleEvidenceChange}
+          disabled={!selectedInvestigationId && unlinkedEvidence.length === 0}
+          options={[
+            {
+              value: '',
+              label: !selectedInvestigationId
+                ? unlinkedEvidence.length > 0
+                  ? 'Unlinked evidence…'
+                  : 'Select an investigation first'
+                : scopedEvidence.length === 0
+                  ? 'No evidence in this investigation'
+                  : 'Link evidence (optional)…',
+            },
+            ...(selectedInvestigationId
+              ? scopedEvidence.map((ev) => ({
+                  value: ev.id,
+                  label: `${ev.name} — ${(ev.artifactKind || ev.type).replace('_', ' ')}`,
+                }))
+              : unlinkedEvidence.map((ev) => ({
+                  value: ev.id,
+                  label: `${ev.name} — ${(ev.artifactKind || ev.type).replace('_', ' ')} (unlinked)`,
+                }))),
+          ]}
+          className="w-72"
+        />
+        {evidenceKind && evidenceKind !== 'executable' && (
+          <span className="px-2.5 py-1 text-xs rounded-full bg-violet-500/15 text-violet-600  border border-violet-500/20">
+            {evidenceKind === 'url' ? 'URL indicator' : 'Document'} — static + AI analysis
+          </span>
+        )}
+        {(!evidenceKind || evidenceKind === 'executable') && (
+          <>
+            <div className="h-6 w-px bg-[var(--surface-container)] " />
+            <Select
+              value={selectedSimulator}
+              onChange={(val) => setSelectedSimulator(val)}
+              options={[
+                {
+                  value: '',
+                  label: !health
+                    ? 'Runtime not connected — click Start Runtime'
+                    : simulators.length === 0
+                      ? 'No simulators available'
+                      : 'Select Threat Simulator...',
+                },
+                ...simulators.map((s) => ({ value: s.id, label: s.display_name })),
+              ]}
+              className="w-64"
+            />
+            {selectedEvidence?.simulatorHint && selectedSimulator === resolveSimulatorId(selectedEvidence.simulatorHint) && evidenceKind === 'executable' && (
+              <span className="px-2.5 py-1 text-xs rounded-full bg-amber-500/15 text-amber-600  border border-amber-500/20">
+                Auto-selected from evidence hint
+              </span>
+            )}
+          </>
+        )}
         <div className="h-6 w-px bg-[var(--surface-container)] " />
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
@@ -706,6 +898,18 @@ export function SandboxDashboardPage() {
                         {selectedSession.startTime ? new Date(selectedSession.startTime).toLocaleString() : 'N/A'}
                       </span>
                     </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => selectedSession.sessionId && navigate(`/ai-analysis?sessionId=${encodeURIComponent(selectedSession.sessionId)}`)}
+                    >
+                      <Brain className="w-4 h-4" />
+                      Open in AI Analysis
+                    </Button>
                   </div>
 
                   {(selectedSession as any).error && (
@@ -1196,38 +1400,38 @@ export function SandboxDashboardPage() {
           </div>
           <div
             ref={logsContainerRef}
-            className="flex-1 overflow-y-auto font-mono text-xs bg-slate-900"
+            className="flex-1 overflow-y-auto font-mono text-xs bg-[var(--surface-container-lowest)] border-t border-[var(--border-subtle)]"
           >
             {filteredLogs.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-slate-500">
+              <div className="flex flex-col items-center justify-center h-full text-[var(--text-tertiary)]">
                 <Terminal className="w-12 h-12 mb-3 opacity-30" />
                 <p className="text-sm">No logs available</p>
-                <p className="text-xs mt-1 text-slate-600">Logs will appear when runtime is active</p>
+                <p className="text-xs mt-1 opacity-70">Logs will appear when runtime is active</p>
               </div>
             ) : (
               filteredLogs.map((log, idx) => (
                 <div
                   key={idx}
                   className={cn(
-                    'py-1 px-3 border-l-2 hover:bg-slate-900/80 transition-colors',
+                    'py-1 px-3 border-l-2 hover:bg-[var(--surface-container-low)] transition-colors',
                     levelBorderColors[log.level] || 'border-l-slate-500'
                   )}
                 >
-                  <span className="text-slate-600 mr-2">
+                  <span className="text-[var(--text-tertiary)] mr-2">
                     {new Date(log.timestamp).toLocaleTimeString()}
                   </span>
                   <span className={cn(
                     'mr-2 px-1.5 py-0.5 rounded text-[10px] font-medium border',
-                    levelColors[log.level] || 'bg-slate-100  text-slate-500  border-slate-300 '
+                    levelColors[log.level] || 'bg-[var(--surface-container)] text-[var(--text-secondary)] border-[var(--border-default)]'
                   )}>
                     {log.level}
                   </span>
                   {log.session_id && (
-                    <span className="mr-2 text-slate-600 text-[10px]">
+                    <span className="mr-2 text-[var(--text-tertiary)] text-[10px]">
                       [{log.session_id.slice(0, 8)}]
                     </span>
                   )}
-                  <span className="text-slate-600 ">{log.message}</span>
+                  <span className="text-[var(--text-primary)]">{log.message}</span>
                 </div>
               ))
             )}

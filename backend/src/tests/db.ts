@@ -10,7 +10,9 @@ import path from 'path';
 export async function connectTestDb(): Promise<void> {
   const configPath = path.join(__dirname, 'global-config.json');
   const { uri } = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-  await mongoose.connect(uri);
+  // Each jest worker connects to its own database so parallel test files
+  // never wipe each other's collections mid-test.
+  await mongoose.connect(uri, { dbName: `nyxtrace-test-${process.pid}` });
 }
 
 export async function disconnectTestDb(): Promise<void> {

@@ -11,7 +11,7 @@
 <p align="center">
   <a href="#-architecture"><img src="https://img.shields.io/badge/Architecture-5_services-6366f1?style=flat&labelColor=1e1e2e" alt="Architecture"></a>
   <a href="#-quick-start"><img src="https://img.shields.io/badge/Quick_Start-Local_dev-22c55e?style=flat&labelColor=1e1e2e" alt="Quick Start"></a>
-  <a href="#-api-reference"><img src="https://img.shields.io/badge/API-22_routes-f59e0b?style=flat&labelColor=1e1e2e" alt="API"></a>
+  <a href="#-api-reference"><img src="https://img.shields.io/badge/API-23_route_modules-f59e0b?style=flat&labelColor=1e1e2e" alt="API"></a>
   <a href="#-sandbox-scenarios"><img src="https://img.shields.io/badge/Simulators-6_scenarios-ef4444?style=flat&labelColor=1e1e2e" alt="Simulators"></a>
   <a href="#-blockchain-module"><img src="https://img.shields.io/badge/Blockchain-Ethereum-3b82f6?style=flat&labelColor=1e1e2e" alt="Blockchain"></a>
 </p>
@@ -53,12 +53,14 @@
   - [Sandbox Agent (FastAPI + VirtualBox)](#sandbox-agent-fastapi--virtualbox)
 - [Simulator Realism Roadmap](#-simulator-realism-roadmap)
 - [Blockchain Module](#-blockchain-module)
+- [Chain of Custody](#-chain-of-custody)
 - [API Reference](#-api-reference)
 - [RBAC](#-roles--permissions-rbac)
 - [Quick Start](#-quick-start)
 - [Project Structure](#-project-structure)
 - [Observability](#-observability)
 - [Documentation](#-documentation)
+- [Project Statistics](#-project-statistics)
 - [Contributing](#-contributing)
 - [License](#-license)
 
@@ -75,9 +77,9 @@ NyxTrace is a full-stack cybersecurity forensics platform designed for safe malw
 | **AI Threat Analysis** | FastAPI microservice — telemetry classification, Z-score anomaly detection, LLM router (Llama 3.2), severity scoring, investigation summarization |
 | **Blockchain Evidence** | Ethereum smart contract (Solidity 0.8.20) for evidence hash anchoring, tamper detection, immutable audit trail, Merkle root packages |
 | **Forensic Dashboard** | Real-time KPIs, D3.js force-directed threat intelligence graph, MITRE ATT&CK matrix, AI analysis panels, chain of custody timeline |
-| **Chain of Custody** | Full custody timeline with integrity verification, tamper alerts with acknowledgment workflow, evidence lineage graphs |
+| **Chain of Custody** | Full custody lifecycle per evidence item — string-keyed hash-chained events, integrity verification, tamper investigations with acknowledgment workflow, evidence lineage graphs, PDF verification report export |
 | **Analytics** | Behavioral pattern analysis, session comparison, threat correlation, forensic reporting |
-| **Storage Management** | **NEW** Admin storage vault — session footprint deletion, file category browsing, audit-logged operations, typed-confirmation purge |
+| **Storage Management** | Admin storage vault — session footprint deletion, file category browsing, audit-logged operations, typed-confirmation purge |
 | **Observability** | Prometheus metrics, correlation ID tracing, structured JSON logging, aggregated health checks |
 
 ---
@@ -101,7 +103,7 @@ NyxTrace is a full-stack cybersecurity forensics platform designed for safe malw
     v                   v                       v
 +-----------+   +------------------+   +-------------------+
 | AI Service|   | Sandbox Agent   |   | MongoDB           |
-| (FastAPI) |   | (FastAPI :8765) |   | (local :27017)    |
+| (FastAPI) |   | (FastAPI :8765) |   | (local or Atlas)  |
 | LLM Router|   | Pipeline + VBox |   | Investigations,   |
 | Severity  |   | Telemetry WS    |   | evidence, alerts, |
 | Anomalies |   | Logs WS         |   | sessions, IOCs    |
@@ -110,7 +112,7 @@ NyxTrace is a full-stack cybersecurity forensics platform designed for safe malw
       v                   v
 +-------------+  +----------------------+     +----------------------+
 | Ollama      |  | VirtualBox VM        |     | Ethereum Blockchain  |
-| llama3.2:3b |  | ForensicsSandbox     |     | (Hardhat / Sepolia)  |
+| llama3.2    |  | ForensicsSandbox     |     | (Hardhat / Sepolia)  |
 | localhost   |  | Snapshot:            |     | EvidenceRegistry.sol |
 | :11434      |  |   CleanBaselinePython|     | Audit trail + State  |
 | JSON mode   |  | Simulators run here  |     +----------------------+
@@ -138,13 +140,13 @@ NyxTrace is a full-stack cybersecurity forensics platform designed for safe malw
 | Metric | Value |
 |--------|-------|
 | **Source files** | 100+ across 8 directories |
-| **Route modules** | 22 (`/api/v1/*`) |
+| **Route modules** | 23 mounted under `/api/v1` |
 | **Mongoose models** | 13 (18+ schemas including blockchain) |
 | **Services** | 30 (19 exported from index) |
 | **Controllers** | 21 |
 | **Middleware** | 7 (auth, error, security, tracing, validation, request-context) |
 | **Storage Service** | `storage.service.ts` — File management, session footprint deletion, audit logging, path confinement |
-| **Tests** | 6 files, ~91 test cases (Jest) |
+| **Tests** | 9 files, 128 test cases (Jest) |
 | **Port** | `:3000` |
 
 Route modules mounted under `/api/v1`:
@@ -155,7 +157,7 @@ Route modules mounted under `/api/v1`:
 | `/users` | User CRUD, stats, role management, activity |
 | `/investigations` | Case management, forensic reports |
 | `/evidence` | File upload, integrity verification |
-| `/storage` | **NEW** File storage management, session footprint deletion, audit |
+| `/storage` | File storage management, session footprint deletion, audit |
 | `/sandbox` | Session lifecycle, VM control, telemetry |
 | `/sync` | Evidence upload, telemetry ingestion, heartbeat |
 | `/ai` | Telemetry analysis, alert enrichment, investigation summary |
@@ -173,31 +175,32 @@ Route modules mounted under `/api/v1`:
 | `/config` | Dynamic runtime configuration |
 | `/evidence/artifacts` | Evidence artifact management |
 | `/threat-analysis` | Session threat intelligence |
+| `/settings` | Platform settings management |
 
 ### Frontend (React + Vite)
 
 | Metric | Value |
 |--------|-------|
-| **Source files** | 75 (68 `.ts`/`.tsx`) |
-| **Pages** | 24 (22 lazy-loaded) |
-| **Zustand stores** | 16 |
+| **Source files** | 75+ (68 `.ts`/`.tsx`) |
+| **Pages** | 27 (22 lazy-loaded, 5 eager) |
+| **Zustand stores** | 17 |
 | **Components** | 19 (UI, layout, blockchain, threat-intel, visualizations) |
 | **Tests** | 4 files (Vitest + React Testing Library) |
 | **Port** | `:5173` (dev), Vite proxies `/api` → `:3000` |
 
 Key pages:
 - **EnhancedDashboardPage** — KPI cards, real-time charts, alert feed
-- **EvidenceExplorerPage** — Evidence grid + blockchain verification
+- **EvidenceExplorerPage** — Evidence grid + blockchain verification, deep link into custody
 - **BlockchainOperationsPage** — Sync/worker/health management
-- **ChainOfCustodyPage** — Custody timeline + tamper alerts
-- **AIAnalysisPage** (1513 lines) — Full AI classification + anomaly display
-- **SandboxDashboardPage** (1274 lines) — Session management + live telemetry
+- **CustodyPage** — Chain of custody timeline, integrity stats, tamper investigations, PDF report export
+- **AIAnalysisPage** — Full AI classification + anomaly display
+- **SandboxDashboardPage** — Session management + live telemetry
 - **ThreatIntelligencePage** — D3 force graph + IOC browser
 - **ForensicAnalyticsPage** — MITRE ATT&CK heatmap + correlation
 - **LiveTelemetryPage** — Real-time WebSocket event stream
-- **StorageManagerPage** — **NEW** Storage administration (session footprints, file categories, danger zone purge)
+- **StorageManagerPage** — Storage administration (session footprints, file categories, danger zone purge)
 
-Zustand stores: `authStore`, `blockchainStore` (40+ actions), `evidenceStore`, `investigationStore`, `alertStore`, `sandboxStore`, `telemetryStore`, `analysisStore`, `reportsStore`, `logsStore`, `realtimeStore`, `threatIntelStore`, `timelineStore`, `statusStore`, `settingsStore`, `themeStore`.
+Zustand stores: `authStore`, `blockchainStore` (40+ actions), `evidenceStore`, `investigationStore`, `alertStore`, `sandboxStore`, `telemetryStore`, `analysisStore`, `reportsStore`, `logsStore`, `realtimeStore`, `threatIntelStore`, `timelineStore`, `statusStore`, `settingsStore`, `themeStore`, `custodyStore`.
 
 ### AI Service (FastAPI)
 
@@ -350,6 +353,25 @@ All under `/api/v1/blockchain`:
 
 ---
 
+## Chain of Custody
+
+A full custody lifecycle for every evidence item — `POST /api/v1/custody/event` automatically initializes a chain (`COC-XXXXXXXX`) with a genesis `evidence_created` event when one does not exist. Events are hash-chained (each event stores the digest of its predecessor), producing an immutable, tamper-evident record.
+
+### Capabilities
+
+| Capability | Description |
+|-----------|-------------|
+| **Hash-chained events** | Every custody event carries the previous event's hash — any modification invalidates the chain |
+| **Automatic chain initialization** | First event on an evidence item bootstraps a `COC-` chain + genesis event |
+| **Transfers** | Admin-initiated custody handoff with `custody_transferred` events and current holder tracking |
+| **Integrity stats** | `GET /integrity-stats` — per-evidence integrity status (verified, tampered, unverified) |
+| **Tamper investigations** | Open/acknowledged workflow with severity, drift count, and resolution status |
+| **Verification reports** | Generated reports with full chain timeline, exported as PDF (PDFKit, `POST /report/:reportId/export`) |
+| **Lineage graphs** | `GET /lineage-graph/:investigationId` — evidence relations across an investigation |
+| **Frontend** | `CustodyPage` at `/custody` — stat cards, chain visualization, timeline, gated record/transfer actions, report generation + PDF export; deep-links from the Evidence Explorer (`/custody?evidenceId=…`) |
+
+---
+
 ## API Reference
 
 ### Auth & Users
@@ -375,6 +397,23 @@ All under `/api/v1/blockchain`:
 | GET | `/evidence` | analyst+ | List evidence |
 | POST | `/evidence/upload` | analyst+ | Upload evidence file |
 | POST | `/evidence/:id/verify` | analyst+ | Verify evidence integrity |
+
+### Chain of Custody
+
+| Method | Path | Roles | Description |
+|--------|------|-------|-------------|
+| GET | `/custody/chain/:evidenceId` | Authenticated | Chain of custody with integrity verification |
+| GET | `/custody/timeline/:evidenceId` | Authenticated | Full custody event timeline |
+| POST | `/custody/event` | admin, analyst | Record custody event (auto-initializes chain) |
+| GET | `/custody/verification-history/:evidenceId` | Authenticated | Verification history |
+| POST | `/custody/transfer` | admin | Transfer custody to a new holder |
+| GET | `/custody/lineage-graph/:investigationId` | Authenticated | Evidence lineage graph |
+| GET | `/custody/integrity-stats` | Authenticated | Aggregate integrity statistics |
+| GET | `/custody/tamper-investigations` | admin, analyst | List tamper investigations |
+| POST | `/custody/tamper-investigation` | admin | Open a tamper investigation |
+| POST | `/custody/tamper-investigation/:id/update` | admin | Update tamper investigation status |
+| POST | `/custody/report` | admin, analyst | Generate verification report |
+| POST | `/custody/report/:reportId/export` | admin, analyst | Export report as PDF or JSON |
 
 ### Sandbox
 
@@ -556,7 +595,7 @@ nyxtrace/
 │   └── src/
 │       ├── index.ts            Entry point
 │       ├── config/             Env + logger + database
-│       ├── routes/             22 route modules
+│       ├── routes/             23 route modules
 │       ├── controllers/        21 controllers
 │       ├── services/           30 services
 │       ├── middleware/         7 middleware modules
@@ -564,7 +603,7 @@ nyxtrace/
 │       ├── blockchain/         12 modules + models + routes
 │       ├── types/              Core TypeScript types
 │       ├── validation/         Joi schemas
-│       ├── tests/              6 test files
+│       ├── tests/              9 test files (128 tests)
 │       ├── document_analysis/  PDF/DOCX analyzer
 │       ├── ioc_extraction/     IOC extraction pipeline
 │       ├── url_intelligence/   URL analysis
@@ -573,8 +612,8 @@ nyxtrace/
 ├── frontend/                   React + Vite + TypeScript
 │   └── src/
 │       ├── main.tsx            Entry point
-│       ├── pages/              24 reactive pages
-│       ├── stores/             16 Zustand stores
+│       ├── pages/              27 reactive pages
+│       ├── stores/             17 Zustand stores
 │       ├── components/         UI, layout, blockchain, threat-intel, viz
 │       ├── router/             Route config + RoleRoute
 │       ├── services/           API client + socket client
@@ -642,6 +681,12 @@ Operational and architectural details live in `docs/`:
 
 | Document | Coverage |
 |----------|----------|
+| `design/problem-statement.md` | Problem, target user, constraints, goals, non-goals |
+| `design/requirements.md` | Numbered functional + non-functional requirements (FR-/NFR- traceability) |
+| `design/system-architecture.md` | 5-service architecture, core integrity flow, degradation paths |
+| `design/design-decisions.md` | ADR-style design decisions (DD-01 … DD-11) |
+| `design/data-model.md` | ERD of all models, entity groups, integrity state machine |
+| `design/scope-and-authorship.md` | Core spine vs supporting vs stretch modules; authorship map |
 | `architecture/blockchain-evidence-verification.md` | Blockchain verification module, data models, full API reference, frontend integration |
 | `architecture/smart-contracts-evidence-verification.md` | Smart contract infrastructure, ABI, transaction lifecycle, security considerations |
 | `runbooks/blockchain-operations-runbook.md` | Sync queue, verification workers, reconciliation, state tracking, troubleshooting |
@@ -654,39 +699,21 @@ Operational and architectural details live in `docs/`:
 
 ---
 
-## Deep Scan Summary
-
-A comprehensive project scan identified the following metrics:
+## Project Statistics
 
 | Category | Count |
 |----------|-------|
 | **Total source files** | ~350 across 5 services + shared config |
-| **Backend** | 100+ TS files, 22 routes, 30 services, 91 tests |
-| **Frontend** | 75 files, 24 pages, 16 stores, 4 tests |
-| **AI Service** | 35 files, 5 endpoints, 6 modules, 25 tests |
-| **Blockchain** | 1 contract, 12 backend modules, 24 tests |
-| **Sandbox** | 17 simulator files, 6 simulators, 11 helpers, 0 tests |
-| **Backend tests** | ~91 (Jest) |
+| **Backend** | 100+ TS files, 23 route modules, 30 services, 13 models, 128 tests |
+| **Frontend** | 75+ files, 27 pages, 17 stores, 4 tests |
+| **AI Service** | 35 files, 7 endpoints, 6 modules, 25 tests |
+| **Blockchain** | 1 contract, 12 backend modules, 44 endpoints, 24 tests |
+| **Sandbox** | 17 simulator files, 6 simulators, 11 helpers |
+| **Backend tests** | 128 (Jest, 9 suites) |
 | **Frontend tests** | 4 (Vitest) |
 | **AI service tests** | 25 (pytest) |
 | **Blockchain tests** | 24 (Hardhat + Chai) |
-| **CI checks** | 4 parallel jobs (backend, frontend, blockchain, python) |
-
-### Identified Gaps
-
-| Area | Issue |
-|------|-------|
-| **Sandbox Agent** | Zero test coverage — no test files exist |
-| **Backend** | `db:init` and `migrate` scripts referenced in package.json but do not exist |
-| **Backend** | 4 controllers imported directly instead of through `controllers/index.ts` |
-| **Backend** | 11 services not exported from `services/index.ts` |
-| **AI Service** | Rate limiter `cleanup()` never called — memory leak risk |
-| **AI Service** | Rate limiter `.check()` does not increment — rate limiting non-functional |
-| **Frontend** | `themeStore` is dead code (app is force-dark) |
-| **Frontend** | `rbac/index.ts` only defines 2 of 6 roles |
-| **Frontend** | Duplicate `formatDate()` in design-system and utils |
-| **Sandbox** | `sim_lateral.py` references `target_ip` before assignment |
-| **Sandbox** | Hardcoded Python path in `pipeline.py` |
+| **CI checks** | 5 parallel jobs (backend Linux + Windows, frontend, blockchain, python services) |
 
 ---
 

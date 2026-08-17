@@ -31,7 +31,7 @@ router.get('/verification/stats', authenticate, blockchainController.getVerifica
 router.post(
   '/evidence/register',
   authenticate,
-  authorize(['admin', 'analyst']),
+  authorize(['super_admin', 'admin', 'analyst']),
   blockchainController.registerEvidence
 );
 
@@ -43,7 +43,7 @@ router.post(
 router.post(
   '/evidence/verify',
   authenticate,
-  authorize(['admin', 'analyst']),
+  authorize(['super_admin', 'admin', 'analyst']),
   blockchainController.verifyEvidence
 );
 
@@ -55,7 +55,7 @@ router.post(
 router.post(
   '/evidence/batch-verify',
   authenticate,
-  authorize(['admin', 'analyst']),
+  authorize(['super_admin', 'admin', 'analyst']),
   blockchainController.batchVerify
 );
 
@@ -67,7 +67,7 @@ router.post(
 router.post(
   '/package/create',
   authenticate,
-  authorize(['admin', 'analyst']),
+  authorize(['super_admin', 'admin', 'analyst']),
   blockchainController.createPackage
 );
 
@@ -79,7 +79,7 @@ router.post(
 router.post(
   '/package/verify',
   authenticate,
-  authorize(['admin', 'analyst']),
+  authorize(['super_admin', 'admin', 'analyst']),
   blockchainController.verifyPackage
 );
 
@@ -88,7 +88,7 @@ router.post(
  * @desc    Get blockchain audit log
  * @access  Private (Authenticated, Admin)
  */
-router.get('/audit', authenticate, authorize(['admin']), blockchainController.getAuditLog);
+router.get('/audit', authenticate, authorize(['super_admin', 'admin']), blockchainController.getAuditLog);
 
 /**
  * @route   GET /api/v1/blockchain/integrity/:investigationId
@@ -109,7 +109,7 @@ router.get(
 router.get(
   '/alerts',
   authenticate,
-  authorize(['admin', 'analyst']),
+  authorize(['super_admin', 'admin', 'analyst']),
   blockchainController.getTamperAlerts
 );
 
@@ -121,7 +121,7 @@ router.get(
 router.post(
   '/alerts/:evidenceId/:alertId/acknowledge',
   authenticate,
-  authorize(['admin']),
+  authorize(['super_admin', 'admin']),
   blockchainController.acknowledgeAlert
 );
 
@@ -162,7 +162,7 @@ router.post('/hash/verify', authenticate, blockchainController.verifyHash);
 router.post(
   '/contract/register',
   authenticate,
-  authorize(['admin', 'analyst']),
+  authorize(['super_admin', 'admin', 'analyst']),
   blockchainController.registerOnContract
 );
 
@@ -174,7 +174,7 @@ router.post(
 router.post(
   '/contract/verify',
   authenticate,
-  authorize(['admin', 'analyst']),
+  authorize(['super_admin', 'admin', 'analyst']),
   blockchainController.verifyOnContract
 );
 
@@ -226,7 +226,7 @@ router.get('/transactions/stats', authenticate, blockchainController.getTransact
 router.post(
   '/transactions/:txId/retry',
   authenticate,
-  authorize(['admin']),
+  authorize(['super_admin', 'admin']),
   blockchainController.retryTransaction
 );
 
@@ -242,7 +242,7 @@ router.post(
 router.post(
   '/audit/record',
   authenticate,
-  authorize(['admin', 'analyst']),
+  authorize(['super_admin', 'admin', 'analyst']),
   blockchainController.recordAuditEntry
 );
 
@@ -269,7 +269,7 @@ router.get(
 router.post(
   '/tamper/record',
   authenticate,
-  authorize(['admin']),
+  authorize(['super_admin', 'admin']),
   blockchainController.recordTamperDetection
 );
 
@@ -307,7 +307,7 @@ router.get('/sync/status', authenticate, blockchainController.getSyncStatus);
 router.post(
   '/sync/queue',
   authenticate,
-  authorize(['admin', 'analyst']),
+  authorize(['super_admin', 'admin', 'analyst']),
   blockchainController.queueForSync
 );
 
@@ -319,7 +319,7 @@ router.post(
 router.post(
   '/sync/process',
   authenticate,
-  authorize(['admin']),
+  authorize(['super_admin', 'admin']),
   blockchainController.processSyncQueue
 );
 
@@ -331,7 +331,7 @@ router.post(
 router.post(
   '/sync/retry',
   authenticate,
-  authorize(['admin']),
+  authorize(['super_admin', 'admin']),
   blockchainController.retryFailedSync
 );
 
@@ -365,7 +365,7 @@ router.get('/worker/status', authenticate, blockchainController.getWorkerStatus)
 router.post(
   '/worker/job',
   authenticate,
-  authorize(['admin', 'analyst']),
+  authorize(['super_admin', 'admin', 'analyst']),
   blockchainController.createVerificationJob
 );
 
@@ -388,7 +388,7 @@ router.get(
 router.post(
   '/worker/job/:jobId/cancel',
   authenticate,
-  authorize(['admin']),
+  authorize(['super_admin', 'admin']),
   blockchainController.cancelJob
 );
 
@@ -400,7 +400,7 @@ router.post(
 router.post(
   '/worker/schedule',
   authenticate,
-  authorize(['admin']),
+  authorize(['super_admin', 'admin']),
   blockchainController.createSchedule
 );
 
@@ -416,7 +416,7 @@ router.post(
 router.post(
   '/reconciliation/run',
   authenticate,
-  authorize(['admin']),
+  authorize(['super_admin', 'admin']),
   blockchainController.runReconciliation
 );
 
@@ -435,7 +435,7 @@ router.get('/reconciliation/issues', authenticate, blockchainController.getRecon
 router.post(
   '/reconciliation/issues/:issueId/resolve',
   authenticate,
-  authorize(['admin']),
+  authorize(['super_admin', 'admin']),
   blockchainController.resolveIssue
 );
 
@@ -490,7 +490,7 @@ router.get('/state/metrics', authenticate, blockchainController.getPerformanceMe
 router.get(
   '/state/operations',
   authenticate,
-  authorize(['admin']),
+  authorize(['super_admin', 'admin']),
   blockchainController.getOperationHistory
 );
 

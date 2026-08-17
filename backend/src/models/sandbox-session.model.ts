@@ -12,6 +12,21 @@ const sandboxSessionSchema = new Schema({
     unique: true,
     index: true,
   },
+  // Evidence this session analyzes (evidence-driven workflow). Sessions are
+  // created from an evidence record; the simulator is auto-selected from it.
+  evidenceId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Evidence',
+    index: true,
+  },
+  // Artifact kind this session tests. 'document' / 'url' sessions run the
+  // static + AI analysis pipeline; 'executable' sessions run in the VM.
+  kind: {
+    type: String,
+    enum: ['executable', 'document', 'url'],
+    default: 'executable',
+    index: true,
+  },
   vmName: {
     type: String,
     required: true,

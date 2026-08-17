@@ -19,6 +19,10 @@ import type {
   ForensicReportSummary, ForensicReportDetail, LogEntry,
   AppSettings, EvidenceArtifact, ForensicEvidenceDetail
 } from '../types/reports';
+import type {
+  ChainVisualization, ChainOfCustodyChain, IntegrityStats,
+  VerificationHistoryRecord, TamperInvestigationRecord, VerificationReportRecord
+} from '../types/custody';
 import { config } from '../config';
 
 const API_BASE_URL = config.env.apiUrl;
@@ -308,8 +312,31 @@ class ApiService {
     return raw;
   }
 
+  async registerUrlEvidence(payload: {
+    investigationId: string;
+    url: string;
+    name?: string;
+    description?: string;
+  }): Promise<ApiResponse<Evidence>> {
+    const response = await this.client.post('/evidence/url', payload);
+    const raw = response.data;
+    if (raw?.data?.evidence) raw.data = raw.data.evidence;
+    if (raw?.data) raw.data = normalizeEntity(raw.data);
+    return raw;
+  }
+
   async verifyEvidence(id: string): Promise<ApiResponse<{ verified: boolean }>> {
     const response = await this.client.post(`/evidence/${id}/verify`);
+    return response.data;
+  }
+
+  async simulateTamper(id: string): Promise<ApiResponse<{ tampered: boolean; backupPath: string; newHash: string }>> {
+    const response = await this.client.post(`/evidence/${id}/simulate-tamper`);
+    return response.data;
+  }
+
+  async restoreEvidence(id: string): Promise<ApiResponse<{ restored: boolean; currentHash: string }>> {
+    const response = await this.client.post(`/evidence/${id}/restore`);
     return response.data;
   }
 
@@ -364,10 +391,11 @@ class ApiService {
   }
 
   async startSandboxSession(request: {
-    simulator_id: string;
+    simulator_id?: string;
+    evidenceId?: string;
     auto_rollback?: boolean;
     timeout_seconds?: number;
-  }): Promise<ApiResponse<{ session: { session_id: string; state: string; simulator_id: string; created_at: string; updated_at: string; error?: string } }>> {
+  }): Promise<ApiResponse<{ session: any }>> {
     const response = await this.client.post('/sandbox/sessions', request, {
       timeout: config.api.longRequestTimeoutMs,
     });
@@ -515,17 +543,32 @@ class ApiService {
     return response.data;
   }
 
-  async registerEvidenceForBlockchain(evidenceId: string, filePath: string): Promise<ApiResponse<{
+  async registerEvidenceForBlockchain(evidenceId: string, filePath: string, sourceType?: 'file' | 'url'): Promise<ApiResponse<{
     fingerprint: string;
     blockchainVerification: unknown;
     integrityRecord: unknown;
   }>> {
-    const response = await this.client.post('/blockchain/evidence/register', { evidenceId, filePath });
+    const response = await this.client.post('/blockchain/evidence/register', { evidenceId, filePath, sourceType: sourceType || 'file' });
     return response.data;
   }
 
-  async verifyEvidenceOnBlockchain(evidenceId: string, filePath: string): Promise<ApiResponse<VerificationResult>> {
-    const response = await this.client.post('/blockchain/evidence/verify', { evidenceId, filePath });
+  async verifyEvidenceOnBlockchain(evidenceId: string, filePath: string, sourceType?: 'file' | 'url'): Promise<ApiResponse<VerificationResult>> {
+    const response = await this.client.post('/blockchain/evidence/verify', { evidenceId, filePath, sourceType: sourceType || 'file' });
+    return response.data;
+  }
+
+  async recordTamperOnChain(
+    evidenceId: string,
+    investigationId: string,
+    expectedHash: string,
+    actualHash: string
+  ): Promise<ApiResponse<{ success: boolean; transactionHash?: string; message?: string }>> {
+    const response = await this.client.post('/blockchain/tamper/record', {
+      evidenceId,
+      investigationId,
+      expectedHash,
+      actualHash,
+    });
     return response.data;
   }
 
@@ -596,7 +639,7 @@ async verifyHash(filePath: string, expectedHash: string): Promise<ApiResponse<Ha
   // Reports
   async getReports(params?: {
     page?: number; limit?: number; simulator?: string;
-    severity?: string; dateFrom?: string; dateTo?: string; search?: string;
+    severity?: string; dateFrom?: string; dateTo?: string; search?: string; investigationId?: string;
   }): Promise<ApiResponse<ForensicReportSummary[]>> {
     const response = await this.client.get('/reports', { params });
     return response.data;
@@ -701,12 +744,16 @@ async verifyHash(filePath: string, expectedHash: string): Promise<ApiResponse<Ha
     page?: number; limit?: number; role?: string; search?: string;
   }): Promise<ApiResponse<{ users: User[]; total: number }>> {
     const response = await this.client.get('/users', { params });
-    return response.data;
+    const raw = response.data;
+    if (Array.isArray(raw?.data?.users)) raw.data.users = raw.data.users.map(normalizeEntity);
+    return raw;
   }
 
   async getUser(id: string): Promise<ApiResponse<{ user: User }>> {
     const response = await this.client.get(`/users/${id}`);
-    return response.data;
+    const raw = response.data;
+    if (raw?.data?.user) raw.data.user = normalizeEntity(raw.data.user);
+    return raw;
   }
 
   async createUser(data: {
@@ -714,7 +761,9 @@ async verifyHash(filePath: string, expectedHash: string): Promise<ApiResponse<Ha
     role: string; department?: string;
   }): Promise<ApiResponse<{ user: User }>> {
     const response = await this.client.post('/users', data);
-    return response.data;
+    const raw = response.data;
+    if (raw?.data?.user) raw.data.user = normalizeEntity(raw.data.user);
+    return raw;
   }
 
   async updateUser(id: string, data: Partial<{
@@ -722,7 +771,9 @@ async verifyHash(filePath: string, expectedHash: string): Promise<ApiResponse<Ha
     role: string; department: string;
   }>): Promise<ApiResponse<{ user: User }>> {
     const response = await this.client.put(`/users/${id}`, data);
-    return response.data;
+    const raw = response.data;
+    if (raw?.data?.user) raw.data.user = normalizeEntity(raw.data.user);
+    return raw;
   }
 
   async deleteUser(id: string): Promise<ApiResponse<void>> {
@@ -835,7 +886,7 @@ async verifyHash(filePath: string, expectedHash: string): Promise<ApiResponse<Ha
   }
 
   async getThreatIntelHistory(params?: {
-    page?: number; limit?: number; type?: string; status?: string;
+    page?: number; limit?: number; type?: string; status?: string; investigationId?: string;
   }): Promise<ApiResponse<ThreatIntelAnalysis[]>> {
     const response = await this.client.get('/analysis', { params });
     return response.data as ApiResponse<ThreatIntelAnalysis[]>;
@@ -950,6 +1001,78 @@ async verifyHash(filePath: string, expectedHash: string): Promise<ApiResponse<Ha
 
   async resetConfig(): Promise<ApiResponse<any>> {
     const response = await this.client.post('/config/reset');
+    return response.data;
+  }
+
+  // Chain of Custody
+  async getCustodyChain(evidenceId: string): Promise<ApiResponse<{ chain: ChainVisualization | null }>> {
+    const response = await this.client.get(`/custody/chain/${encodeURIComponent(evidenceId)}`);
+    return response.data;
+  }
+
+  async getCustodyTimeline(evidenceId: string): Promise<ApiResponse<{ timeline: ChainOfCustodyChain }>> {
+    const response = await this.client.get(`/custody/timeline/${encodeURIComponent(evidenceId)}`);
+    return response.data;
+  }
+
+  async getCustodyVerificationHistory(evidenceId: string): Promise<ApiResponse<{ history: VerificationHistoryRecord[] }>> {
+    const response = await this.client.get(`/custody/verification-history/${encodeURIComponent(evidenceId)}`);
+    return response.data;
+  }
+
+  async addCustodyEvent(data: {
+    evidenceId: string;
+    eventType: string;
+    details: string;
+    investigationId?: string;
+  }): Promise<ApiResponse<{ chain: ChainVisualization }>> {
+    const response = await this.client.post('/custody/event', data);
+    return response.data;
+  }
+
+  async transferCustody(data: {
+    evidenceId: string;
+    newHolderId: string;
+    newHolderName: string;
+  }): Promise<ApiResponse<void>> {
+    const response = await this.client.post('/custody/transfer', data);
+    return response.data;
+  }
+
+  async getCustodyIntegrityStats(): Promise<ApiResponse<{ stats: IntegrityStats }>> {
+    const response = await this.client.get('/custody/integrity-stats');
+    return response.data;
+  }
+
+  async getTamperInvestigations(): Promise<ApiResponse<{ investigations: TamperInvestigationRecord[] }>> {
+    const response = await this.client.get('/custody/tamper-investigations');
+    return response.data;
+  }
+
+  async createTamperInvestigation(data: {
+    evidenceId: string;
+    expectedHash: string;
+    actualHash: string;
+    severity?: 'low' | 'medium' | 'high' | 'critical';
+  }): Promise<ApiResponse<{ investigation: TamperInvestigationRecord }>> {
+    const response = await this.client.post('/custody/tamper-investigation', data);
+    return response.data;
+  }
+
+  async generateCustodyReport(data: {
+    investigationId?: string;
+    evidenceIds: string[];
+    reportType: string;
+  }): Promise<ApiResponse<{ report: VerificationReportRecord }>> {
+    const response = await this.client.post('/custody/report', data);
+    return response.data;
+  }
+
+  async exportCustodyReport(
+    reportId: string,
+    exportFormat: 'pdf' | 'json'
+  ): Promise<ApiResponse<{ report: VerificationReportRecord; pdfBase64?: string; pdfFileName?: string }>> {
+    const response = await this.client.post(`/custody/report/${reportId}/export`, { exportFormat });
     return response.data;
   }
 }

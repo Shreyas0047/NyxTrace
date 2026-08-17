@@ -31,6 +31,21 @@ const ROLE_COLORS: Record<string, string> = {
   auditor: 'bg-[var(--surface-container)] text-[var(--text-secondary)]  border-[var(--border-default)] ',
 };
 
+// Mirrors backend RoleHierarchy — higher rank can manage strictly-lower users
+const ROLE_HIERARCHY: Record<UserRole, number> = {
+  super_admin: 100,
+  admin: 80,
+  forensic_analyst: 60,
+  security_reviewer: 40,
+  sandbox_operator: 20,
+  auditor: 10,
+};
+
+const errorMessage = (err: unknown, fallback: string): string => {
+  const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+  return msg || fallback;
+};
+
 export const UsersPage: React.FC = () => {
   const { user: currentUser } = useAuthStore();
   const [users, setUsers] = useState<User[]>([]);
@@ -82,7 +97,7 @@ export const UsersPage: React.FC = () => {
         fetchUsers();
       }
     } catch (err) {
-      setError('Failed to create user');
+      setError(errorMessage(err, 'Failed to create user'));
     }
   };
 
@@ -97,7 +112,7 @@ export const UsersPage: React.FC = () => {
         fetchUsers();
       }
     } catch (err) {
-      setError('Failed to update user');
+      setError(errorMessage(err, 'Failed to update user'));
     }
   };
 
@@ -111,9 +126,15 @@ export const UsersPage: React.FC = () => {
         fetchUsers();
       }
     } catch (err) {
-      setError('Failed to delete user');
+      setError(errorMessage(err, 'Failed to delete user'));
     }
   };
+
+  const isEditingSelf = selectedUser?.id === currentUser?.id;
+  const canManageTarget = !!currentUser && !!selectedUser
+    && ROLE_HIERARCHY[currentUser.role] > ROLE_HIERARCHY[selectedUser.role];
+  const canEditTarget = !!selectedUser && (isEditingSelf || canManageTarget);
+  const canChangeTargetRole = !!selectedUser && canManageTarget;
 
   const openEditModal = (user: User) => {
     setSelectedUser(user);
@@ -339,13 +360,19 @@ export const UsersPage: React.FC = () => {
               </button>
             </div>
             <div className="p-4 space-y-4">
+              {!canEditTarget && selectedUser && (
+                <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-xs text-amber-600 ">
+                  You can only manage users with a lower role than your own. This user is read-only for you.
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-[var(--text-secondary)]  mb-1">Name</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 bg-white  border border-[var(--border-default)]  rounded-lg text-[var(--text-primary)]  focus:border-amber-500 focus:outline-none"
+                  disabled={!canEditTarget}
+                  className="w-full px-3 py-2 bg-white  border border-[var(--border-default)]  rounded-lg text-[var(--text-primary)]  focus:border-amber-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
               <div>
@@ -354,7 +381,8 @@ export const UsersPage: React.FC = () => {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-3 py-2 bg-white  border border-[var(--border-default)]  rounded-lg text-[var(--text-primary)]  focus:border-amber-500 focus:outline-none"
+                  disabled={!canEditTarget}
+                  className="w-full px-3 py-2 bg-white  border border-[var(--border-default)]  rounded-lg text-[var(--text-primary)]  focus:border-amber-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
               <div>
@@ -363,8 +391,9 @@ export const UsersPage: React.FC = () => {
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  disabled={!canEditTarget}
                   placeholder="Enter new password to change"
-                  className="w-full px-3 py-2 bg-white  border border-[var(--border-default)]  rounded-lg text-[var(--text-primary)]  focus:border-amber-500 focus:outline-none"
+                  className="w-full px-3 py-2 bg-white  border border-[var(--border-default)]  rounded-lg text-[var(--text-primary)]  focus:border-amber-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
               <div>
@@ -372,7 +401,9 @@ export const UsersPage: React.FC = () => {
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
-                  className="w-full px-3 py-2 bg-white  border border-[var(--border-default)]  rounded-lg text-[var(--text-primary)]  focus:border-amber-500 focus:outline-none"
+                  disabled={!canChangeTargetRole}
+                  title={canChangeTargetRole ? '' : 'Only a user with a higher role can change this role'}
+                  className="w-full px-3 py-2 bg-white  border border-[var(--border-default)]  rounded-lg text-[var(--text-primary)]  focus:border-amber-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {ROLE_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>{opt.label} - {opt.description}</option>
@@ -385,13 +416,20 @@ export const UsersPage: React.FC = () => {
                   type="text"
                   value={formData.department}
                   onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                  className="w-full px-3 py-2 bg-white  border border-[var(--border-default)]  rounded-lg text-[var(--text-primary)]  focus:border-amber-500 focus:outline-none"
+                  disabled={!canEditTarget}
+                  className="w-full px-3 py-2 bg-white  border border-[var(--border-default)]  rounded-lg text-[var(--text-primary)]  focus:border-amber-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
             <div className="p-4 border-t border-[var(--border-subtle)]  flex justify-end gap-2">
               <button onClick={() => setShowEditModal(false)} className="px-4 py-2 text-[var(--text-secondary)]  hover:text-white">Cancel</button>
-              <button onClick={handleUpdateUser} className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black rounded-lg">Save Changes</button>
+              <button
+                onClick={handleUpdateUser}
+                disabled={!canEditTarget}
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Save Changes
+              </button>
             </div>
           </div>
         </div>

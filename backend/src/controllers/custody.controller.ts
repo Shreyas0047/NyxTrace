@@ -328,10 +328,10 @@ export class CustodyController {
     try {
       const { investigationId, evidenceIds, reportType } = req.body;
 
-      if (!investigationId || !evidenceIds || !reportType) {
+      if (!evidenceIds || !reportType) {
         res.status(400).json({
           success: false,
-          message: 'Investigation ID, evidence IDs, and report type are required',
+          message: 'Evidence IDs and report type are required',
         });
         return;
       }
@@ -369,7 +369,7 @@ export class CustodyController {
       const { reportId } = req.params;
       const { exportFormat } = req.body;
 
-      const report = await chainOfCustodyService.exportReport(
+      const exported = await chainOfCustodyService.exportReport(
         reportId,
         exportFormat || 'json',
         req.user?.id || 'system'
@@ -378,7 +378,11 @@ export class CustodyController {
       const response: ApiResponse = {
         success: true,
         message: 'Report exported',
-        data: { report },
+        data: {
+          report: exported.report,
+          pdfBase64: exported.pdfBase64,
+          pdfFileName: exported.pdfFileName,
+        },
       };
 
       res.json(response);

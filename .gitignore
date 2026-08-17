@@ -32,6 +32,7 @@ backend/logs/
 backend/uploads/
 backend/backend_*.log
 backend/src/tests/global-config.json
+backend/src/tests/.test-uploads/
 ai-service/runtime.log
 sandbox-agent-v2/runtime.log
 sandbox-agent-v2/runtime.err

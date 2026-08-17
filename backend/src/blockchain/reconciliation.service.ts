@@ -359,7 +359,7 @@ export class BlockchainReconciliationService {
         evidenceId,
         eventType,
         details,
-        performedBy,
+        performedBy: /^[0-9a-fA-F]{24}$/.test(performedBy) ? performedBy : undefined,
         metadata,
       });
     } catch (error) {

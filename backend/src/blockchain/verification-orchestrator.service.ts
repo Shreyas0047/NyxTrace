@@ -13,6 +13,7 @@ import {
 import { blockchainService } from './blockchain.service';
 import { evidenceHashingService } from './hashing.service';
 import { verificationService } from './verification.service';
+import { blockchainSyncService } from './synchronization.service';
 import {
   BlockchainVerification,
   EvidenceIntegrity,
@@ -36,31 +37,58 @@ export class BlockchainVerificationService {
    */
   async registerEvidence(
     evidenceId: string,
-    filePath: string,
-    userId: string
+    filePathOrUrl: string,
+    userId: string,
+    sourceType: 'file' | 'url' = 'file'
   ): Promise<{
     fingerprint: string;
     blockchainVerification: any;
     integrityRecord: any;
   }> {
-    // Generate evidence fingerprint
-    const fingerprint = await evidenceHashingService.generateFileFingerprint(filePath);
+    // Generate evidence fingerprint (file hashing or URL string hashing)
+    const fingerprint = sourceType === 'url'
+      ? evidenceHashingService.generateDataFingerprint(filePathOrUrl)
+      : await evidenceHashingService.generateFileFingerprint(filePathOrUrl);
 
-    // Create blockchain verification record
-    const blockchainVerification = await BlockchainVerification.create({
-      evidenceId,
-      fingerprint,
-      algorithm: 'sha256',
-      status: BlockchainVerificationStatus.PENDING,
-      verifiedBy: userId,
-    });
+    // Upsert blockchain verification record (idempotent re-registration)
+    const blockchainVerification = await BlockchainVerification.findOneAndUpdate(
+      { evidenceId },
+      {
+        evidenceId,
+        fingerprint,
+        algorithm: 'sha256',
+        status: BlockchainVerificationStatus.PENDING,
+        verifiedBy: userId,
+      },
+      { upsert: true, new: true }
+    );
 
-    // Create integrity record
-    const integrityRecord = await EvidenceIntegrity.create({
-      evidenceId,
-      currentHash: fingerprint,
-      integrityState: EvidenceIntegrityState.UNKNOWN,
-    });
+    // Upsert integrity record
+    const integrityRecord = await EvidenceIntegrity.findOneAndUpdate(
+      { evidenceId },
+      {
+        evidenceId,
+        currentHash: fingerprint,
+        integrityState: EvidenceIntegrityState.UNKNOWN,
+      },
+      { upsert: true, new: true }
+    );
+
+    // Queue the fingerprint for on-chain anchoring (sync worker submits the transaction).
+    // Re-registration is idempotent: if the evidence is already anchored, skip queueing
+    // (the contract reverts on duplicate registration).
+    let alreadyAnchored = false;
+    if (blockchainService.isAvailable()) {
+      try {
+        const { smartContractService } = await import('./smart-contract.service');
+        alreadyAnchored = await smartContractService.checkEvidenceExists(evidenceId);
+      } catch (error) {
+        logger.warn(`[BlockchainVerification] Anchor check failed: ${error}`);
+      }
+      if (!alreadyAnchored) {
+        await blockchainSyncService.queueEvidenceRegistration(evidenceId, fingerprint, userId);
+      }
+    }
 
     // Add audit entry
     await this.addAuditEntry(
@@ -79,8 +107,9 @@ export class BlockchainVerificationService {
    */
   async verifyEvidence(
     evidenceId: string,
-    filePath: string,
-    userId: string
+    filePathOrUrl: string,
+    userId: string,
+    sourceType: 'file' | 'url' = 'file'
   ): Promise<{
     verified: boolean;
     currentHash: string;
@@ -94,13 +123,20 @@ export class BlockchainVerificationService {
       throw new Error(`No blockchain verification record found for evidence ${evidenceId}`);
     }
 
-    // Perform verification
-    const result = await verificationService.verifyEvidence(
-      evidenceId,
-      filePath,
-      blockchainVerification.fingerprint,
-      userId
-    );
+    // Perform verification (URL evidence is hashed from the string, files from disk)
+    const result = sourceType === 'url'
+      ? await verificationService.verifyData(
+          evidenceId,
+          filePathOrUrl,
+          blockchainVerification.fingerprint,
+          userId
+        )
+      : await verificationService.verifyEvidence(
+          evidenceId,
+          filePathOrUrl,
+          blockchainVerification.fingerprint,
+          userId
+        );
 
     // Update blockchain verification record
     blockchainVerification.verificationResult = result.status === VerificationStatus.VERIFIED;

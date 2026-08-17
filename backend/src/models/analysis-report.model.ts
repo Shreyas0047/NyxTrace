@@ -100,6 +100,12 @@ const analysisReportSchema = new Schema({
     type: String,
     default: 'system',
   },
+  investigationId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Investigation',
+    default: null,
+    index: true,
+  },
   analysisTimestamp: {
     type: Date,
     default: Date.now,

@@ -24,6 +24,7 @@ interface ReportsState {
     dateTo: string;
     search: string;
   };
+  investigationId: string;
 
   // Analytics hub — sandbox sessions
   sessions: SandboxSessionWithExtras[];
@@ -42,6 +43,7 @@ interface ReportsState {
   fetchReportById: (id: string) => Promise<void>;
   exportReport: (id: string, format: 'json' | 'text' | 'pdf') => Promise<void>;
   setFilters: (filters: Partial<ReportsState['filters']>) => void;
+  setInvestigationId: (investigationId: string) => void;
   clearCurrentReport: () => void;
 
   fetchSessions: (page?: number, limit?: number) => Promise<void>;
@@ -58,6 +60,7 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
   error: null,
   pagination: { page: 1, limit: 20, total: 0, totalPages: 0 },
   filters: { simulator: '', severity: '', dateFrom: '', dateTo: '', search: '' },
+  investigationId: '',
 
   sessions: [],
   sessionsPagination: { page: 1, limit: 20, total: 0, totalPages: 0 },
@@ -85,6 +88,7 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
         dateFrom: merged.dateFrom || undefined,
         dateTo: merged.dateTo || undefined,
         search: merged.search || undefined,
+        investigationId: get().investigationId || undefined,
       });
 
       if (response.success && response.data) {
@@ -151,12 +155,20 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
     }));
   },
 
+  setInvestigationId: (investigationId) => {
+    set({ investigationId });
+  },
+
   clearCurrentReport: () => set({ currentReport: null }),
 
   fetchSessions: async (page = 1, limit = 20) => {
     set({ isSessionsLoading: true });
     try {
-      const response = await api.getSandboxSessions({ page, limit });
+      const response = await api.getSandboxSessions({
+        page,
+        limit,
+        investigationId: get().investigationId || undefined,
+      });
       if (response.success && response.data) {
         set({
           sessions: response.data,
@@ -179,7 +191,7 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
   fetchAnalysisHistory: async (type, page = 1, limit = 20) => {
     set({ isAnalysisLoading: true });
     try {
-      const response = await api.getThreatIntelHistory({ page, limit, type });
+      const response = await api.getThreatIntelHistory({ page, limit, type, investigationId: get().investigationId || undefined });
       if (response.success && response.data) {
         const items = response.data as unknown as AnalysisReportItem[];
         set((state) => ({

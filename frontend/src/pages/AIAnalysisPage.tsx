@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Brain,
   Shield,
@@ -30,16 +31,19 @@ import {
   X,
   AlertCircle,
   Layers,
-  Globe,
   FileSearch,
+  Globe,
   LayoutDashboard,
   Square,
+  Database,
 } from 'lucide-react';
 import { useAnalysisStore } from '../stores/analysisStore';
 import { useSandboxStore } from '../stores/sandboxStore';
+import { useInvestigationStore } from '../stores/investigationStore';
 import { useTelemetryStore } from '../stores/telemetryStore';
 import { useReportsStore } from '../stores/reportsStore';
 import { cn } from '../design-system';
+import type { InvestigationSummary } from '../types';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
@@ -50,15 +54,13 @@ import { EvidenceGraph } from '../components/visualizations/EvidenceGraph';
 import { MITREHeatmap } from '../components/visualizations/MITREHeatmap';
 import { RiskScoreGauge } from '../components/visualizations/RiskScoreGauge';
 import { motion, AnimatePresence } from 'framer-motion';
-import { DocumentAnalysisView } from '../components/threat-intelligence/DocumentAnalysisView';
-import { UrlAnalysisView } from '../components/threat-intelligence/UrlAnalysisView';
 import { ThreatSummaryBar } from '../components/threat-intelligence/ThreatSummaryBar';
 import { AnalysisResultCard } from '../components/threat-intelligence/AnalysisResultCard';
 import { useThreatIntelStore } from '../stores/threatIntelStore';
 import api from '../services/api';
 
 type TabType = 'overview' | 'threat' | 'mitre' | 'chain' | 'heuristics' | 'anomalies' | 'compare';
-type AnalysisMode = 'sandbox' | 'document' | 'url' | 'workspace';
+type AnalysisMode = 'sandbox' | 'workspace';
 
 interface BehavioralHeuristic {
   name: string;
@@ -110,18 +112,97 @@ const getTrendIcon = (value: number) => {
   return <Minus className="w-4 h-4 text-[var(--text-secondary)] " />;
 };
 
+interface EvidenceVerdict {
+  evidence: any;
+  session: any;
+  verdict: 'Safe' | 'Suspicious' | 'Malicious' | 'Not Analyzed';
+  threatType: string;
+  confidence: number;
+  severityScore: number;
+  kind: string;
+  hasSession: boolean;
+  storedOnly: boolean;
+}
+
+const deriveVerdictFromAI = (ai: any): Omit<EvidenceVerdict, 'evidence' | 'session' | 'kind' | 'hasSession' | 'storedOnly'> => {
+  if (!ai || typeof ai !== 'object') return { verdict: 'Not Analyzed', threatType: '—', confidence: 0, severityScore: 0 };
+  let score = Number(ai.severity_score ?? ai.severityScore ?? 0);
+  if (score > 10) score = score / 10;
+  const level = ai.severity_level || ai.severityLevel || 'low';
+  const confidence = Number(ai.confidence ?? 0);
+  let threatType = ai.predictedThreat || ai.predicted_threat || '';
+  if (!threatType) {
+    const tc = ai.threat_classification || ai.threatClassification;
+    if (tc && typeof tc === 'object') {
+      if ('category' in tc && tc.category) threatType = String(tc.category);
+      else {
+        const entries = Object.entries(tc).filter(([, v]) => typeof v === 'number');
+        threatType = entries.length ? String(entries[0][0]) : '';
+      }
+    }
+  }
+  const verdict: EvidenceVerdict['verdict'] =
+    level === 'critical' || level === 'high' || score >= 6 ? 'Malicious'
+      : level === 'medium' || score >= 3 ? 'Suspicious'
+        : 'Safe';
+  return { verdict, threatType: threatType || '—', confidence, severityScore: score };
+};
+
+const buildEvidenceVerdicts = (evidence: any[], sessions: any[]): EvidenceVerdict[] =>
+  evidence.map((ev) => {
+    const type = ev.type || '';
+    const kind = ev.artifactKind || (['url', 'document', 'executable'].includes(type) ? type : type || 'executable');
+    const linked = sessions
+      .filter((s: any) => s.evidenceId && String(s.evidenceId) === String(ev.id))
+      .sort((a: any, b: any) => new Date(b.startTime || 0).getTime() - new Date(a.startTime || 0).getTime());
+    const session = linked.find((s: any) => s.aiAnalysis) || linked[0] || null;
+    const ai = ev.aiAnalysis;
+    const hasSignal = ai && typeof ai === 'object' && (
+      ai.severity_score != null || ai.severityLevel != null || ai.severity_level != null ||
+      ai.threat_classification != null || ai.threatClassification != null || ai.predictedThreat != null
+    );
+    const storedAi = hasSignal ? ai : null;
+    const hasSession = !!session;
+    const storedOnly = !session && !!storedAi;
+    return {
+      evidence: ev,
+      session: hasSession ? session : (storedAi ? { aiAnalysis: storedAi, sessionId: storedAi.session_id } : null),
+      kind,
+      hasSession,
+      storedOnly,
+      ...deriveVerdictFromAI(session?.aiAnalysis || storedAi),
+    };
+  });
+
+const verdictStyles: Record<string, string> = {
+  Safe: 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30',
+  Suspicious: 'bg-amber-500/15 text-amber-700 border-amber-500/30',
+  Malicious: 'bg-red-500/15 text-red-700 border-red-500/30',
+  'Not Analyzed': 'bg-[var(--surface-container)] text-[var(--text-secondary)] border-[var(--border-default)]',
+};
+
+const verdictDot: Record<string, string> = {
+  Safe: 'bg-emerald-500',
+  Suspicious: 'bg-amber-500',
+  Malicious: 'bg-red-500',
+  'Not Analyzed': 'bg-[var(--text-tertiary)]',
+};
+
+const kindIcon = (kind: string, className: string) =>
+  kind === 'url' ? <Globe className={className} /> : kind === 'document' ? <FileText className={className} /> : <Cpu className={className} />;
+
 export function AIAnalysisPage() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const {
     currentReport,
     currentSessionAnalysis,
-    isLoadingReport,
     reportError,
     isLoadingInsights,
     comparisonResult,
     isComparing,
     liveEvents,
     isLiveAnalyzing,
-    analyzeSession,
     compareSessions,
     startLiveAnalysis,
     updateLiveEvents,
@@ -129,6 +210,8 @@ export function AIAnalysisPage() {
     loadPatterns,
     loadInsights,
     clearReport,
+    analyzeSession,
+    isLoadingReport,
   } = useAnalysisStore();
 
   const {
@@ -140,6 +223,9 @@ export function AIAnalysisPage() {
     isExecuting,
   } = useSandboxStore();
 
+  const investigations = useInvestigationStore((s) => s.investigations);
+  const fetchInvestigations = useInvestigationStore((s) => s.fetchInvestigations);
+
   const telemetryStore = useTelemetryStore();
   const telemetryEvents = telemetryStore.events;
   const connectTelemetry = telemetryStore.connect;
@@ -150,21 +236,79 @@ export function AIAnalysisPage() {
   } = useReportsStore();
 
   const [activeTab, setActiveTab] = useState<TabType>('overview');
-  const [selectedSessionForAnalysis, setSelectedSessionForAnalysis] = useState('');
+  const [selectedInvestigationId, setSelectedInvestigationId] = useState('');
+  const [investigationSummary, setInvestigationSummary] = useState<InvestigationSummary & { severity_level?: string; severity_score?: number; total_events_analyzed?: number } | null>(null);
+  const [isLoadingSummary, setIsLoadingSummary] = useState(false);
   const [expandedTechnique, setExpandedTechnique] = useState<string | null>(null);
   const [showCompareModal, setShowCompareModal] = useState(false);
   const [analysisMode, setAnalysisMode] = useState<AnalysisMode>('sandbox');
   const [selectedComparisonSessions, setSelectedComparisonSessions] = useState<string[]>([]);
-  const [storedAIAnalysis, setStoredAIAnalysis] = useState<any>(null);
-  const [isLoadingStoredAnalysis, setIsLoadingStoredAnalysis] = useState(false);
+  const [selectedSessionId, setSelectedSessionId] = useState('');
+  const sessionParamRef = useRef(false);
   const refreshIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const [evidenceItems, setEvidenceItems] = useState<any[]>([]);
+  const [evidenceSetSessions, setEvidenceSetSessions] = useState<any[]>([]);
+  const [isLoadingEvidenceSet, setIsLoadingEvidenceSet] = useState(false);
+
+  const loadEvidenceSet = useCallback(async (investigationId: string) => {
+    if (!investigationId) {
+      setEvidenceItems([]);
+      setEvidenceSetSessions([]);
+      return;
+    }
+    setIsLoadingEvidenceSet(true);
+    try {
+      const [evidenceRes, sessionsRes] = await Promise.all([
+        api.getEvidenceByInvestigation(investigationId, { page: 1, limit: 100 }),
+        api.getSandboxSessions({ page: 1, limit: 100, investigationId }),
+      ]);
+      setEvidenceItems(evidenceRes.data || []);
+      setEvidenceSetSessions((sessionsRes.data || []) as any[]);
+    } catch {
+      setEvidenceItems([]);
+      setEvidenceSetSessions([]);
+    } finally {
+      setIsLoadingEvidenceSet(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadEvidenceSet(selectedInvestigationId);
+  }, [selectedInvestigationId, loadEvidenceSet]);
 
   useEffect(() => {
     fetchSessions({ page: 1, limit: 50 });
     fetchReports();
     loadPatterns();
     loadInsights();
-  }, [fetchSessions, fetchReports, loadPatterns, loadInsights]);
+    fetchInvestigations({ page: 1, limit: 100 });
+  }, [fetchSessions, fetchReports, loadPatterns, loadInsights, fetchInvestigations]);
+
+  const sessionParam = searchParams.get('sessionId') || '';
+
+  // Deep-link (?sessionId=) auto-runs forensic analysis on the target session
+  useEffect(() => {
+    if (sessionParamRef.current || !sessionParam) return;
+    sessionParamRef.current = true;
+    setSelectedSessionId(sessionParam);
+    setActiveTab('overview');
+    analyzeSession(sessionParam);
+  }, [sessionParam, analyzeSession]);
+
+  // Default the session picker to the most recent completed session
+  useEffect(() => {
+    if (selectedSessionId || activeSession || sessionParam) return;
+    const completed = sessions.find((s) => s.status === 'completed');
+    if (completed) setSelectedSessionId(completed.sessionId);
+  }, [sessions, selectedSessionId, activeSession, sessionParam]);
+
+  // Auto-select the investigation when only one exists
+  useEffect(() => {
+    if (!selectedInvestigationId && investigations.length === 1) {
+      setSelectedInvestigationId(investigations[0].id);
+    }
+  }, [investigations, selectedInvestigationId]);
 
   const sessionId = activeSession?.session_id;
   const sessionState = activeSession?.state;
@@ -205,35 +349,36 @@ export function AIAnalysisPage() {
     };
   }, [isLiveAnalyzing, updateLiveEvents]);
 
-  useEffect(() => {
-    if (!selectedSessionForAnalysis) {
-      setStoredAIAnalysis(null);
-      return;
-    }
-    const session = sessions.find(s => s.sessionId === selectedSessionForAnalysis);
-    if (session?.status !== 'completed' && session?.status !== 'failed') {
-      setStoredAIAnalysis(null);
-      return;
-    }
-    setIsLoadingStoredAnalysis(true);
-    api.getSessionAIAnalysis(selectedSessionForAnalysis)
-      .then(res => {
-        if (res.data?.aiAnalysis) {
-          setStoredAIAnalysis(res.data.aiAnalysis);
-        } else {
-          setStoredAIAnalysis(null);
-        }
-      })
-      .catch((err) => { console.error('Failed to fetch stored AI analysis:', err); setStoredAIAnalysis(null); })
-      .finally(() => setIsLoadingStoredAnalysis(false));
-  }, [selectedSessionForAnalysis, sessions]);
-
-  const handleAnalyzeSession = useCallback(async () => {
-    if (selectedSessionForAnalysis) {
-      await analyzeSession(selectedSessionForAnalysis);
+  const handleAnalyzeInvestigation = useCallback(async () => {
+    if (!selectedInvestigationId) return;
+    setIsLoadingSummary(true);
+    setInvestigationSummary(null);
+    try {
+      const investigation = investigations.find(i => i.id === selectedInvestigationId);
+      let evidenceList: any[] = [];
+      try {
+        const evidenceRes = await api.getEvidenceByInvestigation(selectedInvestigationId, { page: 1, limit: 50 });
+        evidenceList = evidenceRes.data || [];
+      } catch (err) {
+        console.error('Failed to fetch investigation evidence:', err);
+      }
+      const res = await api.summarizeInvestigation({
+        investigationId: selectedInvestigationId,
+        title: investigation?.title || '',
+        description: investigation?.description || '',
+        caseNumber: investigation?.caseNumber || '',
+        evidence: evidenceList,
+        alerts: [],
+        timeline: [],
+      });
+      setInvestigationSummary(res.data as InvestigationSummary & { severity_level?: string; severity_score?: number; total_events_analyzed?: number });
       setActiveTab('overview');
+    } catch (err) {
+      console.error('Failed to generate investigation summary:', err);
+    } finally {
+      setIsLoadingSummary(false);
     }
-  }, [selectedSessionForAnalysis, analyzeSession]);
+  }, [selectedInvestigationId, investigations]);
 
   const handleTerminateSession = useCallback(async () => {
     if (!activeSession) return;
@@ -267,7 +412,7 @@ export function AIAnalysisPage() {
     });
   }, []);
 
-  const sessionAnalysis = (currentSessionAnalysis || storedAIAnalysis) as any;
+  const sessionAnalysis = currentSessionAnalysis as any;
 
   const {
     analysisHistory,
@@ -281,7 +426,7 @@ export function AIAnalysisPage() {
     if (currentReport?.threatClassification) {
       return currentReport.threatClassification;
     }
-    const source = currentSessionAnalysis || storedAIAnalysis;
+    const source = currentSessionAnalysis;
     if (source) {
       return {
         threatType: sessionAnalysis?.predictedThreat || (source.threatClassification ? Object.keys(source.threatClassification)[0] : 'Unknown'),
@@ -296,9 +441,17 @@ export function AIAnalysisPage() {
 
   const mitreTechniques: any[] = currentReport?.mitreTechniques || (sessionAnalysis as any)?.mitreTechniques || [];
 
+  const threatDistribution = (() => {
+    const tc = (sessionAnalysis as any)?.threatClassification;
+    if (!tc || typeof tc !== 'object' || Array.isArray(tc)) return null;
+    const entries = Object.entries(tc);
+    if (entries.length === 0 || !entries.every(([, v]) => typeof v === 'number')) return null;
+    return entries;
+  })();
+
   const behavioralHeuristics: BehavioralHeuristic[] = currentReport?.behavioralHeuristics || sessionAnalysis?.behavioralHeuristics || [];
 
-  const anomalyData: AnomalyData[] = (currentReport?.anomalies || currentSessionAnalysis?.anomalies || storedAIAnalysis?.anomalies || []).map((anomaly: any) => ({
+  const anomalyData: AnomalyData[] = (currentReport?.anomalies || currentSessionAnalysis?.anomalies || []).map((anomaly: any) => ({
     type: anomaly.type || anomaly.category || 'Unknown',
     description: anomaly.description || '',
     severity: anomaly.severity || 'medium',
@@ -322,9 +475,11 @@ export function AIAnalysisPage() {
   const evidenceGraphNodes = (currentReport as any)?.evidenceGraph?.nodes || [];
   const evidenceGraphEdges = (currentReport as any)?.evidenceGraph?.edges || [];
 
-  const executiveSummary = currentReport?.executiveSummary || currentSessionAnalysis?.behavioralSummary || storedAIAnalysis?.behavioralSummary || '';
+  const executiveSummary = currentReport?.executiveSummary || currentSessionAnalysis?.behavioralSummary || '';
 
-  const analystExplanation = currentReport?.analystExplanation || sessionAnalysis?.analystExplanation || currentSessionAnalysis?.behavioralSummary || storedAIAnalysis?.behavioralSummary || '';
+  const analystExplanation = currentReport?.analystExplanation || sessionAnalysis?.analystExplanation || currentSessionAnalysis?.behavioralSummary || '';
+
+  const evidenceVerdicts = buildEvidenceVerdicts(evidenceItems, evidenceSetSessions);
 
 
   return (
@@ -369,8 +524,6 @@ export function AIAnalysisPage() {
       <div className="flex items-center gap-1 p-1 bg-[var(--surface-container-low)]  rounded-lg w-fit">
         {([
           { id: 'sandbox' as const, label: 'Sandbox', icon: Cpu },
-          { id: 'document' as const, label: 'Document', icon: FileSearch },
-          { id: 'url' as const, label: 'URL Intel', icon: Globe },
           { id: 'workspace' as const, label: 'Workspace', icon: LayoutDashboard },
         ]).map(({ id, label, icon: Icon }) => (
           <button
@@ -394,22 +547,22 @@ export function AIAnalysisPage() {
       <div className="flex items-center gap-4 px-4 py-3 bg-[var(--surface-container-lowest)]  rounded-lg">
         <div className="flex items-center gap-2">
           <select
-            value={selectedSessionForAnalysis}
-            onChange={(e) => setSelectedSessionForAnalysis(e.target.value)}
-            className="px-3 py-2 text-sm border border-[var(--border-subtle)]  rounded-lg bg-white  text-[var(--text-primary)]  w-72"
+            value={selectedInvestigationId}
+            onChange={(e) => setSelectedInvestigationId(e.target.value)}
+            className="px-3 py-2 text-sm border border-[var(--border-subtle)]  rounded-lg bg-white  text-[var(--text-primary)]  w-80"
           >
-            <option value="">Select session for analysis...</option>
-            {sessions.map(s => (
-              <option key={s.id} value={s.sessionId}>{s.simulatorName} ({s.sessionId?.slice(0, 8)})</option>
+            <option value="">Select investigation...</option>
+            {investigations.map(inv => (
+              <option key={inv.id} value={inv.id}>{inv.caseNumber} — {inv.title}</option>
             ))}
           </select>
           <button
-            onClick={handleAnalyzeSession}
-            disabled={!selectedSessionForAnalysis || isLoadingReport || !!storedAIAnalysis}
+            onClick={handleAnalyzeInvestigation}
+            disabled={!selectedInvestigationId || isLoadingSummary}
             className="flex items-center gap-2 px-3 py-2 text-sm bg-amber-500 text-black rounded-lg hover:bg-amber-400 disabled:opacity-50"
           >
-            {isLoadingReport ? <Loader2 className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />}
-            Analyze Session
+            {isLoadingSummary ? <Loader2 className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />}
+            {isLoadingSummary ? 'Generating Summary...' : 'Generate Investigation Summary'}
           </button>
         </div>
         <div className="h-6 w-px bg-[var(--surface-container)] " />
@@ -420,36 +573,109 @@ export function AIAnalysisPage() {
           <GitCompare className="w-4 h-4" />
           Compare Sessions
         </button>
+        <div className="h-6 w-px bg-[var(--surface-container)] " />
+        <select
+          value={selectedSessionId}
+          onChange={(e) => setSelectedSessionId(e.target.value)}
+          className="px-3 py-2 text-sm border border-[var(--border-subtle)]  rounded-lg bg-white  text-[var(--text-primary)]  w-64"
+        >
+          <option value="">Select completed session...</option>
+          {sessions
+            .filter((s) => s.status === 'completed')
+            .map((s) => (
+              <option key={s.sessionId} value={s.sessionId}>
+                {s.sessionId?.slice(0, 8)} — {s.simulatorName || s.simulatorId}
+              </option>
+            ))}
+        </select>
+        <button
+          onClick={() => selectedSessionId && analyzeSession(selectedSessionId)}
+          disabled={!selectedSessionId || isLoadingReport}
+          className="flex items-center gap-2 px-3 py-2 text-sm border border-[var(--border-default)]  rounded-lg hover:bg-[var(--surface-container-lowest)]  disabled:opacity-50"
+        >
+          {isLoadingReport ? <Loader2 className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />}
+          {isLoadingReport ? 'Analyzing...' : 'Analyze Session'}
+        </button>
       </div>
 
-      {isLoadingStoredAnalysis && (
+      {isLoadingSummary && (
         <div className="flex items-center gap-3 px-4 py-3 bg-indigo-50  border border-indigo-200  rounded-lg text-sm text-indigo-700 ">
           <Loader2 className="w-4 h-4 animate-spin" />
-          Loading stored AI analysis...
+          Generating investigation summary from evidence pipeline...
         </div>
       )}
 
-      {storedAIAnalysis && !isLoadingStoredAnalysis && (
+      {investigationSummary && !isLoadingSummary && (
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-3 px-4 py-3 bg-emerald-50  border border-emerald-200  rounded-lg text-sm"
+          className="p-5 bg-[var(--surface-container-lowest)]  border border-[var(--border-subtle)]  rounded-lg space-y-4"
         >
-          <CheckCircle className="w-5 h-5 text-emerald-600   shrink-0" />
-          <div className="text-emerald-800 ">
-            <span className="font-semibold">AI analysis available</span> from session completion pipeline.
-            {storedAIAnalysis.confidence ? (
-              <span className="ml-2 text-emerald-600  ">
-                Confidence: {(storedAIAnalysis.confidence * 100).toFixed(0)}%
-              </span>
-            ) : null}
+          <div className="flex items-start gap-3">
+            <Brain className="w-5 h-5 text-amber-600   shrink-0 mt-0.5" />
+            <div className="flex-1 space-y-3">
+              <div className="flex items-center gap-3">
+                <span className="font-semibold text-[var(--text-primary)] ">Investigation Summary</span>
+                {investigationSummary.severity_level && (
+                  <span className={cn(
+                    'text-xs px-2 py-0.5 rounded-full font-medium',
+                    investigationSummary.severity_level === 'critical' && 'bg-red-100  text-red-700 ',
+                    investigationSummary.severity_level === 'high' && 'bg-orange-100  text-orange-700 ',
+                    investigationSummary.severity_level === 'medium' && 'bg-yellow-100  text-yellow-700 ',
+                    investigationSummary.severity_level === 'low' && 'bg-emerald-100  text-emerald-700 ',
+                  )}>
+                    {investigationSummary.severity_level.toUpperCase()}
+                    {typeof investigationSummary.severity_score === 'number' ? ` (${investigationSummary.severity_score}/100)` : ''}
+                  </span>
+                )}
+                {typeof investigationSummary.confidence === 'number' && (
+                  <span className="text-xs text-[var(--text-secondary)] ">
+                    Confidence: {(investigationSummary.confidence * 100).toFixed(0)}%
+                  </span>
+                )}
+              </div>
+              {investigationSummary.executive_summary && (
+                <p className="text-sm leading-relaxed text-[var(--text-primary)] ">{investigationSummary.executive_summary}</p>
+              )}
+              {investigationSummary.analyst_summary && (
+                <p className="text-xs leading-relaxed text-[var(--text-secondary)] ">{investigationSummary.analyst_summary}</p>
+              )}
+              {investigationSummary.key_findings?.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]  mb-1.5">Key Findings</p>
+                  <ul className="space-y-1">
+                    {investigationSummary.key_findings.map((finding, idx) => (
+                      <li key={idx} className="flex items-start gap-2 text-sm text-[var(--text-primary)] ">
+                        <CheckCircle className="w-4 h-4 text-emerald-600   shrink-0 mt-0.5" />
+                        {finding}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {investigationSummary.timeline_summary && (
+                <p className="text-xs text-[var(--text-secondary)] ">{investigationSummary.timeline_summary}</p>
+              )}
+              {investigationSummary.recommendations?.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]  mb-1.5">Recommendations</p>
+                  <ul className="space-y-1">
+                    {investigationSummary.recommendations.map((rec, idx) => (
+                      <li key={idx} className="flex items-start gap-2 text-sm text-[var(--text-primary)] ">
+                        <AlertTriangle className="w-4 h-4 text-amber-600   shrink-0 mt-0.5" />
+                        {rec}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {typeof investigationSummary.total_events_analyzed === 'number' && (
+                <p className="text-xs text-[var(--text-secondary)] ">
+                  {investigationSummary.total_events_analyzed} events analyzed · {(investigationSummary as any).anomalies_detected ?? 0} anomalies detected
+                </p>
+              )}
+            </div>
           </div>
-          <button
-            onClick={() => setStoredAIAnalysis(null)}
-            className="ml-auto text-xs px-2 py-1 rounded bg-emerald-200/50  hover:bg-emerald-200  text-emerald-700 "
-          >
-            Re-analyze
-          </button>
         </motion.div>
       )}
 
@@ -530,6 +756,39 @@ export function AIAnalysisPage() {
         </DashboardCard>
       </PageGrid>
 
+      {evidenceVerdicts.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium text-[var(--text-secondary)] flex items-center gap-1.5">
+            <Layers className="w-3.5 h-3.5" />
+            Evidence Set
+          </span>
+          {isLoadingEvidenceSet && <Loader2 className="w-3.5 h-3.5 animate-spin text-[var(--text-tertiary)]" />}
+          {evidenceVerdicts.map((v) => (
+            <button
+              key={v.evidence.id}
+              onClick={() => {
+                if (v.session?.sessionId && v.hasSession) {
+                  setSelectedSessionId(v.session.sessionId);
+                  analyzeSession(v.session.sessionId);
+                }
+              }}
+              disabled={!v.hasSession}
+              title={v.storedOnly ? 'Analysis stored on evidence — session no longer available' : v.hasSession ? `${v.threatType} · ${(v.confidence * 100).toFixed(0)}% confidence` : 'Not analyzed — run in sandbox first'}
+              className={cn(
+                'flex items-center gap-2 px-2.5 py-1.5 text-xs rounded-full border transition-colors',
+                v.hasSession ? 'cursor-pointer hover:bg-[var(--surface-container-lowest)]' : 'opacity-60 cursor-not-allowed',
+                'border-[var(--border-subtle)] bg-[var(--surface-container-lowest)]'
+              )}
+            >
+              {kindIcon(v.kind, 'w-3.5 h-3.5 text-[var(--text-tertiary)]')}
+              <span className="font-medium text-[var(--text-primary)] max-w-40 truncate">{v.evidence.name}</span>
+              <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', verdictDot[v.verdict])} />
+              <span className="text-[var(--text-secondary)]">{v.verdict}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="flex gap-2 border-b border-[var(--border-subtle)] ">
         {([
           { id: 'overview', label: 'Overview', icon: Layers },
@@ -557,7 +816,80 @@ export function AIAnalysisPage() {
       </div>
 
       {activeTab === 'overview' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-6">
+          {evidenceVerdicts.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-[var(--text-primary)]  flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-amber-600" />
+                  Evidence Set Verdicts
+                </h3>
+                <button
+                  onClick={() => loadEvidenceSet(selectedInvestigationId)}
+                  className="flex items-center gap-2 px-3 py-1.5 text-xs border border-[var(--border-default)] rounded-lg hover:bg-[var(--surface-container-lowest)]"
+                >
+                  <RefreshCw className={cn('w-3.5 h-3.5', isLoadingEvidenceSet && 'animate-spin')} />
+                  Refresh
+                </button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                {evidenceVerdicts.map((v) => (
+                  <Card key={v.evidence.id}>
+                    <div className="p-4">
+                      <div className="flex items-start justify-between mb-3 gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="w-8 h-8 rounded-lg bg-[var(--surface-container-low)]  flex items-center justify-center shrink-0">
+                            {kindIcon(v.kind, 'w-4 h-4 text-[var(--text-tertiary)]')}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-[var(--text-primary)]  truncate">{v.evidence.name}</p>
+                            <p className="text-xs text-[var(--text-secondary)]  capitalize">{v.kind} evidence</p>
+                          </div>
+                        </div>
+                        <span className={cn('px-2 py-0.5 text-xs font-medium rounded-full border shrink-0', verdictStyles[v.verdict])}>{v.verdict}</span>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-[var(--text-secondary)]">Threat Type</span>
+                          <span className="text-sm font-medium text-[var(--text-primary)] ">{v.threatType}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-[var(--text-secondary)]">Confidence</span>
+                          <span className="text-sm font-medium text-[var(--text-primary)] ">{(v.confidence * 100).toFixed(0)}%</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-[var(--text-secondary)]">Severity Score</span>
+                          <span className="text-sm font-medium text-[var(--text-primary)] ">{v.severityScore.toFixed(1)}/10</span>
+                        </div>
+                        {v.hasSession && v.session?.sessionId && (
+                          <div className="pt-2 border-t border-[var(--border-subtle)] ">
+                            <button
+                              onClick={() => {
+                                setSelectedSessionId(v.session.sessionId);
+                                analyzeSession(v.session.sessionId);
+                              }}
+                              className="text-xs text-amber-600 font-medium hover:underline flex items-center gap-1"
+                            >
+                              <Brain className="w-3 h-3" />
+                              View analysis · {v.session.sessionId.slice(0, 12)}...
+                            </button>
+                          </div>
+                        )}
+                        {v.storedOnly && (
+                          <div className="pt-2 border-t border-[var(--border-subtle)] flex items-center gap-1.5 text-xs text-[var(--text-tertiary)]">
+                            <Database className="w-3 h-3" />
+                            Stored analysis on evidence
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="space-y-6">
             <Card>
               <div className="p-4 border-b border-[var(--border-subtle)] ">
@@ -603,7 +935,7 @@ export function AIAnalysisPage() {
                 ) : (
                   <div className="text-center py-8 text-[var(--text-secondary)]">
                     <Brain className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p>Select a session to analyze</p>
+                    <p>{isLoadingReport ? 'Analyzing session...' : 'Select a session above to analyze'}</p>
                     <p className="text-xs mt-1">AI analysis will identify threats and behaviors</p>
                   </div>
                 )}
@@ -750,6 +1082,7 @@ export function AIAnalysisPage() {
             </Card>
           </div>
         </div>
+        </div>
       )}
 
       {activeTab === 'threat' && (
@@ -806,11 +1139,11 @@ export function AIAnalysisPage() {
                       </div>
                     </div>
 
-                    {currentSessionAnalysis && (
+                    {threatDistribution && (
                       <div>
                         <h4 className="text-sm font-semibold text-[var(--text-secondary)]  mb-3">Threat Probability Distribution</h4>
                         <div className="space-y-2">
-                          {Object.entries(currentSessionAnalysis.threatClassification).map(([type, prob]) => (
+                          {threatDistribution.map(([type, prob]) => (
                             <div key={type} className="flex items-center gap-3">
                               <span className="text-sm text-[var(--text-secondary)]  w-40">{type}</span>
                               <div className="flex-1 h-2 bg-[var(--surface-container)]  rounded-full overflow-hidden">
@@ -1426,22 +1759,6 @@ export function AIAnalysisPage() {
         </div>
       )}
       </>
-      ) : analysisMode === 'document' ? (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <DocumentAnalysisView />
-        </motion.div>
-      ) : analysisMode === 'url' ? (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <UrlAnalysisView />
-        </motion.div>
       ) : (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -1476,7 +1793,7 @@ export function AIAnalysisPage() {
                   analysis={item}
                   onClick={() => {
                     loadThreatAnalysis(item.id);
-                    setAnalysisMode(item.type === 'url' ? 'url' : 'document');
+                    setAnalysisMode('workspace');
                   }}
                 />
               ))}
@@ -1485,21 +1802,23 @@ export function AIAnalysisPage() {
             <div className="text-center py-20">
               <LayoutDashboard className="w-16 h-16 mx-auto mb-4 text-[var(--text-secondary)]  " />
               <p className="text-lg font-medium text-[var(--text-secondary)]  mb-2">Threat Intelligence Workspace</p>
-              <p className="text-sm text-[var(--text-secondary)] mb-6">Run document or URL analyses to see results here</p>
+              <p className="text-sm text-[var(--text-secondary)] mb-6">
+                Register evidence on the Evidence Explorer, then analyze it from the Sandbox Dashboard.
+              </p>
               <div className="flex items-center justify-center gap-4">
                 <button
-                  onClick={() => setAnalysisMode('document')}
+                  onClick={() => navigate('/evidence')}
                   className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-black rounded-lg hover:bg-amber-400 text-sm font-medium"
                 >
                   <FileSearch className="w-4 h-4" />
-                  Analyze Document
+                  Evidence Explorer
                 </button>
                 <button
-                  onClick={() => setAnalysisMode('url')}
+                  onClick={() => navigate('/sandbox')}
                   className="flex items-center gap-2 px-4 py-2 border border-[var(--border-default)]  rounded-lg hover:bg-[var(--surface-container-lowest)]  text-sm font-medium text-[var(--text-secondary)] "
                 >
-                  <Globe className="w-4 h-4" />
-                  Analyze URL
+                  <Cpu className="w-4 h-4" />
+                  Sandbox Dashboard
                 </button>
               </div>
             </div>

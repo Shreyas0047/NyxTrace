@@ -6,7 +6,7 @@
 import path from 'path';
 import fs from 'fs';
 import logger from '../config/logger';
-import { SandboxSession } from '../models';
+import { SandboxSession, Evidence } from '../models';
 import { TelemetryEvent } from '../models/telemetry-event.model';
 import { SandboxSessionStatus } from '../types';
 import { ConflictError, AppError } from '../middleware';
@@ -23,6 +23,8 @@ export class SandboxSyncService {
     simulatorId: string;
     simulatorName: string;
     startTime: string;
+    evidenceId?: string;
+    kind?: 'executable' | 'document' | 'url';
   }): Promise<any> {
     // Check for duplicate session
     const existing = await SandboxSession.findOne({ sessionId: data.sessionId });
@@ -37,6 +39,7 @@ export class SandboxSyncService {
       simulatorName: data.simulatorName,
       status: SandboxSessionStatus.RUNNING,
       startTime: new Date(data.startTime),
+      ...(data.evidenceId ? { evidenceId: data.evidenceId, kind: data.kind || 'executable' } : {}),
     });
 
     websocketService.emitSandboxSessionUpdate(session.sessionId, session);
@@ -130,10 +133,15 @@ export class SandboxSyncService {
     page: number;
     limit: number;
     status?: SandboxSessionStatus;
+    investigationId?: string;
   }): Promise<{ sessions: any[]; total: number; totalPages: number }> {
-    const { page, limit, status } = options;
+    const { page, limit, status, investigationId } = options;
 
-    const query = status ? { status } : {};
+    const query: any = status ? { status } : {};
+    if (investigationId) {
+      const evidenceIds = await Evidence.find({ investigationId }).distinct('_id');
+      query.evidenceId = { $in: evidenceIds };
+    }
 
     const total = await SandboxSession.countDocuments(query);
     const totalPages = Math.ceil(total / limit);

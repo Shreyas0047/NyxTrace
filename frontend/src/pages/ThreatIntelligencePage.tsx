@@ -5,8 +5,9 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { ShieldAlert, Network, Fingerprint } from 'lucide-react';
+import { ShieldAlert, Network, Fingerprint, RefreshCw, Link2, Database, FileSearch } from 'lucide-react';
 import api from '../services/api';
+import { cn } from '../design-system';
 
 // --- Types ---
 interface GraphNode {
@@ -47,7 +48,11 @@ interface IOC {
   threatScore: number;
   createdAt: string;
   linkedInvestigations?: string[];
+  linkedEvidence?: string[];
   source?: string;
+  confidence?: number;
+  isDerived?: boolean;
+  investigationId?: string;
 }
 
 interface AnalysisIndicator {
@@ -67,6 +72,7 @@ interface AnalysisHistoryItem {
   indicators?: AnalysisIndicator[];
   iocCount?: number;
   analysisTimestamp?: string;
+  investigationId?: string;
 }
 
 // --- Force-Directed Graph Canvas ---
@@ -208,6 +214,8 @@ export const ThreatIntelligencePage: React.FC = () => {
   const [graphNodes, setGraphNodes] = useState<GraphNode[]>([]);
   const [graphEdges, setGraphEdges] = useState<GraphEdge[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [investigationMap, setInvestigationMap] = useState<Map<string, string>>(new Map());
 
   useEffect(() => {
     fetchData();
@@ -216,17 +224,26 @@ export const ThreatIntelligencePage: React.FC = () => {
 
   const fetchData = async () => {
     setLoading(true);
+    setRefreshing(true);
     try {
-      const [iocsRes, graphRes, historyRes] = await Promise.all([
+      const [iocsRes, graphRes, historyRes, invRes] = await Promise.all([
         api.get<{ iocs: IOC[] }>('/threat/iocs?limit=50'),
         api.get<{ nodes: GraphNodeData[]; edges: GraphEdgeData[] }>('/threat/graph'),
         api.get<AnalysisHistoryItem[] | { items?: AnalysisHistoryItem[]; data?: AnalysisHistoryItem[] }>('/analysis/history?limit=100'),
+        api.getInvestigations({ page: 1, limit: 100 }),
       ]);
-      const fetchedIocs = iocsRes.success && iocsRes.data?.iocs ? iocsRes.data.iocs : [];
+      const fetchedIocs = (iocsRes.success && iocsRes.data?.iocs ? iocsRes.data.iocs : []).map((ioc) => ({ ...ioc, isDerived: false }));
       const historyPayload = historyRes.success ? historyRes.data : null;
       const historyItems: AnalysisHistoryItem[] = Array.isArray(historyPayload)
         ? (historyPayload as AnalysisHistoryItem[])
         : (historyPayload?.items || historyPayload?.data || []);
+
+      const invMap = new Map<string, string>();
+      for (const inv of invRes.success && invRes.data ? invRes.data : []) {
+        const invAny = inv as any;
+        if (inv.id) invMap.set(inv.id, invAny.caseNumber || invAny.title || inv.id);
+      }
+      setInvestigationMap(invMap);
 
       const derived = deriveFromAnalyses(historyItems);
       const mergedIocs = mergeIocs(fetchedIocs, derived.iocs);
@@ -239,6 +256,7 @@ export const ThreatIntelligencePage: React.FC = () => {
       );
     } catch { /* empty state */ }
     setLoading(false);
+    setRefreshing(false);
   };
 
   const severityToScore: Record<string, number> = {
@@ -301,6 +319,9 @@ export const ThreatIntelligencePage: React.FC = () => {
             threatScore: score,
             createdAt: item.analysisTimestamp || new Date().toISOString(),
             source: item.sourceType || 'analysis',
+            isDerived: true,
+            investigationId: item.investigationId,
+            linkedInvestigations: item.investigationId ? [item.investigationId] : [],
           };
           iocs.push(ioc);
           nodes.push({
@@ -419,6 +440,13 @@ export const ThreatIntelligencePage: React.FC = () => {
   const criticalCount = iocs.filter(i => i.severity === 'critical').length;
   const highCount = iocs.filter(i => i.severity === 'high').length;
   const mediumCount = iocs.filter(i => i.severity === 'medium').length;
+  const serverCount = iocs.filter(i => !i.isDerived).length;
+  const derivedCount = iocs.filter(i => i.isDerived).length;
+
+  const investigationName = (id?: string): string | null => {
+    if (!id) return null;
+    return investigationMap.get(id) || `${id.slice(0, 8)}…`;
+  };
 
   return (
     <div className="min-h-full">
@@ -433,6 +461,14 @@ export const ThreatIntelligencePage: React.FC = () => {
               Threat Intelligence
             </h1>
             <span className="stamp">LINK-ANALYSIS</span>
+            <button
+              onClick={fetchData}
+              disabled={loading}
+              className="flex items-center gap-2 px-3 py-1.5 text-xs border border-[var(--border-default)] rounded-lg hover:bg-[var(--surface-container-lowest)] disabled:opacity-60"
+            >
+              <RefreshCw className={cn('w-3.5 h-3.5', refreshing && 'animate-spin')} />
+              Refresh
+            </button>
           </div>
           <p className="mt-1.5 text-sm text-[var(--text-secondary)] ">
             Link-analysis graph · IOC correlation · Real-time threat mapping
@@ -449,6 +485,7 @@ export const ThreatIntelligencePage: React.FC = () => {
           >
             {[
               { label: `${iocs.length} indicators`, cls: 'text-[var(--text-secondary)] bg-[var(--surface-container-low)] border-[var(--border-subtle)]' },
+              { label: `${serverCount} server · ${derivedCount} derived`, cls: 'text-[var(--text-secondary)] bg-[var(--surface-container-low)] border-[var(--border-subtle)]' },
               { label: `${criticalCount} critical`, cls: 'text-red-700 bg-red-50 border-red-200' },
               { label: `${highCount} high`, cls: 'text-orange-700 bg-orange-50 border-orange-200' },
               { label: `${mediumCount} medium`, cls: 'text-amber-700 bg-amber-50 border-amber-200' },
@@ -492,7 +529,7 @@ export const ThreatIntelligencePage: React.FC = () => {
               <div>
                 <h2 className="text-lg font-semibold text-[var(--text-primary)]  font-mono">Active IOCs</h2>
                 <p className="text-xs text-[var(--text-tertiary)] mt-0.5">
-                  Extracted from sandbox sessions, documents and URL analyses
+                  Server-tracked indicators plus IOCs derived from analysis history
                 </p>
               </div>
               <span className="px-2.5 py-1 text-xs font-mono rounded-full border border-[var(--border-subtle)] bg-[var(--surface-container-low)] text-[var(--text-secondary)]">
@@ -507,6 +544,8 @@ export const ThreatIntelligencePage: React.FC = () => {
                     <th className="px-4 py-3 text-left text-xs font-mono text-[var(--text-secondary)]  uppercase">Type</th>
                     <th className="px-4 py-3 text-left text-xs font-mono text-[var(--text-secondary)]  uppercase">Severity</th>
                     <th className="px-4 py-3 text-left text-xs font-mono text-[var(--text-secondary)]  uppercase">Score</th>
+                    <th className="px-4 py-3 text-left text-xs font-mono text-[var(--text-secondary)]  uppercase">Source</th>
+                    <th className="px-4 py-3 text-left text-xs font-mono text-[var(--text-secondary)]  uppercase">Investigation</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--border-subtle)]">
@@ -535,6 +574,50 @@ export const ThreatIntelligencePage: React.FC = () => {
                           </div>
                           <span className="text-xs font-mono text-[var(--text-secondary)] ">{ioc.threatScore}</span>
                         </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className={cn(
+                            'inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-mono rounded border uppercase',
+                            ioc.isDerived
+                              ? 'text-violet-700 bg-violet-50 border-violet-200'
+                              : 'text-sky-700 bg-sky-50 border-sky-200'
+                          )}>
+                            {ioc.isDerived ? <FileSearch className="w-2.5 h-2.5" /> : <Database className="w-2.5 h-2.5" />}
+                            {ioc.isDerived ? 'Derived' : 'Server'}
+                          </span>
+                          {ioc.source && (
+                            <span className="text-xs text-[var(--text-tertiary)]">{ioc.source.replace(/_/g, ' ')}</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        {(() => {
+                          const invIds = [...new Set([
+                            ...(ioc.isDerived ? (ioc.investigationId ? [ioc.investigationId] : []) : []),
+                            ...(ioc.linkedInvestigations || []),
+                          ])];
+                          if (invIds.length === 0) {
+                            return <span className="text-xs text-[var(--text-tertiary)]">—</span>;
+                          }
+                          return (
+                            <div className="flex items-center gap-1 flex-wrap">
+                              {invIds.slice(0, 2).map((id) => (
+                                <span
+                                  key={id}
+                                  title={id}
+                                  className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-mono rounded border border-[var(--border-default)] bg-[var(--surface-container-low)] text-[var(--text-secondary)]"
+                                >
+                                  <Link2 className="w-2.5 h-2.5 text-[var(--text-tertiary)]" />
+                                  {investigationName(id)}
+                                </span>
+                              ))}
+                              {invIds.length > 2 && (
+                                <span className="text-[10px] font-mono text-[var(--text-tertiary)]">+{invIds.length - 2}</span>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </td>
                     </motion.tr>
                   ))}

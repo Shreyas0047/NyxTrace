@@ -61,6 +61,7 @@ export class EvidenceController {
       file,
       description: req.body.description,
       type: req.body.type as EvidenceType,
+      simulatorHint: req.body.simulatorHint,
       collectedBy: req.user?.id,
       tags: req.body.tags ? JSON.parse(req.body.tags) : [],
     });
@@ -68,6 +69,39 @@ export class EvidenceController {
     const response: ApiResponse = {
       success: true,
       message: 'Evidence uploaded successfully',
+      data: { evidence },
+    };
+
+    res.status(201).json(response);
+  }
+
+  /**
+   * POST /api/v1/evidence/url
+   * Register a URL as evidence (no file — fingerprint is the URL string)
+   */
+  async registerUrl(req: AuthenticatedRequest, res: Response): Promise<void> {
+    const { investigationId, url, name, description } = req.body;
+
+    if (!investigationId || !url) {
+      res.status(400).json({
+        success: false,
+        message: 'investigationId and url are required',
+      });
+      return;
+    }
+
+    const evidence = await evidenceService.registerUrlEvidence({
+      investigationId,
+      url,
+      name,
+      description,
+      collectedBy: req.user?.id,
+      tags: req.body.tags ? JSON.parse(req.body.tags) : [],
+    });
+
+    const response: ApiResponse = {
+      success: true,
+      message: 'URL registered as evidence',
       data: { evidence },
     };
 
@@ -108,13 +142,14 @@ export class EvidenceController {
    * List all evidence with pagination, search, and type filters
    */
   async findAll(req: AuthenticatedRequest, res: Response): Promise<void> {
-    const { page = 1, limit = 20, search, type } = req.query as Record<string, any>;
+    const { page = 1, limit = 20, search, type, status } = req.query as Record<string, any>;
 
     const result = await evidenceService.findAll({
       page: Number(page),
       limit: Math.min(Number(limit), 100),
       search: search as string,
       type: type as EvidenceType,
+      status: status as string,
     });
 
     const response: ApiResponse = {
@@ -158,6 +193,54 @@ export class EvidenceController {
     const response: ApiResponse = {
       success: true,
       message: result.verified ? 'Evidence verified' : 'Evidence verification failed',
+      data: result,
+    };
+
+    res.json(response);
+  }
+
+  /**
+   * POST /api/v1/evidence/:id/simulate-tamper
+   * Simulate tampering with an evidence file (demo mode only)
+   */
+  async simulateTamper(req: AuthenticatedRequest, res: Response): Promise<void> {
+    if (!config.demo.enabled) {
+      res.status(403).json({
+        success: false,
+        message: 'Demo mode is disabled',
+      });
+      return;
+    }
+
+    const result = await evidenceService.simulateTamper(req.params.id);
+
+    const response: ApiResponse = {
+      success: true,
+      message: 'Evidence tampering simulated',
+      data: result,
+    };
+
+    res.json(response);
+  }
+
+  /**
+   * POST /api/v1/evidence/:id/restore
+   * Restore a tampered evidence file (demo mode only)
+   */
+  async restoreTamper(req: AuthenticatedRequest, res: Response): Promise<void> {
+    if (!config.demo.enabled) {
+      res.status(403).json({
+        success: false,
+        message: 'Demo mode is disabled',
+      });
+      return;
+    }
+
+    const result = await evidenceService.restoreTamper(req.params.id);
+
+    const response: ApiResponse = {
+      success: true,
+      message: 'Evidence restored',
       data: result,
     };
 

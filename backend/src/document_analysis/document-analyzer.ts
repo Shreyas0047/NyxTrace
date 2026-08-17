@@ -15,7 +15,14 @@ export class DocumentAnalysisService {
     let pdfText = '';
     try {
       const dataBuffer = fs.readFileSync(filePath);
-      const data = await pdfParse(dataBuffer);
+      let data: any;
+      if (typeof pdfParse === 'function') {
+        // pdf-parse v1: callable
+        data = await pdfParse(dataBuffer);
+      } else {
+        // pdf-parse v2+: PDFParse class API
+        data = await new pdfParse.PDFParse({ data: dataBuffer }).getText();
+      }
       pdfText = data.text || '';
     } catch (err: any) {
       const stat = fs.statSync(filePath);

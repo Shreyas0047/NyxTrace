@@ -19,6 +19,7 @@ const statusConfig: Record<string, { bg: string; text: string; dot: string }> = 
   analyzing: { bg: 'bg-amber-50 border-amber-200', text: 'text-amber-700', dot: 'bg-amber-500' },
   pending: { bg: 'bg-[var(--surface-container-low)] border-[var(--border-subtle)]', text: 'text-[var(--text-secondary)]', dot: 'bg-slate-400' },
   new: { bg: 'bg-sky-50 border-sky-200', text: 'text-sky-700', dot: 'bg-sky-500' },
+  tampered: { bg: 'bg-rose-50 border-rose-200', text: 'text-rose-700', dot: 'bg-rose-500' },
   closed: { bg: 'bg-[var(--surface-container-low)] border-[var(--border-subtle)]', text: 'text-[var(--text-secondary)]', dot: 'bg-slate-400' },
   archived: { bg: 'bg-[var(--surface-container-low)] border-[var(--border-subtle)]', text: 'text-[var(--text-secondary)]', dot: 'bg-slate-400' },
 };
@@ -26,7 +27,7 @@ const statusConfig: Record<string, { bg: string; text: string; dot: string }> = 
 const sizeConfig = { sm: 'px-1.5 py-0.5 text-[10px]', md: 'px-2 py-1 text-xs', lg: 'px-2.5 py-1.5 text-sm' };
 const dotSizeConfig = { sm: 'w-1.5 h-1.5', md: 'w-2 h-2', lg: 'w-2.5 h-2.5' };
 
-const pulsingStatuses = ['active', 'analyzing', 'in_progress', 'acknowledged', 'new'];
+const pulsingStatuses = ['active', 'analyzing', 'in_progress', 'acknowledged', 'new', 'tampered'];
 
 export function StatusBadge({ status, size = 'md', showDot = true, pulse, className }: StatusBadgeProps) {
   const config = statusConfig[status.toLowerCase()] || statusConfig.pending;

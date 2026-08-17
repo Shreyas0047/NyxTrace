@@ -1,11 +1,9 @@
 ﻿import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import {
-  Search,
   Filter,
   FileText,
-  Download,
-  Eye,
   Trash2,
   CheckCircle,
   Clock,
@@ -18,17 +16,26 @@ import {
   FileCode,
   Loader2,
   X,
+  ShieldCheck,
+  Anchor,
+  Undo2,
+  Satellite,
+  FlaskConical,
+  Globe,
+  Plus,
 } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { StatusBadge } from '../components/ui/Badge';
-import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
 import { PageHeader, PageGrid } from '../layouts/PageContainer';
 import { DashboardCard, DashboardStat } from '../components/enterprise/DashboardGrid';
 import { formatRelativeTime, formatFileSize } from '../utils/helpers';
 import { cn } from '../design-system';
 import { useEvidenceStore } from '../stores/evidenceStore';
+import { useAuthStore } from '../stores/authStore';
+import { EvidenceUploadModal } from '../components/evidence/EvidenceUploadModal';
+import { config } from '../config';
 
 const typeIcons: Record<string, typeof File> = {
   email: FileText,
@@ -41,6 +48,9 @@ const typeIcons: Record<string, typeof File> = {
   registry_dump: FileCode,
   package: Folder,
   report: FileText,
+  executable: FileCode,
+  document: FileText,
+  url: Globe,
 };
 
 const typeColors: Record<string, string> = {
@@ -65,36 +75,79 @@ export function EvidenceExplorerPage() {
     fetchEvidence,
     deleteEvidence,
     verifyEvidence,
+    anchorEvidence,
+    simulateTamper,
+    restoreEvidence,
+    recordTamperOnChain,
   } = useEvidenceStore();
+  const { user } = useAuthStore();
 
-  const [searchTerm, setSearchTerm] = useState('');
+  const isDemoAdmin =
+    config.demoMode &&
+    (user?.role === 'admin' || user?.role === 'super_admin');
+
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchEvidence({ page: 1, limit: 50 });
-  }, [fetchEvidence]);
+    const timer = setTimeout(() => {
+      fetchEvidence({
+        page: 1,
+        limit: 50,
+        type: typeFilter === 'all' ? undefined : typeFilter,
+        status: statusFilter === 'all' ? undefined : statusFilter,
+      });
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [fetchEvidence, typeFilter, statusFilter]);
+
+  const applyFilters = useCallback(() => {
+    fetchEvidence({
+      page: 1,
+      limit: 50,
+      type: typeFilter === 'all' ? undefined : typeFilter,
+      status: statusFilter === 'all' ? undefined : statusFilter,
+    });
+  }, [fetchEvidence, typeFilter, statusFilter]);
+
+  const handleOpenCustody = useCallback((evidenceId: string) => {
+    navigate(`/custody?evidenceId=${encodeURIComponent(evidenceId)}`);
+  }, [navigate]);
 
   const handleDelete = useCallback(async (id: string) => {
     if (!confirm('Delete this evidence?')) return;
     await deleteEvidence(id);
-    fetchEvidence({ page: 1, limit: 50 });
+    applyFilters();
     if (selectedId === id) setSelectedId(null);
-  }, [deleteEvidence, fetchEvidence, selectedId]);
+  }, [deleteEvidence, applyFilters, selectedId]);
 
   const handleVerify = useCallback(async (id: string) => {
     await verifyEvidence(id);
-    fetchEvidence({ page: 1, limit: 50 });
-  }, [verifyEvidence, fetchEvidence]);
+    applyFilters();
+  }, [verifyEvidence, applyFilters]);
 
-  const filteredEvidence = evidence.filter((ev) => {
-    const matchesSearch = !searchTerm || ev.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ev.evidenceId.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = typeFilter === 'all' || ev.type === typeFilter;
-    const matchesStatus = statusFilter === 'all' || ev.status === statusFilter;
-    return matchesSearch && matchesType && matchesStatus;
-  });
+  const handleAnchor = useCallback(async (id: string) => {
+    await anchorEvidence(id);
+    applyFilters();
+  }, [anchorEvidence, applyFilters]);
+
+  const handleSimulateTamper = useCallback(async (id: string) => {
+    if (!confirm('Simulate tampering with this evidence file? The original is backed up and can be restored.')) return;
+    await simulateTamper(id);
+  }, [simulateTamper]);
+
+  const handleRestore = useCallback(async (id: string) => {
+    if (!confirm('Restore the original evidence file from the demo backup?')) return;
+    await restoreEvidence(id);
+  }, [restoreEvidence]);
+
+  const handleRecordTamperOnChain = useCallback(async (id: string) => {
+    if (!confirm('Broadcast a CriticalAuditEvent to the blockchain recording this tamper?')) return;
+    await recordTamperOnChain(id);
+  }, [recordTamperOnChain]);
 
   const selectedEvidence = evidence.find(e => e.id === selectedId) || null;
 
@@ -107,15 +160,28 @@ export function EvidenceExplorerPage() {
       <PageHeader
         title="Evidence Explorer"
         subtitle="Browse and manage forensic evidence"
+        actions={
+          <Button size="sm" onClick={() => setShowUploadModal(true)}>
+            <Plus className="w-4 h-4" />
+            Add Evidence
+          </Button>
+        }
       />
 
       {error && (
         <div className="flex items-center gap-2 p-3 bg-red-50  border border-red-200  rounded-lg">
           <AlertTriangle className="w-4 h-4 text-red-500" />
           <span className="text-sm text-red-700  ">{error}</span>
-          <button onClick={() => fetchEvidence({ page: 1, limit: 50 })} className="ml-auto p-1 hover:bg-red-100  rounded">
+          <button onClick={applyFilters} className="ml-auto p-1 hover:bg-red-100  rounded">
             <X className="w-4 h-4 text-red-500" />
           </button>
+        </div>
+      )}
+
+      {isDemoAdmin && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-amber-200 bg-amber-50 text-amber-700 text-xs font-medium">
+          <FlaskConical className="w-4 h-4 flex-shrink-0" />
+          Demo Mode — tamper simulation enabled (admin)
         </div>
       )}
 
@@ -156,15 +222,7 @@ export function EvidenceExplorerPage() {
 
       <Card>
         <div className="p-4 flex flex-wrap items-center gap-4">
-          <div className="flex-1 min-w-[200px]">
-            <Input
-              placeholder="Search evidence..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              leftIcon={<Search className="w-4 h-4" />}
-            />
-          </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 ml-auto">
             <Filter className="w-4 h-4 text-[var(--text-secondary)] " />
             <Select
               value={typeFilter}
@@ -173,6 +231,9 @@ export function EvidenceExplorerPage() {
                 { value: 'all', label: 'All Types' },
                 { value: 'email', label: 'Email' },
                 { value: 'malware_sample', label: 'Malware Sample' },
+                { value: 'executable', label: 'Executable' },
+                { value: 'document', label: 'Document' },
+                { value: 'url', label: 'URL' },
                 { value: 'network_capture', label: 'Network Capture' },
                 { value: 'memory_dump', label: 'Memory Dump' },
                 { value: 'log', label: 'Log' },
@@ -188,6 +249,7 @@ export function EvidenceExplorerPage() {
                 { value: 'ready', label: 'Ready' },
                 { value: 'analyzing', label: 'Analyzing' },
                 { value: 'verified', label: 'Verified' },
+                { value: 'tampered', label: 'Tampered' },
               ]}
             />
           </div>
@@ -198,20 +260,24 @@ export function EvidenceExplorerPage() {
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-8 h-8 animate-spin text-[var(--text-secondary)] " />
         </div>
-      ) : filteredEvidence.length === 0 ? (
+      ) : evidence.length === 0 ? (
         <Card>
           <div className="flex flex-col items-center justify-center py-16 text-[var(--text-secondary)]">
             <FileText className="w-12 h-12 mb-3 opacity-40" />
             <p className="text-lg font-medium">No evidence found</p>
-            <p className="text-sm mt-1">Evidence collected from sandbox sessions will appear here</p>
+            <p className="text-sm mt-1">
+              {typeFilter !== 'all' || statusFilter !== 'all'
+                ? 'Nothing matches your filters — try clearing them'
+                : 'Evidence collected from sandbox sessions will appear here'}
+            </p>
           </div>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
+        <div className={cn('grid grid-cols-1 gap-6', selectedEvidence && 'lg:grid-cols-3')}>
+          <div className={cn(selectedEvidence && 'lg:col-span-2')}>
             <Card>
               <div className="divide-y divide-[var(--border-subtle)]  max-h-[500px] overflow-y-auto">
-                {filteredEvidence.map((ev) => {
+                {evidence.map((ev) => {
                   const Icon = typeIcons[ev.type] || File;
                   const colorClass = typeColors[ev.type] || 'bg-[var(--surface-container-low)]  text-[var(--text-secondary)] ';
 
@@ -233,13 +299,18 @@ export function EvidenceExplorerPage() {
                           <div className="flex items-center gap-2">
                             <p className="font-medium text-[var(--text-primary)]  truncate">{ev.name}</p>
                             {ev.status === 'verified' && <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />}
+                            {ev.status === 'tampered' && <AlertTriangle className="w-4 h-4 text-rose-500 flex-shrink-0" />}
                           </div>
                           <div className="flex items-center gap-3 mt-1">
                             <span className="text-xs text-[var(--text-secondary)]   font-mono">{ev.evidenceId}</span>
                             <span className="text-xs text-[var(--text-secondary)]  ">•</span>
                             <span className="text-xs text-[var(--text-secondary)]   capitalize">{ev.type.replace('_', ' ')}</span>
                             <span className="text-xs text-[var(--text-secondary)]  ">•</span>
-                            <span className="text-xs text-[var(--text-secondary)]  ">{formatFileSize(ev.size ?? ev.fileSize ?? 0)}</span>
+                            {ev.type === 'url' ? (
+                              <span className="text-xs text-[var(--text-secondary)]  font-mono truncate max-w-[140px]">{ev.url || ev.filePath}</span>
+                            ) : (
+                              <span className="text-xs text-[var(--text-secondary)]  ">{formatFileSize(ev.size ?? ev.fileSize ?? 0)}</span>
+                            )}
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -253,6 +324,50 @@ export function EvidenceExplorerPage() {
                               <CheckCircle className="w-4 h-4" />
                             </button>
                           )}
+                          {isDemoAdmin && (
+                            <>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleAnchor(ev.id); }}
+                                className="p-1.5 rounded hover:bg-amber-50  text-amber-600   transition-colors"
+                                title="Anchor on blockchain"
+                              >
+                                <Anchor className="w-4 h-4" />
+                              </button>
+                              {ev.status !== 'tampered' ? (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleSimulateTamper(ev.id); }}
+                                  className="p-1.5 rounded hover:bg-rose-50  text-rose-600   transition-colors"
+                                  title="Simulate tamper"
+                                >
+                                  <AlertTriangle className="w-4 h-4" />
+                                </button>
+                              ) : (
+                                <>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleRecordTamperOnChain(ev.id); }}
+                                    className="p-1.5 rounded hover:bg-violet-50  text-violet-600   transition-colors"
+                                    title="Record tamper on blockchain"
+                                  >
+                                    <Satellite className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleRestore(ev.id); }}
+                                    className="p-1.5 rounded hover:bg-emerald-50  text-emerald-600   transition-colors"
+                                    title="Restore original file"
+                                  >
+                                    <Undo2 className="w-4 h-4" />
+                                  </button>
+                                </>
+                              )}
+                            </>
+                          )}
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleOpenCustody(ev.evidenceId); }}
+                            className="p-1.5 rounded hover:bg-amber-50  text-amber-600   transition-colors"
+                            title="View custody chain"
+                          >
+                            <ShieldCheck className="w-4 h-4" />
+                          </button>
                           <button
                             onClick={(e) => { e.stopPropagation(); handleDelete(ev.id); }}
                             className="p-1.5 rounded hover:bg-red-50  text-red-600   transition-colors"
@@ -269,10 +384,9 @@ export function EvidenceExplorerPage() {
             </Card>
           </div>
 
-          <div>
-            {selectedEvidence ? (
-              <Card>
-                <div className="p-5">
+          {selectedEvidence && (
+            <Card>
+              <div className="p-5">
                   <h3 className="font-semibold text-[var(--text-primary)]  mb-4">Evidence Details</h3>
                   <div className="flex items-center gap-4 p-4 bg-[var(--surface-container-lowest)]  rounded-lg mb-4">
                     <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center', typeColors[selectedEvidence.type] || 'bg-[var(--surface-container-low)]')}>
@@ -292,10 +406,28 @@ export function EvidenceExplorerPage() {
                       <span className="text-sm text-[var(--text-secondary)] ">Type</span>
                       <span className="text-sm text-[var(--text-secondary)]  capitalize">{selectedEvidence.type.replace('_', ' ')}</span>
                     </div>
+                    {selectedEvidence.type === 'url' && (
+                      <div className="flex justify-between">
+                        <span className="text-sm text-[var(--text-secondary)] ">URL</span>
+                        <span className="text-xs text-[var(--text-secondary)]  font-mono truncate max-w-[180px]" title={selectedEvidence.url || selectedEvidence.filePath}>
+                          {selectedEvidence.url || selectedEvidence.filePath}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <span className="text-sm text-[var(--text-secondary)] ">Size</span>
-                      <span className="text-sm text-[var(--text-secondary)] ">{formatFileSize(selectedEvidence.size ?? selectedEvidence.fileSize ?? 0)}</span>
+                      {selectedEvidence.type === 'url' ? (
+                        <span className="text-sm text-[var(--text-secondary)] ">—</span>
+                      ) : (
+                        <span className="text-sm text-[var(--text-secondary)] ">{formatFileSize(selectedEvidence.size ?? selectedEvidence.fileSize ?? 0)}</span>
+                      )}
                     </div>
+                    {selectedEvidence.simulatorHint && (
+                      <div className="flex justify-between">
+                        <span className="text-sm text-[var(--text-secondary)] ">Preferred Sample</span>
+                        <span className="text-sm text-[var(--text-secondary)]  font-mono">{selectedEvidence.simulatorHint}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <span className="text-sm text-[var(--text-secondary)] ">Status</span>
                       <StatusBadge status={selectedEvidence.status} size="sm" />
@@ -310,6 +442,14 @@ export function EvidenceExplorerPage() {
                         {selectedEvidence.sha256 ? selectedEvidence.sha256.slice(0, 16) + '...' : 'N/A'}
                       </span>
                     </div>
+                    {selectedEvidence.tamperedHash && (
+                      <div className="flex justify-between">
+                        <span className="text-sm text-rose-600  ">Tampered SHA-256</span>
+                        <span className="text-xs text-rose-600  font-mono truncate max-w-[150px]" title={selectedEvidence.tamperedHash}>
+                          {selectedEvidence.tamperedHash.slice(0, 16) + '...'}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <span className="text-sm text-[var(--text-secondary)] ">Collected</span>
                       <span className="text-sm text-[var(--text-secondary)] ">{selectedEvidence.collectedAt ? formatRelativeTime(selectedEvidence.collectedAt) : 'N/A'}</span>
@@ -329,31 +469,34 @@ export function EvidenceExplorerPage() {
                     </div>
                   )}
 
-                  <div className="flex gap-2 pt-4 border-t border-[var(--border-subtle)] ">
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <Eye className="w-4 h-4" />
-                      View
-                    </Button>
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <Download className="w-4 h-4" />
-                      Download
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ) : (
-              <Card>
-                <div className="flex flex-col items-center justify-center py-12">
-                  <div className="w-16 h-16 rounded-full bg-[var(--surface-container-low)]  flex items-center justify-center mb-4">
-                    <FileText className="w-8 h-8 text-[var(--text-secondary)] " />
-                  </div>
-                  <p className="text-sm text-[var(--text-secondary)] ">Select an evidence item to view details</p>
+                  {selectedEvidence.investigationId && (
+                    <div className="flex gap-2 pt-4 border-t border-[var(--border-subtle)] ">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() =>
+                          navigate(
+                            `/sandbox?investigationId=${encodeURIComponent(selectedEvidence.investigationId!)}&evidenceId=${encodeURIComponent(selectedEvidence.id)}`
+                          )
+                        }
+                      >
+                        <FlaskConical className="w-4 h-4" />
+                        Analyze in Sandbox
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </Card>
             )}
-          </div>
         </div>
       )}
+
+      <EvidenceUploadModal
+        isOpen={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+        onUploaded={applyFilters}
+      />
     </motion.div>
   );
 }

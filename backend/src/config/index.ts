@@ -76,6 +76,10 @@ export interface VerificationConfig {
   storeHashesOnChain: boolean;
 }
 
+export interface DemoConfig {
+  enabled: boolean;
+}
+
 export interface AppConfig {
   server: ServerConfig;
   mongo: MongoConfig;
@@ -87,6 +91,7 @@ export interface AppConfig {
   aiService: AIServiceConfig;
   blockchain: BlockchainConfig;
   verification: VerificationConfig;
+  demo: DemoConfig;
   otpDevMode: boolean;
   otpTokenSecret: string;
 }
@@ -140,7 +145,7 @@ export const config: AppConfig = {
   upload: {
     maxSize: getEnvNumber('UPLOAD_MAX_SIZE', 104857600),
     dest: getEnv('UPLOAD_DEST', './uploads'),
-    allowedTypes: getEnv('ALLOWED_FILE_TYPES', '.json,.zip,.pdf,.log,.txt,.png,.jpg,.jpeg').split(','),
+    allowedTypes: getEnv('ALLOWED_FILE_TYPES', '.json,.zip,.pdf,.log,.txt,.png,.jpg,.jpeg,.docx,.doc,.exe,.bin,.dll,.scr,.msi,.apk,.ps1,.vbs,.js,.py,.bat,.cmd,.csv,.eml,.msg,.pcap,.pcapng,.evtx,.reg,.dmp,.gz,.tar,.7z,.rar,.iso').split(','),
   },
 
   evidence: {
@@ -175,6 +180,10 @@ export const config: AppConfig = {
     verificationBatchSize: getEnvNumber('VERIFICATION_BATCH_SIZE', 10),
     autoVerifyOnUpload: getEnvBool('AUTO_VERIFY_ON_UPLOAD', false),
     storeHashesOnChain: getEnvBool('STORE_HASHES_ON_CHAIN', false),
+  },
+
+  demo: {
+    enabled: getEnvBool('DEMO_MODE', false),
   },
 
   otpDevMode: getEnvBool('OTP_DEV_MODE', false),

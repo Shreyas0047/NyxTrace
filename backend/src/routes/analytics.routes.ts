@@ -28,7 +28,7 @@ router.get('/patterns', authenticate, analyticsController.getBehavioralPatterns)
 router.post(
   '/analyze-behavior',
   authenticate,
-  authorize(['admin', 'forensic_analyst']),
+  authorize(['super_admin', 'admin', 'forensic_analyst']),
   analyticsController.analyzeProcessBehavior
 );
 
@@ -40,7 +40,7 @@ router.post(
 router.post(
   '/detect-anomalies',
   authenticate,
-  authorize(['admin', 'forensic_analyst']),
+  authorize(['super_admin', 'admin', 'forensic_analyst']),
   analyticsController.detectAnomalies
 );
 
@@ -52,7 +52,7 @@ router.post(
 router.post(
   '/baseline',
   authenticate,
-  authorize(['admin', 'forensic_analyst']),
+  authorize(['super_admin', 'admin', 'forensic_analyst']),
   analyticsController.analyzeBaseline
 );
 
@@ -86,7 +86,7 @@ router.get(
 router.post(
   '/clusters/:investigationId/score',
   authenticate,
-  authorize(['admin', 'forensic_analyst']),
+  authorize(['super_admin', 'admin', 'forensic_analyst']),
   analyticsController.scoreRelationship
 );
 
@@ -116,7 +116,7 @@ router.get(
 router.get(
   '/dashboard',
   authenticate,
-  authorize(['admin', 'forensic_analyst']),
+  authorize(['super_admin', 'admin', 'forensic_analyst']),
   analyticsController.getDashboardData
 );
 
@@ -128,7 +128,7 @@ router.get(
 router.post(
   '/session/analyze',
   authenticate,
-  authorize(['admin', 'forensic_analyst']),
+  authorize(['super_admin', 'admin', 'forensic_analyst']),
   asyncHandler(analyticsController.analyzeSession.bind(analyticsController))
 );
 
@@ -140,7 +140,7 @@ router.post(
 router.post(
   '/sessions/compare',
   authenticate,
-  authorize(['admin', 'forensic_analyst']),
+  authorize(['super_admin', 'admin', 'forensic_analyst']),
   asyncHandler(analyticsController.compareSessions.bind(analyticsController))
 );
 

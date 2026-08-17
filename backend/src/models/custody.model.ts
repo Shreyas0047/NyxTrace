@@ -51,8 +51,7 @@ const custodyEventSchema = new Schema({
   },
 
   evidenceId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Evidence',
+    type: String,
     required: true,
     index: true,
   },
@@ -70,8 +69,7 @@ const custodyEventSchema = new Schema({
   },
 
   performedBy: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
+    type: String,
     required: true,
   },
 
@@ -120,8 +118,7 @@ const custodyEventSchema = new Schema({
 
 const chainOfCustodySchema = new Schema({
   evidenceId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Evidence',
+    type: String,
     required: true,
     unique: true,
     index: true,
@@ -136,8 +133,7 @@ const chainOfCustodySchema = new Schema({
 
   // Current state
   currentHolder: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
+    type: String,
   },
 
   currentHolderName: String,
@@ -209,8 +205,7 @@ const chainOfCustodySchema = new Schema({
 
 const evidenceLineageSchema = new Schema({
   evidenceId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Evidence',
+    type: String,
     required: true,
     unique: true,
     index: true,
@@ -218,14 +213,13 @@ const evidenceLineageSchema = new Schema({
 
   // Parent evidence (if derived)
   parentEvidenceId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Evidence',
+    type: String,
+    index: true,
   },
 
   // Child evidence (evidence derived from this)
   childEvidenceIds: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Evidence',
+    type: String,
   }],
 
   // Lineage type
@@ -290,8 +284,7 @@ const verificationHistorySchema = new Schema({
   },
 
   evidenceId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Evidence',
+    type: String,
     required: true,
     index: true,
   },
@@ -309,8 +302,7 @@ const verificationHistorySchema = new Schema({
   },
 
   performedBy: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
+    type: String,
   },
 
   performedByName: String,
@@ -363,8 +355,7 @@ const tamperInvestigationSchema = new Schema({
   },
 
   evidenceId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Evidence',
+    type: String,
     required: true,
     index: true,
   },
@@ -393,8 +384,7 @@ const tamperInvestigationSchema = new Schema({
   },
 
   assignedTo: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
+    type: String,
   },
 
   assignedToName: String,
@@ -456,8 +446,7 @@ const verificationReportSchema = new Schema({
   },
 
   evidenceIds: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Evidence',
+    type: String,
   }],
 
   // Report metadata
@@ -473,8 +462,7 @@ const verificationReportSchema = new Schema({
   },
 
   generatedBy: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
+    type: String,
     required: true,
   },
 

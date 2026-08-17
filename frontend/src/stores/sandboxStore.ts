@@ -79,7 +79,7 @@ interface SandboxState {
   fetchHealth: () => Promise<boolean>;
   fetchMonitoringStatus: () => Promise<void>;
   fetchExecutionStatus: () => Promise<void>;
-  startSession: (simulatorId: string, options?: { auto_rollback?: boolean; timeout_seconds?: number }) => Promise<{ success: boolean; sessionId?: string; message: string }>;
+  startSession: (simulatorId: string, options?: { auto_rollback?: boolean; timeout_seconds?: number; evidenceId?: string }) => Promise<{ success: boolean; sessionId?: string; message: string }>;
   stopSession: (sessionId: string) => Promise<{ success: boolean; message: string }>;
   terminateSession: (sessionId: string) => Promise<{ success: boolean; message: string }>;
   resetVm: () => Promise<{ success: boolean; message: string }>;
@@ -245,6 +245,7 @@ export const useSandboxStore = create<SandboxState>((set, get) => ({
     try {
       const response = await api.startSandboxSession({
         simulator_id: simulatorId,
+        evidenceId: options.evidenceId,
         auto_rollback: options.auto_rollback ?? true,
         timeout_seconds: options.timeout_seconds ?? 300,
       });

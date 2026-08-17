@@ -31,7 +31,7 @@ router.get('/timeline/:evidenceId', authenticate, custodyController.getCustodyTi
 router.post(
   '/event',
   authenticate,
-  authorize(['admin', 'analyst']),
+  authorize(['super_admin', 'admin', 'analyst']),
   custodyController.addCustodyEvent
 );
 
@@ -54,7 +54,7 @@ router.get(
 router.post(
   '/transfer',
   authenticate,
-  authorize(['admin']),
+  authorize(['super_admin', 'admin']),
   custodyController.transferCustody
 );
 
@@ -80,7 +80,7 @@ router.get('/integrity-stats', authenticate, custodyController.getIntegrityStats
 router.get(
   '/tamper-investigations',
   authenticate,
-  authorize(['admin', 'analyst']),
+  authorize(['super_admin', 'admin', 'analyst']),
   custodyController.getTamperInvestigations
 );
 
@@ -92,7 +92,7 @@ router.get(
 router.post(
   '/tamper-investigation',
   authenticate,
-  authorize(['admin']),
+  authorize(['super_admin', 'admin']),
   custodyController.createTamperInvestigation
 );
 
@@ -104,7 +104,7 @@ router.post(
 router.post(
   '/tamper-investigation/:investigationId/update',
   authenticate,
-  authorize(['admin']),
+  authorize(['super_admin', 'admin']),
   custodyController.updateTamperInvestigation
 );
 
@@ -116,7 +116,7 @@ router.post(
 router.post(
   '/report',
   authenticate,
-  authorize(['admin', 'analyst']),
+  authorize(['super_admin', 'admin', 'analyst']),
   custodyController.generateReport
 );
 
@@ -128,7 +128,7 @@ router.post(
 router.post(
   '/report/:reportId/export',
   authenticate,
-  authorize(['admin', 'analyst']),
+  authorize(['super_admin', 'admin', 'analyst']),
   custodyController.exportReport
 );
 

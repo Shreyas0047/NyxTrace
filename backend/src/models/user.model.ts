@@ -44,6 +44,11 @@ const userSchema = new Schema({
     trim: true,
     maxlength: 50,
   },
+  department: {
+    type: String,
+    trim: true,
+    maxlength: 100,
+  },
   role: {
     type: String,
     enum: Object.values(UserRole),
@@ -86,6 +91,7 @@ const userSchema = new Schema({
   toJSON: {
     transform: (doc: any, ret: any) => {
       ret.id = ret._id;
+      ret.name = [ret.firstName, ret.lastName].filter(Boolean).join(' ').trim() || ret.email;
       delete ret._id;
       delete ret.__v;
       delete ret.password;

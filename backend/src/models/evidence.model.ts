@@ -20,6 +20,9 @@ export enum EvidenceType {
   PACKAGE = 'package', // Compressed evidence package
   MALWARE_SAMPLE = 'malware_sample',
   REPORT = 'report',
+  EXECUTABLE = 'executable', // .exe / binary artifact found in the forensic event
+  DOCUMENT = 'document',     // pdf/docx artifact found in the forensic event
+  URL = 'url',               // URL found in the forensic event (no file on disk)
   OTHER = 'other',
 }
 
@@ -46,6 +49,7 @@ export enum EvidenceStatus {
   READY = 'ready',
   ANALYZING = 'analyzing',
   VERIFIED = 'verified',
+  TAMPERED = 'tampered',
   ARCHIVED = 'archived',
   DELETED = 'deleted',
 }
@@ -129,22 +133,34 @@ const evidenceSchema = new Schema({
     index: true,
   },
 
-  // File information
+  // Analysis target
+  // - executable: suspected scenario family chosen at registration (auto-selects the sandbox simulator)
+  // - document / url: analyzed statically via the analysis pipeline inside the Sandbox section
+  simulatorHint: {
+    type: String,
+    trim: true,
+  },
+  url: {
+    type: String,
+    trim: true,
+  },
+
+  // File information (not required for URL evidence — URLs have no artifact on disk)
   filePath: {
     type: String,
-    required: true,
+    required: function(this: any) { return this.type !== EvidenceType.URL; },
   },
   fileName: {
     type: String,
-    required: true,
+    required: function(this: any) { return this.type !== EvidenceType.URL; },
   },
   fileSize: {
     type: Number,
-    required: true,
+    required: function(this: any) { return this.type !== EvidenceType.URL; },
   },
   mimeType: {
     type: String,
-    required: true,
+    required: function(this: any) { return this.type !== EvidenceType.URL; },
   },
 
   // Integrity hashes
@@ -158,6 +174,9 @@ const evidenceSchema = new Schema({
   fingerprint: {
     type: String,
     index: true,
+  },
+  tamperedHash: {
+    type: String,
   },
   fileMetadata: {
     originalName: String,
@@ -241,12 +260,9 @@ const evidenceSchema = new Schema({
     default: false,
   },
   analysisSummary: String,
-  aiAnalysis: {
-    threatType: String,
-    confidence: Number,
-    indicators: [String],
-    recommendations: [String],
-  },
+  // Stores the full AI analysis payload (session-shaped: threat_classification,
+  // severity_score, behavioral_summary, ...) — Mixed so nothing is dropped.
+  aiAnalysis: Schema.Types.Mixed,
   threatClassification: {
     category: String,
     family: String,

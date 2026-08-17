@@ -11,6 +11,7 @@ import { motion } from 'framer-motion';
 import {
   Search, FileText, Activity, Plus, ArrowUpRight, Shield,
   Cpu, Brain, Link2, Clock, BarChart3, CheckCircle2, AlertTriangle,
+  Trash2, Loader2,
   type LucideIcon,
 } from 'lucide-react';
 import { useInvestigationStore } from '../stores/investigationStore';
@@ -19,6 +20,7 @@ import { useThreatIntelStore } from '../stores/threatIntelStore';
 import { useEvidenceStore } from '../stores/evidenceStore';
 import { useReportsStore } from '../stores/reportsStore';
 import { useBlockchainStore } from '../stores/blockchainStore';
+import { useStatusStore } from '../stores/statusStore';
 import { Modal } from '../components/ui/Modal';
 import { cn } from '../design-system';
 import { formatDateTime } from '../utils/helpers';
@@ -188,12 +190,13 @@ const StatusDot = ({ status }: { status: string }) => (
 // ─────────────────────────────────────────────────────────────────
 export function EnhancedDashboardPage() {
   const navigate = useNavigate();
-  const { investigations, fetchInvestigations, createInvestigation } = useInvestigationStore();
+  const { investigations, fetchInvestigations, createInvestigation, deleteInvestigation } = useInvestigationStore();
   const { sessions, stats: sandboxStats, fetchSessions, fetchStats } = useSandboxStore();
   const { analysisHistory, loadHistory: loadThreatHistory } = useThreatIntelStore();
   const { evidence, fetchEvidence } = useEvidenceStore();
   const { reports, fetchReports } = useReportsStore();
   const { status: chainStatus, stats: chainStats, fetchStatus, fetchStats: fetchChainStats } = useBlockchainStore();
+  const showStatus = useStatusStore((s) => s.show);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
@@ -201,9 +204,11 @@ export function EnhancedDashboardPage() {
   const [newPriority, setNewPriority] = useState('medium');
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchInvestigations({ page: 1, limit: 5 });
+    fetchInvestigations({ page: 1, limit: 10 });
     fetchSessions({ page: 1, limit: 10 });
     fetchStats();
     loadThreatHistory();
@@ -261,14 +266,32 @@ export function EnhancedDashboardPage() {
         description: newDescription.trim() || undefined,
         priority: newPriority as 'low' | 'medium' | 'high' | 'critical',
       });
-      setShowCreateModal(false);
-      setNewTitle('');
-      setNewDescription('');
-      setNewPriority('medium');
+      handleCloseCreateModal();
     } catch {
       setCreateError('Failed to create investigation. Please try again.');
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleCloseCreateModal = () => {
+    setShowCreateModal(false);
+    setNewTitle('');
+    setNewDescription('');
+    setNewPriority('medium');
+    setCreateError('');
+  };
+
+  const handleDeleteInvestigation = async (id: string) => {
+    setDeletingId(id);
+    try {
+      await deleteInvestigation(id);
+      setConfirmDeleteId(null);
+      showStatus('success', 'Investigation deleted', 'Case and its evidence, sessions and reports were removed.', 6000);
+    } catch {
+      showStatus('error', 'Delete failed', 'Could not delete the investigation. Check your permissions.', 8000);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -376,6 +399,103 @@ export function EnhancedDashboardPage() {
             onClick={() => navigate('/blockchain-operations')}
           />
         </div>
+
+        {/* ─── Active Investigations ─── */}
+        <Section
+          title="Active Investigations"
+          meta={`${investigations.length} cases loaded`}
+          action={
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="text-[12px] font-medium transition-colors"
+              style={{ color: 'var(--text-tertiary)' }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-tertiary)')}
+            >
+              New case →
+            </button>
+          }
+        >
+          {investigations.length === 0 ? (
+            <div className="py-10 text-center">
+              <Search strokeWidth={1.5} className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--text-tertiary)' }} />
+              <p className="text-[13px]" style={{ color: 'var(--text-secondary)' }}>No investigations yet</p>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="mt-3 text-[12px] font-medium"
+                style={{ color: 'var(--text-primary)' }}
+              >
+                Create your first investigation →
+              </button>
+            </div>
+          ) : (
+            <div className="divide-y" style={{ borderColor: 'var(--border-subtle)' }}>
+              {investigations.map((inv, i) => (
+                <motion.div
+                  key={inv.id}
+                  initial={{ opacity: 0, x: -4 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 + i * 0.04, duration: 0.24 }}
+                  className="py-3"
+                >
+                  {confirmDeleteId === inv.id ? (
+                    <div className="flex items-center gap-3 rounded-lg px-2 py-1" style={{ background: 'var(--surface-container)' }}>
+                      <AlertTriangle className="w-4 h-4 text-rose-500 flex-shrink-0" />
+                      <p className="text-[12px] flex-1" style={{ color: 'var(--text-secondary)' }}>
+                        Delete case <span className="font-mono font-medium" style={{ color: 'var(--text-primary)' }}>{inv.caseNumber}</span> and all of its evidence, sessions and reports?
+                      </p>
+                      <button
+                        onClick={() => setConfirmDeleteId(null)}
+                        className="text-[12px] font-medium px-2 py-1 rounded-md transition-colors"
+                        style={{ color: 'var(--text-tertiary)' }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-tertiary)')}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => handleDeleteInvestigation(inv.id)}
+                        disabled={deletingId === inv.id}
+                        className="text-[12px] font-medium px-2.5 py-1 rounded-md text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+                        style={{ background: '#e11d48' }}
+                      >
+                        {deletingId === inv.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Delete'}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3 px-1">
+                      <StatusDot status={(inv.status || 'active') as string} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] font-medium truncate" style={{ color: 'var(--text-primary)' }}>
+                          {inv.title || 'Untitled case'}
+                        </p>
+                        <p className="text-[11px] font-mono mt-0.5 truncate" style={{ color: 'var(--text-tertiary)' }}>
+                          {inv.caseNumber} · {(inv.evidenceCount ?? 0)} evidence · {inv.status || 'active'}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setConfirmDeleteId(inv.id)}
+                        title="Delete investigation"
+                        className="p-1.5 rounded-md transition-colors"
+                        style={{ color: 'var(--text-tertiary)' }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = '#f43f5e';
+                          e.currentTarget.style.background = 'var(--surface-container)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = 'var(--text-tertiary)';
+                          e.currentTarget.style.background = 'transparent';
+                        }}
+                      >
+                        <Trash2 strokeWidth={1.75} className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </Section>
 
         {/* ─── Row: Sandbox Sessions + Threat Classification ─── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -780,7 +900,7 @@ export function EnhancedDashboardPage() {
       {/* ─── New Investigation Modal ─── */}
       <Modal
         isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
+        onClose={handleCloseCreateModal}
         title="New Investigation"
         size="md"
       >
@@ -831,7 +951,7 @@ export function EnhancedDashboardPage() {
           )}
           <div className="flex items-center justify-end gap-2 pt-2">
             <button
-              onClick={() => setShowCreateModal(false)}
+              onClick={handleCloseCreateModal}
               className="px-4 py-2 text-[13px] font-medium rounded-lg transition-colors"
               style={{ background: 'var(--surface-container)', color: 'var(--text-secondary)' }}
               onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}

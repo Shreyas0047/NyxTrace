@@ -58,6 +58,9 @@ if (issues.length > 0) {
 export const config = {
   env,
 
+  /** In-app demo mode (tamper simulation actions, etc.). */
+  demoMode: import.meta.env.VITE_DEMO_MODE === 'true',
+
   /** Periodic refresh intervals (milliseconds). */
   polling: {
     /** Connection-status banner refresh. */

@@ -53,6 +53,8 @@ export interface AlertEnrichmentRequest {
 
 export interface InvestigationSummaryRequest {
   investigationId: string;
+  title?: string;
+  description?: string;
   caseNumber: string;
   evidence: any[];
   reports: any[];

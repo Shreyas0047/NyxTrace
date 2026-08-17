@@ -17,7 +17,7 @@ const router = Router();
 router.post(
   '/ioc',
   authenticate,
-  authorize(['admin', 'forensic_analyst']),
+  authorize(['super_admin', 'admin', 'forensic_analyst']),
   threatIntelligenceController.createIOC
 );
 
@@ -43,7 +43,7 @@ router.get('/iocs', authenticate, threatIntelligenceController.searchIOCs);
 router.patch(
   '/ioc/:iocId/status',
   authenticate,
-  authorize(['admin']),
+  authorize(['super_admin', 'admin']),
   threatIntelligenceController.updateIOCStatus
 );
 
@@ -55,7 +55,7 @@ router.patch(
 router.post(
   '/ioc/link',
   authenticate,
-  authorize(['admin', 'forensic_analyst']),
+  authorize(['super_admin', 'admin', 'forensic_analyst']),
   threatIntelligenceController.linkIOCToEvidence
 );
 
@@ -67,7 +67,7 @@ router.post(
 router.post(
   '/ioc/match',
   authenticate,
-  authorize(['admin', 'forensic_analyst']),
+  authorize(['super_admin', 'admin', 'forensic_analyst']),
   threatIntelligenceController.matchIOCs
 );
 
@@ -90,7 +90,7 @@ router.get(
 router.post(
   '/correlation',
   authenticate,
-  authorize(['admin', 'forensic_analyst']),
+  authorize(['super_admin', 'admin', 'forensic_analyst']),
   threatIntelligenceController.createCorrelation
 );
 
@@ -102,7 +102,7 @@ router.post(
 router.post(
   '/enrich/:investigationId',
   authenticate,
-  authorize(['admin', 'forensic_analyst']),
+  authorize(['super_admin', 'admin', 'forensic_analyst']),
   threatIntelligenceController.enrichInvestigation
 );
 
@@ -114,7 +114,7 @@ router.post(
 router.get(
   '/analytics/:type',
   authenticate,
-  authorize(['admin', 'forensic_analyst']),
+  authorize(['super_admin', 'admin', 'forensic_analyst']),
   threatIntelligenceController.generateAnalytics
 );
 

@@ -7,6 +7,7 @@ import { Investigation } from '../models';
 import { InvestigationStatus, InvestigationPriority } from '../types';
 import { NotFoundError, ValidationError } from '../middleware';
 import { v4 as uuidv4 } from 'uuid';
+import fs from 'fs';
 
 export class InvestigationService {
   /**
@@ -138,7 +139,9 @@ export class InvestigationService {
   }
 
   /**
-   * Delete investigation
+   * Delete investigation with cascade cleanup of related records.
+   * Removes evidence (unlinking files on disk), sandbox sessions, analysis
+   * reports, forensic reports, alerts and custody records for the investigation.
    */
   async delete(id: string): Promise<void> {
     const result = await Investigation.findByIdAndDelete(id);
@@ -146,6 +149,42 @@ export class InvestigationService {
     if (!result) {
       throw new NotFoundError('Investigation');
     }
+
+    const {
+      Evidence,
+      SandboxSession,
+      AnalysisReport,
+      Report,
+      Alert,
+      ChainOfCustody,
+      EvidenceLineage,
+      VerificationHistory,
+    } = await import('../models');
+
+    const evidenceRecords = await Evidence.find({ investigationId: id }).select('filePath _id').lean();
+    const evidenceIds = evidenceRecords.map((e: any) => e._id);
+
+    // Unlink evidence artifacts on disk, then drop records
+    for (const ev of evidenceRecords) {
+      if ((ev as any).filePath && fs.existsSync((ev as any).filePath)) {
+        try {
+          fs.unlinkSync((ev as any).filePath);
+        } catch {
+          // best-effort cleanup
+        }
+      }
+    }
+    if (evidenceIds.length > 0) {
+      await Evidence.deleteMany({ investigationId: id });
+      await SandboxSession.deleteMany({ evidenceId: { $in: evidenceIds } });
+      await ChainOfCustody.deleteMany({ evidenceId: { $in: evidenceIds } });
+      await EvidenceLineage.deleteMany({ evidenceId: { $in: evidenceIds } });
+      await VerificationHistory.deleteMany({ evidenceId: { $in: evidenceIds } });
+    }
+
+    await AnalysisReport.deleteMany({ investigationId: id });
+    await Report.deleteMany({ investigationId: id });
+    await Alert.deleteMany({ investigationId: id });
   }
 
   /**

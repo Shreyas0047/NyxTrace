@@ -162,7 +162,7 @@ interface BlockchainState {
   // Actions
   fetchStatus: () => Promise<void>;
   fetchStats: () => Promise<void>;
-  verifyEvidence: (evidenceId: string, filePath: string) => Promise<VerificationResult>;
+  verifyEvidence: (evidenceId: string, filePath: string, sourceType?: 'file' | 'url') => Promise<VerificationResult>;
   batchVerify: (evidenceItems: Array<{ evidenceId: string; filePath: string }>) => Promise<BatchVerificationResult>;
   createPackage: (
     investigationId: string,
@@ -285,12 +285,13 @@ export const useBlockchainStore = create<BlockchainState>((set, get) => ({
   },
 
   // Verify single evidence
-  verifyEvidence: async (evidenceId: string, filePath: string): Promise<VerificationResult> => {
+  verifyEvidence: async (evidenceId: string, filePath: string, sourceType: 'file' | 'url' = 'file'): Promise<VerificationResult> => {
     set({ isLoading: true, error: null });
     try {
       const response = await api.post<{ verified: boolean; currentHash: string; status: string; integrityState: string }>('/blockchain/evidence/verify', {
         evidenceId,
         filePath,
+        sourceType,
       });
       if (response.success && response.data) {
         const result: VerificationResult = {

@@ -11,13 +11,26 @@ import logger from '../config/logger';
 
 export class UserService {
   /**
+   * Split a display name into firstName/lastName (model requires both).
+   */
+  private splitName(name: string, firstName?: string, lastName?: string): { firstName: string; lastName: string } {
+    const parts = (name ?? '').trim().split(/\s+/).filter(Boolean);
+    return {
+      firstName: firstName || parts[0] || 'Unknown',
+      lastName: lastName || parts.slice(1).join(' ') || 'Unknown',
+    };
+  }
+
+  /**
    * Create a new user (admin function)
    */
   async create(data: {
     email: string;
     password: string;
-    firstName: string;
-    lastName: string;
+    name?: string;
+    firstName?: string;
+    lastName?: string;
+    department?: string;
     role: UserRole;
     createdBy: string;
     ipAddress?: string;
@@ -40,12 +53,15 @@ export class UserService {
       throw new ForbiddenError(`Cannot assign role ${data.role}`);
     }
 
+    const { firstName, lastName } = this.splitName(data.name ?? '', data.firstName, data.lastName);
+
     // Create user
     const user = await User.create({
       email: data.email.toLowerCase(),
       password: data.password,
-      firstName: data.firstName,
-      lastName: data.lastName,
+      firstName,
+      lastName,
+      department: data.department,
       role: data.role,
       createdBy: data.createdBy,
     });
@@ -102,6 +118,11 @@ export class UserService {
       .limit(limit)
       .lean();
 
+    // lean() bypasses toJSON transform — add display name explicitly
+    users.forEach((u: any) => {
+      u.name = [u.firstName, u.lastName].filter(Boolean).join(' ').trim() || u.email;
+    });
+
     return { users, total, totalPages };
   }
 
@@ -117,18 +138,26 @@ export class UserService {
       throw new NotFoundError('User');
     }
 
+    (user as any).name = [user.firstName, user.lastName].filter(Boolean).join(' ').trim() || user.email;
+
     return user;
   }
 
   /**
    * Update user
+   * Supports profile fields (name, email, department, password) plus role
+   * changes with the same RBAC guards as the dedicated role endpoint.
    */
   async update(
     id: string,
     data: {
+      name?: string;
       firstName?: string;
       lastName?: string;
       email?: string;
+      department?: string;
+      password?: string;
+      role?: UserRole;
     },
     updatedBy: string,
     ipAddress?: string
@@ -138,29 +167,55 @@ export class UserService {
       throw new NotFoundError('User');
     }
 
-    // Only allow updating own profile name, or admin can update others
     const updater: any = await User.findById(updatedBy);
+    if (!updater) {
+      throw new NotFoundError('User');
+    }
 
-    if (id !== updatedBy && !updater.canManageUser(user)) {
+    const updatingSelf = id === updatedBy;
+
+    // Only allow updating own profile, or admins managing strictly-lower users
+    if (!updatingSelf && !updater.canManageUser(user)) {
       throw new ForbiddenError('Cannot update this user');
     }
 
-    // Update fields
-    if (data.firstName) user.firstName = data.firstName;
-    if (data.lastName) user.lastName = data.lastName;
+    // Name fields (frontend sends a single `name`; model stores first/last)
+    const { firstName, lastName } = this.splitName(data.name ?? '', data.firstName, data.lastName);
+    if (data.name || data.firstName || data.lastName) {
+      user.firstName = firstName;
+      user.lastName = lastName;
+    }
     if (data.email) user.email = data.email.toLowerCase();
+    if (data.department !== undefined) user.department = data.department;
+    if (data.password) user.password = data.password;
+
+    // Role change — same guards as changeRole(); self-demotion allowed if assignable
+    let roleChanged = false;
+    const oldRole = user.role;
+    if (data.role && data.role !== user.role) {
+      if (!updater.canAssignRole(data.role)) {
+        throw new ForbiddenError('Cannot assign this role');
+      }
+      if (!updatingSelf && !updater.canManageUser(user)) {
+        throw new ForbiddenError('Cannot change role of this user');
+      }
+      user.role = data.role;
+      roleChanged = true;
+    }
 
     await user.save();
 
     // Audit
     await (AuditLog as any).log({
       userId: updatedBy,
-      action: AuditAction.USER_UPDATE,
+      action: roleChanged ? AuditAction.USER_ROLE_CHANGE : AuditAction.USER_UPDATE,
       entityType: 'User',
       entityId: id,
       ipAddress,
       status: 'success',
-      details: { updatedFields: Object.keys(data) },
+      details: roleChanged
+        ? { oldRole, newRole: data.role, updatedFields: Object.keys(data) }
+        : { updatedFields: Object.keys(data) },
     });
 
     return user;

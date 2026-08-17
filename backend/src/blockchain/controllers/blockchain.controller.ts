@@ -6,6 +6,7 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../../middleware';
 import { ApiResponse } from '../../types';
+import logger from '../../config/logger';
 import { blockchainVerificationService } from '../verification-orchestrator.service';
 import { verificationService } from '../verification.service';
 import { blockchainService } from '../blockchain.service';
@@ -13,6 +14,8 @@ import { blockchainSyncService } from '../synchronization.service';
 import { distributedVerificationService } from '../verification-worker.service';
 import { blockchainReconciliationService } from '../reconciliation.service';
 import { blockchainStateTrackingService } from '../state-tracking.service';
+import chainOfCustodyService from '../../services/custody.service';
+import { CustodyEventType, IntegrityStatus } from '../../models/custody.model';
 
 export class BlockchainController {
   /**
@@ -69,7 +72,7 @@ export class BlockchainController {
    */
   async registerEvidence(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const { evidenceId, filePath } = req.body;
+      const { evidenceId, filePath, sourceType = 'file' } = req.body;
 
       if (!evidenceId || !filePath) {
         res.status(400).json({
@@ -82,7 +85,8 @@ export class BlockchainController {
       const result = await blockchainVerificationService.registerEvidence(
         evidenceId,
         filePath,
-        req.user?.id || 'system'
+        req.user?.id || 'system',
+        sourceType === 'url' ? 'url' : 'file'
       );
 
       const response: ApiResponse = {
@@ -107,7 +111,7 @@ export class BlockchainController {
    */
   async verifyEvidence(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const { evidenceId, filePath } = req.body;
+      const { evidenceId, filePath, sourceType = 'file' } = req.body;
 
       if (!evidenceId || !filePath) {
         res.status(400).json({
@@ -120,7 +124,8 @@ export class BlockchainController {
       const result = await blockchainVerificationService.verifyEvidence(
         evidenceId,
         filePath,
-        req.user?.id || 'system'
+        req.user?.id || 'system',
+        sourceType === 'url' ? 'url' : 'file'
       );
 
       const response: ApiResponse = {
@@ -792,6 +797,26 @@ export class BlockchainController {
         actualHash
       );
 
+      if (result.success && result.transactionHash && result.blockNumber) {
+        try {
+          const { default: mongoose } = await import('mongoose');
+          const isObjectId = mongoose.Types.ObjectId.isValid(investigationId || '');
+          await chainOfCustodyService.addEvent({
+            evidenceId,
+            eventType: CustodyEventType.BLOCKCHAIN_CONFIRMED,
+            performedBy: req.user?.id || 'system',
+            performedByName: req.user?.name || 'System',
+            details: 'Tamper detection recorded on the blockchain',
+            ...(isObjectId ? { investigationId } : {}),
+            transactionHash: result.transactionHash,
+            blockNumber: result.blockNumber,
+            integrityStatus: IntegrityStatus.TAMPER_SUSPECTED,
+          });
+        } catch (error) {
+          logger.warn(`[Blockchain] Failed to record blockchain_confirmed custody event: ${error}`);
+        }
+      }
+
       const response: ApiResponse = {
         success: result.success,
         message: result.success ? 'Tamper detection recorded on blockchain' : 'Failed to record',
@@ -885,7 +910,8 @@ export class BlockchainController {
 
       const syncId = await blockchainSyncService.queueEvidenceRegistration(
         evidenceId,
-        fingerprint
+        fingerprint,
+        req.user?.id || 'system'
       );
 
       const response: ApiResponse = {

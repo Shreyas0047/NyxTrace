@@ -10,7 +10,7 @@ import type { ApiResponse } from '../types';
 
 export class ReportsController {
   async findAll(req: AuthenticatedRequest, res: Response): Promise<void> {
-    const { page = 1, limit = 20, simulator, severity, dateFrom, dateTo, search } = req.query as Record<string, string>;
+    const { page = 1, limit = 20, simulator, severity, dateFrom, dateTo, search, investigationId } = req.query as Record<string, string>;
 
     const result = await reportsService.getReports({
       page: Number(page),
@@ -20,6 +20,7 @@ export class ReportsController {
       dateFrom,
       dateTo,
       search,
+      investigationId,
     });
 
     const response: ApiResponse = {

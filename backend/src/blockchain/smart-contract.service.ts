@@ -8,6 +8,15 @@ import { ethers } from 'ethers';
 import { config } from '../config';
 import { blockchainConfig } from './config';
 
+/**
+ * Convert a hex string (with or without '0x' prefix) to a zero-padded
+ * bytes32 hex value for contract calls.
+ */
+function toBytes32Hex(value: string): string {
+  const clean = value.startsWith('0x') ? value.slice(2) : value;
+  return ethers.zeroPadValue('0x' + clean, 32);
+}
+
 // Smart contract ABI definitions
 export const FORENSICS_EVIDENCE_ABI = [
   // Read functions
@@ -239,14 +248,14 @@ export class SmartContractService {
 
     try {
       // Convert hash string to bytes32
-      const hashBytes32 = ethers.zeroPadValue('0x' + evidenceHash.slice(2), 32);
+      const hashBytes32 = toBytes32Hex(evidenceHash);
 
       // Prepare transaction
       const tx = await this.evidenceContract.registerEvidence(
         evidenceId,
         hashBytes32,
         investigationId,
-        metadata || ''
+        metadata || '0x'
       );
 
       // Wait for confirmation
@@ -278,7 +287,7 @@ export class SmartContractService {
     try {
       const evidenceIds = evidenceItems.map((e) => e.evidenceId);
       const evidenceHashes = evidenceItems.map((e) =>
-        ethers.zeroPadValue('0x' + e.evidenceHash.slice(2), 32)
+        toBytes32Hex(e.evidenceHash)
       );
 
       const tx = await this.evidenceContract.batchRegisterEvidence(
@@ -313,7 +322,7 @@ export class SmartContractService {
     }
 
     try {
-      const hashBytes32 = ethers.zeroPadValue('0x' + hashToVerify.slice(2), 32);
+      const hashBytes32 = toBytes32Hex(hashToVerify);
 
       const tx = await this.evidenceContract.verifyEvidence(evidenceId, hashBytes32);
       const receipt = await tx.wait();
@@ -347,10 +356,10 @@ export class SmartContractService {
       return {
         evidenceId: result.evidenceId,
         evidenceHash: result.evidenceHash,
-        timestamp: result.timestamp,
+        timestamp: Number(result.timestamp),
         investigator: result.investigator,
         investigationId: result.investigationId,
-        verificationStatus: result.verificationStatus,
+        verificationStatus: Number(result.verificationStatus),
         metadata: result.metadata,
       };
     } catch (error) {
@@ -426,7 +435,7 @@ export class SmartContractService {
         params.description,
         params.investigationId,
         params.evidenceId || '',
-        params.metadata || ''
+        params.metadata || '0x'
       );
 
       const receipt = await tx.wait();
@@ -456,7 +465,7 @@ export class SmartContractService {
     }
 
     try {
-      const hashBytes32 = ethers.zeroPadValue('0x' + hash.slice(2), 32);
+      const hashBytes32 = toBytes32Hex(hash);
       const tx = await this.auditContract.recordEvidenceRegistration(
         evidenceId,
         investigationId,
@@ -492,8 +501,8 @@ export class SmartContractService {
     }
 
     try {
-      const expectedBytes32 = ethers.zeroPadValue('0x' + expectedHash.slice(2), 32);
-      const actualBytes32 = ethers.zeroPadValue('0x' + actualHash.slice(2), 32);
+      const expectedBytes32 = toBytes32Hex(expectedHash);
+      const actualBytes32 = toBytes32Hex(actualHash);
 
       const tx = await this.auditContract.recordVerificationResult(
         evidenceId,
@@ -531,8 +540,8 @@ export class SmartContractService {
     }
 
     try {
-      const expectedBytes32 = ethers.zeroPadValue('0x' + expectedHash.slice(2), 32);
-      const actualBytes32 = ethers.zeroPadValue('0x' + actualHash.slice(2), 32);
+      const expectedBytes32 = toBytes32Hex(expectedHash);
+      const actualBytes32 = toBytes32Hex(actualHash);
 
       const tx = await this.auditContract.recordTamperDetection(
         evidenceId,
